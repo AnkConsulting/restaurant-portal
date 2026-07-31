@@ -108,7 +108,7 @@ async def render_dashboard(
 
     table_records = filtered_df.to_dict(orient="records")
 
-return templates.TemplateResponse(
+    return templates.TemplateResponse(
         request=request,
         name="index.html",
         context={

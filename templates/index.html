@@ -147,29 +147,40 @@
 <!-- Main Content Area -->
 <main class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto">
 <!-- Horizontal Control Bar -->
-<section class="flex flex-wrap items-center justify-between gap-4 mb-8">
-<div class="flex items-center gap-3">
-<div class="flex items-center bg-white border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
-<span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">calendar_today</span>
-<input class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md w-64 outline-none" placeholder="Mar 01, 2024 - Mar 31, 2024" type="text"/>
-</div>
-</div>
-<div class="flex items-center gap-4 flex-1 justify-end">
-<div class="relative min-w-[200px]">
-<select class="w-full appearance-none bg-white border border-outline-variant rounded-lg px-4 py-2 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none pr-10">
-<option>All Outlets</option>
-<option>Bandra West</option>
-<option>Andheri East</option>
-<option>Lower Parel</option>
-</select>
-<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
-</div>
-<div class="flex items-center bg-white border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all min-w-[240px]">
-<span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">search</span>
-<input class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md w-full outline-none" placeholder="Search by Res ID..." type="text"/>
-</div>
-</div>
-</section>
+<form method="get" action="/" class="flex flex-wrap items-center justify-between gap-4 mb-8">
+    <!-- Preserves the selected brand if you add brand filtering later -->
+    <input type="hidden" name="brand" value="{{ selected_brand }}">
+    
+    <div class="flex items-center gap-3">
+        <div class="flex items-center bg-white border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+            <span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">calendar_today</span>
+            <!-- Real HTML5 Date Pickers -->
+            <input type="date" name="start_date" class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md outline-none text-on-surface-variant" />
+            <span class="mx-2 text-on-surface-variant">to</span>
+            <input type="date" name="end_date" class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md outline-none text-on-surface-variant" />
+        </div>
+    </div>
+
+    <div class="flex items-center gap-4 flex-1 justify-end">
+        <div class="relative min-w-[200px]">
+            <!-- Dynamic Dropdown linked to Google Sheet Locations -->
+            <select name="outlet" onchange="this.form.submit()" class="w-full appearance-none bg-white border border-outline-variant rounded-lg px-4 py-2 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none pr-10">
+                <option value="">All Outlets</option>
+                {% for loc in outlets %}
+                <option value="{{ loc }}" {% if loc == selected_outlet %}selected{% endif %}>{{ loc }}</option>
+                {% endfor %}
+            </select>
+            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+        </div>
+
+        <div class="flex items-center bg-white border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all min-w-[240px]">
+            <span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">search</span>
+            <!-- Search Box connected to Res ID -->
+            <input type="text" name="search_res_id" value="{{ search_res_id }}" class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md w-full outline-none" placeholder="Search by Res ID..." />
+            <button type="submit" class="hidden">Search</button>
+        </div>
+    </div>
+</form>
 <!-- KPI Row -->
 <section class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
 <!-- GMV -->

@@ -5,3 +5,4 @@ jinja2
 openpyxl
 requests
 itsdangerous
+python-multipart

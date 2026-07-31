@@ -1,18 +1,25 @@
 from typing import Optional
-from fastapi import FastAPI, Request, Query
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, Query, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 import pandas as pd
 import os
 
 app = FastAPI(title="Restaurant Daily Analytics Portal")
 
+# Add session security
+app.add_middleware(SessionMiddleware, secret_key="YOUR_SUPER_SECRET_SESSION_KEY")
+
 # This forces Render to find the exact path to your templates folder
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-# Paste your Published Google Sheet CSV URL here
+# Published Google Sheet CSV URL for Main Financial Report
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=161887137&single=true&output=csv"
+
+# Published Google Sheet CSV URL for Brand_Mapping Security Registry
+BRAND_MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=766978685&single=true&output=csv"
 
 
 def load_data():
@@ -65,7 +72,19 @@ async def render_dashboard(
     outlet: Optional[str] = Query(None),
     search_res_id: Optional[str] = Query(None),
 ):
+    # 1. Security Check: Is user logged in?
+    if not request.session.get("logged_in"):
+        return RedirectResponse(url="/login", status_code=303)
+
+    is_admin = request.session.get("is_admin", False)
+    authorized_res_ids = request.session.get("authorized_res_ids", [])
+
     df = load_data()
+
+    # 2. Apply Data Isolation Filtering for Stakeholders
+    if not is_admin:
+        # Stakeholders only see rows matching their authorized Restaurant IDs
+        df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
 
     # Multi-tenant brand isolation
     brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
@@ -113,6 +132,7 @@ async def render_dashboard(
         name="index.html",
         context={
             "request": request,
+            "is_admin": is_admin,
             "brands": brands,
             "selected_brand": selected_brand,
             "outlets": outlets,
@@ -126,3 +146,54 @@ async def render_dashboard(
             "table_data": table_records,
         },
     )
+
+
+@app.get("/login")
+def login_page(request: Request, error: str = None):
+    # If already logged in, redirect straight to dashboard
+    if request.session.get("logged_in"):
+        return RedirectResponse(url="/", status_code=303)
+    return templates.TemplateResponse("login.html", {"request": request, "error": error})
+
+
+@app.post("/login")
+def handle_login(request: Request, passkey: str = Form(...)):
+    # Master Admin Passkey
+    MASTER_ADMIN_KEY = "AnK@2025"
+    
+    if passkey == MASTER_ADMIN_KEY:
+        request.session["logged_in"] = True
+        request.session["is_admin"] = True
+        request.session["authorized_res_ids"] = []
+        return RedirectResponse(url="/", status_code=303)
+    
+    # Check against Brand_Mapping sheet for stakeholder passkeys
+    try:
+        brand_df = pd.read_csv(BRAND_MAPPING_CSV_URL)
+        
+        # Clean column spaces if any
+        brand_df.columns = brand_df.columns.str.strip()
+        
+        # Look for matching passkeys in the 'Passkeys' column
+        matched_rows = brand_df[brand_df['Passkeys'].astype(str).str.strip() == passkey.strip()]
+        
+        if not matched_rows.empty:
+            # Extract authorized Res IDs (checking both Swiggy and Zomato columns)
+            swiggy_ids = matched_rows['Swiggy Res ID'].dropna().astype(str).tolist()
+            zomato_ids = matched_rows['Zomato Res ID'].dropna().astype(str).tolist()
+            allowed_ids = swiggy_ids + zomato_ids
+            
+            request.session["logged_in"] = True
+            request.session["is_admin"] = False
+            request.session["authorized_res_ids"] = allowed_ids
+            return RedirectResponse(url="/", status_code=303)
+    except Exception as e:
+        print(f"Login lookup error: {e}")
+        
+    return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid Passkey. Please try again."})
+
+
+@app.get("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/login", status_code=303)

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Restaurant Daily Analytics Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c3c6d7",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-high": "#e6e8ea",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#b9c7e0",
+                        "tertiary-container": "#606e84",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-secondary-fixed-variant": "#005049",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "on-secondary-container": "#006f66",
+                        "surface-tint": "#0053db",
+                        "surface-bright": "#f7f9fb",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#d8dadc",
+                        "tertiary-fixed": "#d5e3fd",
+                        "on-tertiary-container": "#eaf0ff",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#e0e3e5",
+                        "on-secondary": "#ffffff",
+                        "on-background": "#191c1e",
+                        "primary": "#004ac6",
+                        "on-primary-container": "#eeefff",
+                        "surface": "#f7f9fb",
+                        "surface-container": "#eceef0",
+                        "secondary-fixed": "#89f5e7",
+                        "on-tertiary-fixed-variant": "#3a485c",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-container-highest": "#e0e3e5",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary-fixed": "#00174b",
+                        "secondary-container": "#86f2e4",
+                        "secondary": "#006a61",
+                        "primary-container": "#2563eb",
+                        "outline": "#737686",
+                        "tertiary": "#48566b",
+                        "on-surface-variant": "#434655",
+                        "on-tertiary-fixed": "#0d1c2f",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed": "#00201d",
+                        "secondary-fixed-dim": "#6bd8cb",
+                        "primary-fixed": "#dbe1ff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "background": "#f7f9fb",
+                        "inverse-primary": "#b4c5ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "max-width": "1440px",
+                        "margin-desktop": "32px",
+                        "base": "8px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-sm": ["JetBrains Mono"],
+                        "title-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .elevation-0 { @apply bg-surface-bright shadow-none; }
+            .elevation-1 { @apply bg-white border border-surface-container-high shadow-[0_4px_12px_rgba(0,0,0,0.02)]; }
+            .elevation-2 { @apply bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]; }
+            .card-radius { @apply rounded-[16px]; }
+            .btn-radius { @apply rounded-lg; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<!-- Fixed Top Header -->
+<header class="fixed top-0 w-full z-50 bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
+<div class="flex items-center gap-4">
+<img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="https://lh3.googleusercontent.com/aida/AP1WRLuz4IG3uVeIARhKHBi7swr1vh6-iHc7HBKIckZ1upgROrNSEa-FFTeHTPdHfikgdcIx2oeA1gzAez9Ve14ic5MlmmBhOYZNWv2NAc6jUCKiuNDjZlDB5PBwHCwABuOU4obtMht047b9RnjdxBQ2ibPz592zgksT4GfjSJ1fp1z3BiaXaUCI_SlCXXxGOX0Ecd-3klVOSL44_LF7oXNKHvA2lol0C3c6IWrxBlTXMQtUVuOQKAMMc6-xAL-u"/>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight hidden md:block">Restaurant Daily Analytics Portal</h1>
+</div>
+<div class="flex items-center gap-4"><div class="relative group">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<!-- Settings Flyout Panel -->
+<div class="absolute right-0 mt-2 w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
+<h4 class="font-title-md text-title-md text-on-surface mb-4">Theme Settings</h4>
+<!-- Logo Upload Zone -->
+<div class="mb-6">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2 block">Upload Restaurant Logo</label>
+<div class="border-2 border-dashed border-outline-variant rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors cursor-pointer bg-surface-container-lowest">
+<span class="material-symbols-outlined text-primary">cloud_upload</span>
+<span class="text-body-md text-on-surface-variant text-sm">Drag &amp; drop or click</span>
+</div>
+</div>
+<!-- Toggle Switch -->
+<div class="flex items-center justify-between">
+<span class="text-body-md text-on-surface">Use Default Platform Theme</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+<div class="hidden md:flex flex-col items-end">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Welcome,</span>
+<span class="font-title-md text-title-md text-on-surface">{{ selected_brand }}</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-title-md text-title-md">
+                MC
+            </div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto">
+<!-- Horizontal Control Bar -->
+<section class="flex flex-wrap items-center justify-between gap-4 mb-8">
+<div class="flex items-center gap-3">
+<div class="flex items-center bg-white border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+<span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">calendar_today</span>
+<input class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md w-64 outline-none" placeholder="Mar 01, 2024 - Mar 31, 2024" type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4 flex-1 justify-end">
+<div class="relative min-w-[200px]">
+<select class="w-full appearance-none bg-white border border-outline-variant rounded-lg px-4 py-2 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none pr-10">
+<option>All Outlets</option>
+<option>Bandra West</option>
+<option>Andheri East</option>
+<option>Lower Parel</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+<div class="flex items-center bg-white border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all min-w-[240px]">
+<span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">search</span>
+<input class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md w-full outline-none" placeholder="Search by Res ID..." type="text"/>
+</div>
+</div>
+</section>
+<!-- KPI Row -->
+<section class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+<!-- GMV -->
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Total Daily GMV</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0;">payments</span>
+</div>
+<div class="font-headline-lg text-headline-lg text-on-surface mb-4">{{ total_gmv }}</div>
+<div class="h-8 w-full bg-gradient-to-r from-primary/10 to-transparent rounded">
+<!-- Placeholder for Sparkline -->
+<svg class="w-full h-full text-primary" preserveaspectratio="none" viewbox="0 0 100 20">
+<path d="M0 15 L20 10 L40 18 L60 5 L80 12 L100 2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Delivered Orders -->
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Delivered Orders</span>
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
+</div>
+<div class="font-headline-lg text-headline-lg text-on-surface mb-4">{{ total_orders }}</div>
+<div class="font-body-md text-body-md text-secondary flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span>
+                    +5.2% vs last week
+                </div>
+</div>
+<!-- AOV -->
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">AOV</span>
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
+</div>
+<div class="font-headline-lg text-headline-lg text-on-surface mb-4">{{ avg_aov }}</div>
+<div class="font-body-md text-body-md text-on-surface-variant flex items-center">
+                    Steady
+                </div>
+</div>
+<!-- Sales from Ads -->
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Sales from Ads</span>
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 0;">campaign</span>
+</div>
+<div class="font-headline-lg text-headline-lg text-on-surface mb-4">{{ sales_ads }}</div>
+<div class="font-body-md text-body-md text-secondary flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span>
+                    +12% ROAS
+                </div>
+</div>
+<!-- Discount Given -->
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Discount Given</span>
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 0;">sell</span>
+</div>
+<div class="font-headline-lg text-headline-lg text-on-surface mb-4">{{ discount_given }}</div>
+<div class="font-body-md text-body-md text-on-surface-variant flex items-center">
+                    7.7% of GMV
+                </div>
+</div>
+</section>
+<!-- Charts Row -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+<!-- Donut Chart -->
+<div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
+<h3 class="font-title-md text-title-md text-on-surface mb-6">Orders by Platform</h3>
+<div class="flex-1 flex items-center justify-center relative">
+<!-- Custom SVG Donut -->
+<svg class="w-48 h-48 transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="transparent" r="40" stroke="#e0e3e5" stroke-width="16"></circle>
+<!-- Swiggy roughly 60% -->
+<circle cx="50" cy="50" fill="transparent" r="40" stroke="#004ac6" stroke-dasharray="251.2" stroke-dashoffset="100.48" stroke-width="16"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-lg text-headline-lg text-on-surface">4.8k</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Total Orders</span>
+</div>
+</div>
+<div class="flex justify-center gap-6 mt-4">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="font-body-md text-body-md text-on-surface">Swiggy (60%)</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-surface-variant"></div>
+<span class="font-body-md text-body-md text-on-surface">Zomato (40%)</span>
+</div>
+</div>
+</div>
+<!-- Area Chart -->
+<div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Sales</span>
+</div>
+</div>
+<div class="flex-1 w-full relative flex items-end border-l border-b border-surface-container-high pb-6 pl-4">
+<!-- Simple pseudo-chart using SVG -->
+<svg class="w-full h-full absolute bottom-6 left-4 right-0" preserveaspectratio="none" viewbox="0 0 400 200">
+<defs>
+<lineargradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#004ac6" stop-opacity="0.1"></stop>
+<stop offset="100%" stop-color="#004ac6" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0 150 L50 120 L100 160 L150 90 L200 110 L250 60 L300 80 L350 30 L400 50 L400 200 L0 200 Z" fill="url(#areaGradient)"></path>
+<path d="M0 150 L50 120 L100 160 L150 90 L200 110 L250 60 L300 80 L350 30 L400 50" fill="none" stroke="#004ac6" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<!-- Y Axis Labels -->
+<div class="absolute left-0 top-0 bottom-6 flex flex-col justify-between items-end text-label-sm text-on-surface-variant pr-2">
+<span>100k</span>
+<span>50k</span>
+<span>0</span>
+</div>
+<!-- X Axis Labels -->
+<div class="absolute bottom-0 left-4 right-0 flex justify-between text-label-sm text-on-surface-variant pt-2">
+<span>Mon</span>
+<span>Tue</span>
+<span>Wed</span>
+<span>Thu</span>
+<span>Fri</span>
+<span>Sat</span>
+<span>Sun</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Data Table -->
+<section class="elevation-1 card-radius overflow-hidden">
+<div class="px-6 py-4 border-b border-surface-container-high bg-white">
+<h2 class="font-title-md text-title-md text-on-surface">FILTERED DAILY OPERATIONAL REPORT</h2>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F1F5F9] font-label-sm text-label-sm text-on-surface-variant uppercase border-b border-surface-container-high">
+<th class="py-4 px-6 font-medium">Restaurant Name</th>
+<th class="py-4 px-6 font-medium">Report Period</th>
+<th class="py-4 px-6 font-medium">Location</th>
+<th class="py-4 px-6 font-medium">Res ID</th>
+<th class="py-4 px-6 font-medium">Platform</th>
+<th class="py-4 px-6 font-medium text-right">Delivered Orders</th>
+<th class="py-4 px-6 font-medium text-right">Sales</th>
+<th class="py-4 px-6 font-medium text-right">GMV</th>
+<th class="py-4 px-6 font-medium text-right">Sales from Ads</th>
+<th class="py-4 px-6 font-medium text-right">Discount Given</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+
+{% for row in table_data %}
+<tr class="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
+<td class="py-4 px-6">{{ row['Restaurant Name'] }}</td>
+<td class="py-4 px-6 text-on-surface-variant">{{ row['Report Period'] }}</td>
+<td class="py-4 px-6">{{ row['Location'] }}</td>
+<td class="py-4 px-6 font-label-sm text-outline">{{ row['Res ID'] }}</td>
+<td class="py-4 px-6">{{ row['Platform'] }}</td>
+<td class="py-4 px-6 text-right font-semibold">{{ "{:,}".format(row['Delivered orders']|int) }}</td>
+<td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['Sales']) }}</td>
+<td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['GMV']) }}</td>
+<td class="py-4 px-6 text-right text-primary-container">₹{{ "{:,.2f}".format(row['Sales from Ads']) }}</td>
+<td class="py-4 px-6 text-right text-error">₹{{ "{:,.2f}".format(row['Discount given']) }}</td>
+</tr>
+{% else %}
+<tr>
+<td colspan="10" class="py-8 text-center text-on-surface-variant">No operational data found for the selected filter.</td>
+</tr>
+{% endfor %}
+
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</body></html>

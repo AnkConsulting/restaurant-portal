@@ -8,7 +8,7 @@ app = FastAPI(title="Restaurant Daily Analytics Portal")
 templates = Jinja2Templates(directory="templates")
 
 # Paste your Published Google Sheet CSV URL here
-SHEET_CSV_URL = "YOUR_PUBLISHED_GOOGLE_SHEET_CSV_URL_HERE"
+https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=161887137&single=true&output=csv
 
 
 def load_data():

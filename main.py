@@ -148,12 +148,12 @@ async def render_dashboard(
     )
 
 
-@app.get("/login")
-def login_page(request: Request, error: str = None):
+@app.get("/login", response_class=HTMLResponse)
+def login_page(request: Request, error: Optional[str] = None):
     # If already logged in, redirect straight to dashboard
     if request.session.get("logged_in"):
         return RedirectResponse(url="/", status_code=303)
-    return templates.TemplateResponse("login.html", {"request": request, "error": error})
+    return templates.TemplateResponse(request, "login.html", {"error": error})
 
 
 @app.post("/login")
@@ -190,7 +190,7 @@ def handle_login(request: Request, passkey: str = Form(...)):
     except Exception as e:
         print(f"Login lookup error: {e}")
         
-    return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid Passkey. Please try again."})
+    return templates.TemplateResponse(request, "login.html", {"error": "Invalid Passkey. Please try again."})
 
 
 @app.get("/logout")

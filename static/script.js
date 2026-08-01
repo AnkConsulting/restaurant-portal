@@ -11,7 +11,7 @@ let trendChartInstance = null;
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-// Platform Brand Colors Map
+// Platform Brand Colors Map (Using exact requested HEX codes)
 const PLATFORM_COLORS = {
     'Swiggy': '#FC8019',
     'Zomato': '#E23744'
@@ -62,16 +62,28 @@ function initCharts(data) {
     // 1. Orders by Platform Donut Chart
     const donutCtx = document.getElementById('platformDonutChart').getContext('2d');
     
-    // Map colors based on the platform name dynamically
     const platformLabels = Object.keys(data.platform_donut);
+    const platformValues = Object.values(data.platform_donut);
+    
+    // Calculate total orders to generate percentages
+    const totalOrders = platformValues.reduce((sum, val) => sum + val, 0);
+    
+    // Append percentage to the label (e.g. "Swiggy (60%)")
+    const labelsWithPct = platformLabels.map((platform, i) => {
+        const val = platformValues[i];
+        const pct = totalOrders > 0 ? Math.round((val / totalOrders) * 100) : 0;
+        return `${platform} (${pct}%)`;
+    });
+
+    // Map colors based on the platform name dynamically
     const mappedColors = platformLabels.map(platform => PLATFORM_COLORS[platform] || DEFAULT_COLOR);
 
     donutChartInstance = new Chart(donutCtx, {
         type: 'doughnut',
         data: {
-            labels: platformLabels,
+            labels: labelsWithPct,
             datasets: [{
-                data: Object.values(data.platform_donut),
+                data: platformValues,
                 backgroundColor: mappedColors,
                 borderWidth: 0,
                 hoverOffset: 4
@@ -80,11 +92,14 @@ function initCharts(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '75%',
+            cutout: '55%', // Made thicker (was 75%)
             plugins: {
                 legend: {
                     position: 'bottom',
-                    labels: { font: { family: "'Hanken Grotesk', sans-serif" } }
+                    labels: { 
+                        font: { family: "'Hanken Grotesk', sans-serif", size: 14 },
+                        padding: 20
+                    }
                 }
             }
         }
@@ -141,10 +156,20 @@ function updateCharts(data) {
 
     // Update Donut Chart
     const platformLabels = Object.keys(data.platform_donut);
+    const platformValues = Object.values(data.platform_donut);
+    
+    // Recalculate percentages for updated data
+    const totalOrders = platformValues.reduce((sum, val) => sum + val, 0);
+    const labelsWithPct = platformLabels.map((platform, i) => {
+        const val = platformValues[i];
+        const pct = totalOrders > 0 ? Math.round((val / totalOrders) * 100) : 0;
+        return `${platform} (${pct}%)`;
+    });
+
     const mappedColors = platformLabels.map(platform => PLATFORM_COLORS[platform] || DEFAULT_COLOR);
 
-    donutChartInstance.data.labels = platformLabels;
-    donutChartInstance.data.datasets[0].data = Object.values(data.platform_donut);
+    donutChartInstance.data.labels = labelsWithPct;
+    donutChartInstance.data.datasets[0].data = platformValues;
     donutChartInstance.data.datasets[0].backgroundColor = mappedColors;
     donutChartInstance.update();
 

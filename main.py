@@ -95,13 +95,17 @@ async def render_dashboard(
 
     df = load_data()
 
-    # ALWAYS Parse dates safely at the top level with dayfirst=True
-    if "Report Period" in df.columns:
-        df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
-
     # 2. Data Isolation Filtering
     if not is_admin:
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
+
+    # --- NEW: CALCULATE MAX AVAILABLE DATE BASED ON SHEET ---
+    max_available_date = ""
+    if "Report Period" in df.columns:
+        df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
+        max_date_obj = df["_temp_date"].max()
+        if pd.notnull(max_date_obj):
+            max_available_date = max_date_obj.strftime("%Y-%m-%d")
 
     # 3. Date Range Filtering
     if start_date and end_date and "_temp_date" in df.columns:
@@ -178,6 +182,7 @@ async def render_dashboard(
             })
             
         return JSONResponse(content={
+            "max_available_date": max_available_date, # Pass max date to JS
             "total_gmv": f"₹{total_gmv:,.2f}",
             "total_orders": f"{total_orders:,}",
             "avg_aov": f"₹{avg_aov:,.2f}",
@@ -204,6 +209,7 @@ async def render_dashboard(
             "selected_platform": platform or "",
             "start_date": start_date or "",
             "end_date": end_date or "",
+            "max_available_date": max_available_date, # Pass max date to HTML
             "total_gmv": f"₹{total_gmv:,.2f}",
             "total_orders": f"{total_orders:,}",
             "avg_aov": f"₹{avg_aov:,.2f}",

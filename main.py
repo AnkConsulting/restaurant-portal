@@ -54,7 +54,6 @@ def load_data():
     ]
     for col in numeric_cols:
         if col in df.columns:
-            # Ensure commas are removed before converting to numeric
             df[col] = pd.to_numeric(df[col].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
 
     # Apply CV calculation logic 
@@ -76,7 +75,9 @@ async def render_dashboard(
     request: Request,
     brand: Optional[str] = Query(None),
     outlet: Optional[str] = Query(None),
-    platform: Optional[str] = Query(None), # Replaced search_res_id with platform
+    platform: Optional[str] = Query(None),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None),
 ):
     # 1. Security Check: Is user logged in?
     if not request.session.get("logged_in"):
@@ -89,8 +90,16 @@ async def render_dashboard(
 
     # 2. Apply Data Isolation Filtering for Stakeholders
     if not is_admin:
-        # Stakeholders only see rows matching their authorized Restaurant IDs
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
+
+    # 3. Date Range Filtering
+    if start_date and end_date:
+        if "Report Period" in df.columns:
+            df["_temp_date"] = pd.to_datetime(df["Report Period"], errors="coerce")
+            start = pd.to_datetime(start_date, errors="coerce")
+            end = pd.to_datetime(end_date, errors="coerce")
+            if pd.notnull(start) and pd.notnull(end):
+                df = df[(df["_temp_date"] >= start) & (df["_temp_date"] <= end)]
 
     # Multi-tenant brand isolation
     all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
@@ -102,7 +111,7 @@ async def render_dashboard(
     if outlet and outlet in outlets:
         filtered_df = filtered_df[filtered_df["Location"] == outlet]
 
-    # Platform filter (New feature)
+    # Platform filter
     platforms = sorted(filtered_df["Platform"].dropna().unique().tolist())
     if platform and platform in platforms:
         filtered_df = filtered_df[filtered_df["Platform"] == platform]
@@ -140,8 +149,10 @@ async def render_dashboard(
             "selected_brand": selected_brand,
             "outlets": outlets,
             "selected_outlet": outlet or "",
-            "platforms": platforms,               # Feed platforms to template
-            "selected_platform": platform or "",  # Feed selected platform
+            "platforms": platforms,
+            "selected_platform": platform or "",
+            "start_date": start_date or "2025-01-12",
+            "end_date": end_date or "2025-01-16",
             "total_gmv": f"₹{total_gmv:,.2f}",
             "total_orders": f"{total_orders:,}",
             "avg_aov": f"₹{avg_aov:,.2f}",
@@ -154,7 +165,6 @@ async def render_dashboard(
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, error: Optional[str] = None):
-    # If already logged in, redirect straight to dashboard
     if request.session.get("logged_in"):
         return RedirectResponse(url="/", status_code=303)
     return templates.TemplateResponse(request, "login.html", {"error": error})
@@ -162,7 +172,6 @@ def login_page(request: Request, error: Optional[str] = None):
 
 @app.post("/login")
 def handle_login(request: Request, passkey: str = Form(...)):
-    # Master Admin Passkey
     MASTER_ADMIN_KEY = "AnK@2025"
     
     if passkey == MASTER_ADMIN_KEY:
@@ -171,18 +180,12 @@ def handle_login(request: Request, passkey: str = Form(...)):
         request.session["authorized_res_ids"] = []
         return RedirectResponse(url="/", status_code=303)
     
-    # Check against Brand_Mapping sheet for stakeholder passkeys
     try:
         brand_df = pd.read_csv(BRAND_MAPPING_CSV_URL)
-        
-        # Clean column spaces if any
         brand_df.columns = brand_df.columns.str.strip()
-        
-        # Look for matching passkeys in the 'Passkeys' column
         matched_rows = brand_df[brand_df['Passkeys'].astype(str).str.strip() == passkey.strip()]
         
         if not matched_rows.empty:
-            # Extract authorized Res IDs (checking both Swiggy and Zomato columns)
             swiggy_ids = matched_rows['Swiggy Res ID'].dropna().astype(str).tolist()
             zomato_ids = matched_rows['Zomato Res ID'].dropna().astype(str).tolist()
             allowed_ids = swiggy_ids + zomato_ids

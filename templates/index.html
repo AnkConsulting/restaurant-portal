@@ -196,15 +196,16 @@
         </div>
     </div>
 </form>
-<!-- KPI Row -->
+
+<!-- KPI Row (Updated to prevent values breaking out of cards) -->
 <section class="grid grid-cols-5 gap-6 mb-8">
 <!-- GMV -->
-<div class="elevation-1 card-radius p-4 flex flex-col justify-between">
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
 <div class="flex justify-between items-start mb-2">
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Total Daily GMV</span>
-<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0;">payments</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Total Daily GMV</span>
+<span class="material-symbols-outlined text-primary shrink-0" style="font-variation-settings: 'FILL' 0;">payments</span>
 </div>
-<div class="font-headline-lg text-headline-lg text-on-surface mb-4">{{ total_gmv }}</div>
+<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
 <div class="h-8 w-full bg-gradient-to-r from-primary/10 to-transparent rounded">
 <!-- Placeholder for Sparkline -->
 <svg class="w-full h-full text-primary" preserveaspectratio="none" viewbox="0 0 100 20">
@@ -213,52 +214,53 @@
 </div>
 </div>
 <!-- Delivered Orders -->
-<div class="elevation-1 card-radius p-4 flex flex-col justify-between">
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
 <div class="flex justify-between items-start mb-2">
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Delivered Orders</span>
-<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Delivered Orders</span>
+<span class="material-symbols-outlined text-secondary shrink-0" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
 </div>
-<div class="font-headline-lg text-headline-lg text-on-surface mb-4">{{ total_orders }}</div>
-<div class="font-body-md text-body-md text-secondary flex items-center">
-<span class="material-symbols-outlined text-sm mr-1">trending_up</span>
-                    +5.2% vs last week
+<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_orders }}">{{ total_orders }}</div>
+<div class="font-body-md text-body-md text-secondary flex items-center truncate">
+<span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
+                    <span class="truncate">+5.2% vs last week</span>
                 </div>
 </div>
 <!-- AOV -->
-<div class="elevation-1 card-radius p-4 flex flex-col justify-between">
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
 <div class="flex justify-between items-start mb-2">
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">AOV</span>
-<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">AOV</span>
+<span class="material-symbols-outlined text-tertiary shrink-0" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
 </div>
-<div class="font-headline-lg text-headline-lg text-on-surface mb-4">{{ avg_aov }}</div>
-<div class="font-body-md text-body-md text-on-surface-variant flex items-center">
+<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
+<div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
                     Steady
                 </div>
 </div>
 <!-- Sales from Ads -->
-<div class="elevation-1 card-radius p-4 flex flex-col justify-between">
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
 <div class="flex justify-between items-start mb-2">
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Sales from Ads</span>
-<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 0;">campaign</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Sales from Ads</span>
+<span class="material-symbols-outlined text-primary-container shrink-0" style="font-variation-settings: 'FILL' 0;">campaign</span>
 </div>
-<div class="font-headline-lg text-headline-lg text-on-surface mb-4">{{ sales_ads }}</div>
-<div class="font-body-md text-body-md text-secondary flex items-center">
-<span class="material-symbols-outlined text-sm mr-1">trending_up</span>
-                    +12% ROAS
+<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
+<div class="font-body-md text-body-md text-secondary flex items-center truncate">
+<span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
+                    <span class="truncate">+12% ROAS</span>
                 </div>
 </div>
 <!-- Discount Given -->
-<div class="elevation-1 card-radius p-4 flex flex-col justify-between">
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
 <div class="flex justify-between items-start mb-2">
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Discount Given</span>
-<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 0;">sell</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Discount Given</span>
+<span class="material-symbols-outlined text-error shrink-0" style="font-variation-settings: 'FILL' 0;">sell</span>
 </div>
-<div class="font-headline-lg text-headline-lg text-on-surface mb-4">{{ discount_given }}</div>
-<div class="font-body-md text-body-md text-on-surface-variant flex items-center">
-                    7.7% of GMV
+<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ discount_given }}">{{ discount_given }}</div>
+<div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
+                    <span class="truncate">7.7% of GMV</span>
                 </div>
 </div>
 </section>
+
 <!-- Charts Row -->
 <section class="grid grid-cols-2 gap-6 mb-8">
 <!-- Donut Chart -->

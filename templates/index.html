@@ -162,7 +162,7 @@
 </div>
 </header>
 <!-- Main Content Area -->
-<main class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto">
+<main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto transition-opacity duration-300">
 <!-- Horizontal Control Bar -->
 <form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
     
@@ -246,8 +246,8 @@
         <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
             <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
             
-            <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between">
-                <span class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
+            <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
                 <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
             </div>
 
@@ -272,8 +272,8 @@
         <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
             <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
             
-            <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between">
-                <span class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
+            <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
                 <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
             </div>
 
@@ -294,8 +294,8 @@
         <div class="relative min-w-[220px] w-full md:w-auto" id="platform-dropdown-container">
             <input type="hidden" name="platform" id="platform-input" value="{{ selected_platform }}">
             
-            <div onclick="toggleCustomDropdown('platform-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between">
-                <span class="truncate">{{ selected_platform if selected_platform else 'All Platforms' }}</span>
+            <div onclick="toggleCustomDropdown('platform-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <span id="platform-trigger-text" class="truncate">{{ selected_platform if selected_platform else 'All Platforms' }}</span>
                 <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
             </div>
 
@@ -323,7 +323,7 @@
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Total Daily GMV</span>
 <span class="material-symbols-outlined text-primary shrink-0" style="font-variation-settings: 'FILL' 0;">payments</span>
 </div>
-<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
+<div id="kpi-gmv" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
 <div class="h-8 w-full bg-gradient-to-r from-primary/10 to-transparent rounded">
 <!-- Placeholder for Sparkline -->
 <svg class="w-full h-full text-primary" preserveaspectratio="none" viewbox="0 0 100 20">
@@ -337,7 +337,7 @@
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Delivered Orders</span>
 <span class="material-symbols-outlined text-secondary shrink-0" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
 </div>
-<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_orders }}">{{ total_orders }}</div>
+<div id="kpi-orders" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_orders }}">{{ total_orders }}</div>
 <div class="font-body-md text-body-md text-secondary flex items-center truncate">
 <span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
                     <span class="truncate">+5.2% vs last week</span>
@@ -349,7 +349,7 @@
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">AOV</span>
 <span class="material-symbols-outlined text-tertiary shrink-0" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
 </div>
-<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
+<div id="kpi-aov" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
 <div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
                     Steady
                 </div>
@@ -360,7 +360,7 @@
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Sales from Ads</span>
 <span class="material-symbols-outlined text-primary-container shrink-0" style="font-variation-settings: 'FILL' 0;">campaign</span>
 </div>
-<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
+<div id="kpi-ads" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
 <div class="font-body-md text-body-md text-secondary flex items-center truncate">
 <span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
                     <span class="truncate">+12% ROAS</span>
@@ -372,7 +372,7 @@
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Discount Given</span>
 <span class="material-symbols-outlined text-error shrink-0" style="font-variation-settings: 'FILL' 0;">sell</span>
 </div>
-<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ discount_given }}">{{ discount_given }}</div>
+<div id="kpi-discount" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ discount_given }}">{{ discount_given }}</div>
 <div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
                     <span class="truncate">7.7% of GMV</span>
                 </div>
@@ -468,7 +468,7 @@
 <th class="py-4 px-6 font-medium text-right">Discount Given</th>
 </tr>
 </thead>
-<tbody class="font-body-md text-body-md text-on-surface">
+<tbody id="data-table-body" class="font-body-md text-body-md text-on-surface">
 
 {% for row in table_data %}
 <tr class="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
@@ -495,267 +495,7 @@
 </section>
 </main>
 
-<!-- Scripts -->
-<script>
-  // Dynamic Avatar Initials
-  document.addEventListener("DOMContentLoaded", function () {
-    const brandName = "{{ selected_brand }}".trim();
-    const avatarBadge = document.getElementById("avatar-initials");
-    if (avatarBadge && brandName) {
-      const words = brandName.split(/\s+/);
-      let initials = words.map(w => w[0]).join("").toUpperCase();
-      if (initials.length > 2) initials = initials.substring(0, 2);
-      avatarBadge.innerText = initials || "RP";
-    }
-    
-    // Initialize Calendar & Labels on Page Load
-    if (selectedStartDate && !selectedEndDate) {
-      selectedEndDate = selectedStartDate;
-    }
-    renderMonthYearDropdowns();
-    renderCalendar();
-  });
+<!-- External Script Import -->
+<script src="/static/script.js"></script>
 
-  // --- DYNAMIC DOCKER CALENDAR ENGINE ---
-  let selectedStartDate = "{{ start_date }}" || null;
-  let selectedEndDate = "{{ end_date }}" || null;
-  
-  // Set starting view month/year based on start_date or current date
-  let viewDate = selectedStartDate ? new Date(selectedStartDate) : new Date();
-  let viewYear = viewDate.getFullYear();
-  let viewMonth = viewDate.getMonth();
-  
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-  // Formats 'YYYY-MM-DD' into 'DD/MMM/YYYY' (e.g., '01/Aug/2026')
-  function formatDateLabel(dateStr) {
-    if (!dateStr) return "";
-    const parts = dateStr.split('-');
-    if (parts.length !== 3) return dateStr;
-    const day = parts[2];
-    const month = monthNames[parseInt(parts[1], 10) - 1];
-    const year = parts[0];
-    return `${day}/${month}/${year}`;
-  }
-
-  function renderMonthYearDropdowns() {
-    document.getElementById('month-text').innerText = monthNames[viewMonth];
-    document.getElementById('year-text').innerText = viewYear;
-
-    const mList = document.getElementById('month-dropdown');
-    mList.innerHTML = monthNames.map((m, i) => 
-        `<div class="px-3 py-2 hover:bg-surface-container-high cursor-pointer text-sm font-medium ${i === viewMonth ? 'text-primary bg-primary/10' : 'text-on-surface'}" onclick="selectMonth(${i}, event)">${m}</div>`
-    ).join('');
-    
-    const yList = document.getElementById('year-dropdown');
-    let yHTML = '';
-    const currentYear = new Date().getFullYear();
-    for(let y = currentYear - 5; y <= currentYear + 5; y++) {
-        yHTML += `<div class="px-3 py-2 hover:bg-surface-container-high cursor-pointer text-sm font-medium ${y === viewYear ? 'text-primary bg-primary/10' : 'text-on-surface'}" onclick="selectYear(${y}, event)">${y}</div>`;
-    }
-    yList.innerHTML = yHTML;
-  }
-
-  function toggleMonthDropdown(e) {
-    e.stopPropagation();
-    document.getElementById('month-dropdown').classList.toggle('hidden');
-    document.getElementById('year-dropdown').classList.add('hidden');
-  }
-
-  function toggleYearDropdown(e) {
-    e.stopPropagation();
-    document.getElementById('year-dropdown').classList.toggle('hidden');
-    document.getElementById('month-dropdown').classList.add('hidden');
-  }
-
-  function selectMonth(m, e) {
-    e.stopPropagation();
-    viewMonth = m;
-    document.getElementById('month-dropdown').classList.add('hidden');
-    renderMonthYearDropdowns();
-    renderCalendar();
-  }
-
-  function selectYear(y, e) {
-    e.stopPropagation();
-    viewYear = y;
-    document.getElementById('year-dropdown').classList.add('hidden');
-    renderMonthYearDropdowns();
-    renderCalendar();
-  }
-
-  function renderCalendar() {
-    renderMonthYearDropdowns();
-    
-    const grid = document.getElementById('calendar-days-grid');
-    grid.innerHTML = "";
-
-    const firstDay = new Date(viewYear, viewMonth, 1).getDay(); // 0 is Sunday
-    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-
-    // 1. Add Empty Padding Days (for previous month overhang)
-    for (let i = 0; i < firstDay; i++) {
-        grid.innerHTML += `<div class="py-2"></div>`;
-    }
-
-    // 2. Add Actual Days
-    for (let d = 1; d <= daysInMonth; d++) {
-        // Format as YYYY-MM-DD for accurate string comparisons
-        let monthStr = String(viewMonth + 1).padStart(2, '0');
-        let dayStr = String(d).padStart(2, '0');
-        let dateStr = `${viewYear}-${monthStr}-${dayStr}`;
-        
-        grid.innerHTML += `<div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="${dateStr}" onclick="handleDayClick(this)">${d}</div>`;
-    }
-    
-    updateCalendarHighlights();
-  }
-
-  function navigateCalendar(monthOffset, yearOffset) {
-    viewMonth += monthOffset;
-    viewYear += yearOffset;
-    
-    if (viewMonth < 0) { 
-        viewMonth = 11; 
-        viewYear--; 
-    } else if (viewMonth > 11) { 
-        viewMonth = 0; 
-        viewYear++; 
-    }
-    renderCalendar();
-  }
-
-  function handleDayClick(dayEl) {
-    const clickedDate = dayEl.getAttribute('data-date');
-    if (!clickedDate) return;
-
-    if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
-      // First click or resetting an existing range
-      selectedStartDate = clickedDate;
-      selectedEndDate = null;
-    } else if (selectedStartDate && !selectedEndDate) {
-      // Second click: create range or enforce condition
-      if (clickedDate < selectedStartDate) {
-        // Condition Enforcement: Auto-swap so Start <= End
-        selectedEndDate = selectedStartDate; 
-        selectedStartDate = clickedDate;
-      } else {
-        selectedEndDate = clickedDate;
-      }
-    }
-    updateCalendarHighlights();
-  }
-
-  function updateCalendarHighlights() {
-    // 1. Highlight visual grid
-    const dayCells = document.querySelectorAll('.calendar-day-item');
-    dayCells.forEach(cell => {
-      const cellDate = cell.getAttribute('data-date');
-      cell.className = "calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"; // Reset
-
-      if (selectedStartDate && cellDate === selectedStartDate) {
-        cell.className = "calendar-day-item py-2 text-white bg-[#2563eb] rounded-lg cursor-pointer font-bold shadow-md shadow-blue-200";
-      } else if (selectedEndDate && cellDate === selectedEndDate) {
-        cell.className = "calendar-day-item py-2 text-white bg-[#2563eb] rounded-lg cursor-pointer font-bold shadow-md shadow-blue-200";
-      } else if (selectedStartDate && selectedEndDate && cellDate > selectedStartDate && cellDate < selectedEndDate) {
-        cell.className = "calendar-day-item py-2 text-[#2563eb] bg-blue-50 font-semibold cursor-pointer rounded-lg";
-      }
-    });
-
-    // 2. Update Label Text with requested format (e.g. 01/Aug/2026 to 01/Aug/2026)
-    const labelEl = document.getElementById('date-picker-label');
-    if (selectedStartDate && selectedEndDate) {
-        labelEl.innerText = `${formatDateLabel(selectedStartDate)} to ${formatDateLabel(selectedEndDate)}`;
-    } else if (selectedStartDate) {
-        labelEl.innerText = `${formatDateLabel(selectedStartDate)} to ...`;
-    } else {
-        labelEl.innerText = 'Select Date / Range';
-    }
-  }
-
-  function applyDateSelection() {
-    if (!selectedStartDate) {
-      toggleCustomDropdown('calendar-menu', event);
-      return;
-    }
-
-    // Auto-fill condition: If user only clicked one date, make the end date the exact same date.
-    if (!selectedEndDate) {
-      selectedEndDate = selectedStartDate;
-    }
-
-    document.getElementById('start-date-input').value = selectedStartDate;
-    document.getElementById('end-date-input').value = selectedEndDate;
-
-    document.getElementById('filter-form').submit();
-  }
-
-  // --- EXISTING DROPDOWN LOGIC ---
-  function toggleCustomDropdown(menuId, event) {
-    event.stopPropagation();
-    
-    document.querySelectorAll('.dropdown-menu-custom').forEach(menu => {
-        if (menu.id !== menuId) menu.classList.add('hidden');
-    });
-
-    const menu = document.getElementById(menuId);
-    menu.classList.toggle('hidden');
-    
-    if (!menu.classList.contains('hidden')) {
-        const searchInput = menu.querySelector('input[type="text"]');
-        if (searchInput) searchInput.focus();
-    }
-  }
-
-  function filterCustomDropdown(inputId, listId) {
-    const filter = document.getElementById(inputId).value.toLowerCase();
-    const lis = document.getElementById(listId).getElementsByTagName('li');
-    
-    for (let i = 1; i < lis.length; i++) {
-        let txtValue = lis[i].textContent || lis[i].innerText;
-        if (txtValue.toLowerCase().indexOf(filter) > -1) {
-            lis[i].style.display = "";
-        } else {
-            lis[i].style.display = "none";
-        }
-    }
-  }
-
-  function submitCustomDropdown(inputId, selectedValue) {
-    const hiddenInput = document.getElementById(inputId);
-    hiddenInput.value = selectedValue;
-    
-    if (inputId === 'brand-input') {
-        const outletInput = document.getElementById('outlet-input');
-        if (outletInput) outletInput.value = "";
-    }
-    
-    document.getElementById('filter-form').submit();
-  }
-
-  // Close custom dropdowns on click outside
-  document.addEventListener('click', function(event) {
-    const brandContainer = document.getElementById('brand-dropdown-container');
-    const outletContainer = document.getElementById('outlet-dropdown-container');
-    const platformContainer = document.getElementById('platform-dropdown-container');
-    const dateContainer = document.getElementById('date-dropdown-container');
-    
-    if (brandContainer && !brandContainer.contains(event.target)) {
-        document.getElementById('brand-menu')?.classList.add('hidden');
-    }
-    if (outletContainer && !outletContainer.contains(event.target)) {
-        document.getElementById('outlet-menu')?.classList.add('hidden');
-    }
-    if (platformContainer && !platformContainer.contains(event.target)) {
-        document.getElementById('platform-menu')?.classList.add('hidden');
-    }
-    if (dateContainer && !dateContainer.contains(event.target)) {
-        document.getElementById('calendar-menu')?.classList.add('hidden');
-    }
-
-    // Close Month/Year inner dropdowns
-    document.getElementById('month-dropdown')?.classList.add('hidden');
-    document.getElementById('year-dropdown')?.classList.add('hidden');
-  });
-</script>
 </body></html>

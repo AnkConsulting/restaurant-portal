@@ -194,6 +194,12 @@ async function fetchDashboardData() {
         const response = await fetch('/?' + params.toString());
         const data = await response.json();
         
+        // Update max available date silently
+        const maxInput = document.getElementById('max-available-date');
+        if (maxInput && data.max_available_date) {
+            maxInput.value = data.max_available_date;
+        }
+
         // Update KPIs
         document.getElementById('kpi-gmv').innerText = data.total_gmv;
         document.getElementById('kpi-gmv').title = data.total_gmv;
@@ -322,6 +328,7 @@ function selectYear(y, e) {
 function renderCalendar() {
     renderMonthYearDropdowns();
     
+    const maxDateStr = document.getElementById('max-available-date') ? document.getElementById('max-available-date').value : '';
     const grid = document.getElementById('calendar-days-grid');
     grid.innerHTML = "";
 
@@ -337,7 +344,13 @@ function renderCalendar() {
         let dayStr = String(d).padStart(2, '0');
         let dateStr = `${viewYear}-${monthStr}-${dayStr}`;
         
-        grid.innerHTML += `<div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="${dateStr}" onclick="handleDayClick(this)">${d}</div>`;
+        if (maxDateStr && dateStr > maxDateStr) {
+            // Disabled Future Date
+            grid.innerHTML += `<div class="py-2 text-gray-300 cursor-not-allowed bg-gray-50/50 rounded-lg flex items-center justify-center" title="No data available">${d}</div>`;
+        } else {
+            // Clickable Date
+            grid.innerHTML += `<div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="${dateStr}" onclick="handleDayClick(this)">${d}</div>`;
+        }
     }
     
     updateCalendarHighlights();

@@ -101,6 +101,11 @@
             .elevation-2 { @apply bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]; }
             .card-radius { @apply rounded-[16px]; }
             .btn-radius { @apply rounded-lg; }
+            
+            /* Custom scrollbar for dropdowns */
+            .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+            .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c3c6d7; border-radius: 20px; }
         }
     </style>
 </head>
@@ -159,7 +164,7 @@
 <!-- Main Content Area -->
 <main class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto">
 <!-- Horizontal Control Bar -->
-<form method="get" action="/" class="flex flex-wrap items-center justify-between gap-4 mb-8">
+<form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
     
     <div class="flex items-center gap-3">
         <div class="flex items-center bg-white border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
@@ -174,33 +179,61 @@
     <div class="flex items-center gap-4 flex-1 justify-end">
         
         {% if is_admin %}
-        <!-- Admin Brand Dropdown (Visible only to Admins) -->
-        <div class="relative min-w-[200px] w-full md:w-auto">
-            <select name="brand" onchange="this.form.submit()" style="-webkit-appearance: none; -moz-appearance: none; appearance: none;" class="w-full md:w-[220px] bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer appearance-none">
-                <option value="">All Brands</option>
-                {% for b in all_brands %}
-                <option value="{{ b }}" {% if b == selected_brand %}selected{% endif %}>{{ b }}</option>
-                {% endfor %}
-            </select>
-            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant flex items-center">
-                <span class="material-symbols-outlined">expand_more</span>
+        <!-- Searchable Admin Brand Dropdown -->
+        <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
+            <!-- Hidden input that actually submits the form -->
+            <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
+            
+            <!-- Visible Button -->
+            <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between">
+                <span class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
+                <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+            </div>
+
+            <!-- Dropdown Menu with Search -->
+            <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <!-- Search Box -->
+                <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                    <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
+                </div>
+                <!-- Options List -->
+                <ul id="brand-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
+                    <li onclick="submitCustomDropdown('brand-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Brands</li>
+                    {% for b in all_brands %}
+                    <li onclick="submitCustomDropdown('brand-input', '{{ b }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ b }}</li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
         {% else %}
         <!-- Stakeholder Fallback (Hidden from view) -->
-        <input type="hidden" name="brand" value="{{ selected_brand }}">
+        <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
         {% endif %}
 
-        <!-- Bulletproof Outlet Dropdown with Inline Appearance Hack -->
-        <div class="relative min-w-[200px] w-full md:w-auto">
-            <select name="outlet" onchange="this.form.submit()" style="-webkit-appearance: none; -moz-appearance: none; appearance: none;" class="w-full md:w-[220px] bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer appearance-none">
-                <option value="">All Outlets</option>
-                {% for loc in outlets %}
-                <option value="{{ loc }}" {% if loc == selected_outlet %}selected{% endif %}>{{ loc }}</option>
-                {% endfor %}
-            </select>
-            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant flex items-center">
-                <span class="material-symbols-outlined">expand_more</span>
+        <!-- Searchable Outlet Dropdown -->
+        <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
+            <!-- Hidden input that actually submits the form -->
+            <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
+            
+            <!-- Visible Button -->
+            <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between">
+                <span class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
+                <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+            </div>
+
+            <!-- Dropdown Menu with Search -->
+            <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <!-- Search Box -->
+                <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                    <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
+                </div>
+                <!-- Options List -->
+                <ul id="outlet-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
+                    <li onclick="submitCustomDropdown('outlet-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Outlets</li>
+                    {% for loc in outlets %}
+                    <li onclick="submitCustomDropdown('outlet-input', '{{ loc }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ loc }}</li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
 
@@ -213,7 +246,7 @@
     </div>
 </form>
 
-<!-- KPI Row (Updated to prevent values breaking out of cards) -->
+<!-- KPI Row -->
 <section class="grid grid-cols-5 gap-6 mb-8">
 <!-- GMV -->
 <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
@@ -393,8 +426,9 @@
 </section>
 </main>
 
-<!-- Dynamic Avatar Initials Script -->
+<!-- Scripts -->
 <script>
+  // 1. Dynamic Avatar Initials
   document.addEventListener("DOMContentLoaded", function () {
     const brandName = "{{ selected_brand }}".trim();
     const avatarBadge = document.getElementById("avatar-initials");
@@ -403,6 +437,69 @@
       let initials = words.map(w => w[0]).join("").toUpperCase();
       if (initials.length > 2) initials = initials.substring(0, 2);
       avatarBadge.innerText = initials || "RP";
+    }
+  });
+
+  // 2. Custom Searchable Dropdown Logic
+  function toggleCustomDropdown(menuId, event) {
+    event.stopPropagation(); // Prevent the body click listener from firing instantly
+    
+    // Hide any currently open menus first
+    document.querySelectorAll('.dropdown-menu-custom').forEach(menu => {
+        if (menu.id !== menuId) menu.classList.add('hidden');
+    });
+
+    // Toggle the target menu
+    const menu = document.getElementById(menuId);
+    menu.classList.toggle('hidden');
+    
+    // Auto-focus the search bar when opened
+    if (!menu.classList.contains('hidden')) {
+        const searchInput = menu.querySelector('input[type="text"]');
+        if (searchInput) searchInput.focus();
+    }
+  }
+
+  function filterCustomDropdown(inputId, listId) {
+    const filter = document.getElementById(inputId).value.toLowerCase();
+    const lis = document.getElementById(listId).getElementsByTagName('li');
+    
+    // Start loop at 1 to completely skip the "All Brands / All Outlets" option
+    for (let i = 1; i < lis.length; i++) {
+        let txtValue = lis[i].textContent || lis[i].innerText;
+        if (txtValue.toLowerCase().indexOf(filter) > -1) {
+            lis[i].style.display = "";
+        } else {
+            lis[i].style.display = "none";
+        }
+    }
+  }
+
+  function submitCustomDropdown(inputId, selectedValue) {
+    const hiddenInput = document.getElementById(inputId);
+    hiddenInput.value = selectedValue;
+    
+    // Special Logic: If they select a Brand, automatically reset the Outlet to empty
+    // so they don't get trapped looking for an outlet that doesn't exist for the new brand.
+    if (inputId === 'brand-input') {
+        const outletInput = document.getElementById('outlet-input');
+        if (outletInput) outletInput.value = "";
+    }
+    
+    // Submit the form to trigger the GET request to FastAPI
+    document.getElementById('filter-form').submit();
+  }
+
+  // Close custom dropdowns if the user clicks anywhere else on the screen
+  document.addEventListener('click', function(event) {
+    const brandContainer = document.getElementById('brand-dropdown-container');
+    const outletContainer = document.getElementById('outlet-dropdown-container');
+    
+    if (brandContainer && !brandContainer.contains(event.target)) {
+        document.getElementById('brand-menu')?.classList.add('hidden');
+    }
+    if (outletContainer && !outletContainer.contains(event.target)) {
+        document.getElementById('outlet-menu')?.classList.add('hidden');
     }
   });
 </script>

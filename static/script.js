@@ -19,7 +19,7 @@ const PLATFORM_COLORS = {
 const DEFAULT_COLOR = '#004ac6';
 
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. Dynamic Avatar Initials (Now reads from the visual display name)
+    // 1. Dynamic Avatar Initials
     const displayNameEl = document.getElementById("user-display-name");
     const displayName = displayNameEl ? displayNameEl.innerText.trim() : "";
     const avatarBadge = document.getElementById("avatar-initials");
@@ -261,6 +261,9 @@ async function fetchDashboardData() {
             menu.classList.add('hidden');
         });
 
+        // Re-render calendar so any disabled bounds adjust to new max available date
+        renderCalendar();
+
     } catch (e) {
         console.error("Error fetching data:", e);
     } finally {
@@ -280,19 +283,35 @@ function formatDateLabel(dateStr) {
 }
 
 function renderMonthYearDropdowns() {
+    const maxDateStr = document.getElementById('max-available-date') ? document.getElementById('max-available-date').value : '';
+    let maxYear = 9999, maxMonth = 11;
+    if (maxDateStr) {
+        const parts = maxDateStr.split('-');
+        maxYear = parseInt(parts[0], 10);
+        maxMonth = parseInt(parts[1], 10) - 1;
+    }
+
     document.getElementById('month-text').innerText = monthNames[viewMonth];
     document.getElementById('year-text').innerText = viewYear;
 
     const mList = document.getElementById('month-dropdown');
-    mList.innerHTML = monthNames.map((m, i) => 
-        `<div class="px-3 py-2 hover:bg-surface-container-high cursor-pointer text-sm font-medium ${i === viewMonth ? 'text-primary bg-primary/10' : 'text-on-surface'}" onclick="selectMonth(${i}, event)">${m}</div>`
-    ).join('');
+    mList.innerHTML = monthNames.map((m, i) => {
+        const isFuture = (viewYear > maxYear) || (viewYear === maxYear && i > maxMonth);
+        if (isFuture) {
+            return `<div class="px-3 py-2 text-gray-300 cursor-not-allowed text-sm font-medium bg-gray-50/50">${m}</div>`;
+        }
+        return `<div class="px-3 py-2 hover:bg-surface-container-high cursor-pointer text-sm font-medium ${i === viewMonth ? 'text-primary bg-primary/10' : 'text-on-surface'}" onclick="selectMonth(${i}, event)">${m}</div>`;
+    }).join('');
     
     const yList = document.getElementById('year-dropdown');
     let yHTML = '';
     const currentYear = new Date().getFullYear();
     for(let y = currentYear - 5; y <= currentYear + 5; y++) {
-        yHTML += `<div class="px-3 py-2 hover:bg-surface-container-high cursor-pointer text-sm font-medium ${y === viewYear ? 'text-primary bg-primary/10' : 'text-on-surface'}" onclick="selectYear(${y}, event)">${y}</div>`;
+        if (y > maxYear) {
+            yHTML += `<div class="px-3 py-2 text-gray-300 cursor-not-allowed text-sm font-medium bg-gray-50/50">${y}</div>`;
+        } else {
+            yHTML += `<div class="px-3 py-2 hover:bg-surface-container-high cursor-pointer text-sm font-medium ${y === viewYear ? 'text-primary bg-primary/10' : 'text-on-surface'}" onclick="selectYear(${y}, event)">${y}</div>`;
+        }
     }
     yList.innerHTML = yHTML;
 }
@@ -345,10 +364,8 @@ function renderCalendar() {
         let dateStr = `${viewYear}-${monthStr}-${dayStr}`;
         
         if (maxDateStr && dateStr > maxDateStr) {
-            // Disabled Future Date
-            grid.innerHTML += `<div class="py-2 text-gray-300 cursor-not-allowed bg-gray-50/50 rounded-lg flex items-center justify-center" title="No data available">${d}</div>`;
+            grid.innerHTML += `<div class="py-2 text-gray-300 cursor-not-allowed bg-gray-50/50 rounded-lg flex items-center justify-center text-sm font-normal" title="No data available">${d}</div>`;
         } else {
-            // Clickable Date
             grid.innerHTML += `<div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="${dateStr}" onclick="handleDayClick(this)">${d}</div>`;
         }
     }
@@ -357,22 +374,39 @@ function renderCalendar() {
 }
 
 function navigateCalendar(monthOffset, yearOffset) {
-    viewMonth += monthOffset;
-    viewYear += yearOffset;
+    const maxDateStr = document.getElementById('max-available-date') ? document.getElementById('max-available-date').value : '';
+    let targetMonth = viewMonth + monthOffset;
+    let targetYear = viewYear + yearOffset;
     
-    if (viewMonth < 0) { 
-        viewMonth = 11; 
-        viewYear--; 
-    } else if (viewMonth > 11) { 
-        viewMonth = 0; 
-        viewYear++; 
+    if (targetMonth < 0) { 
+        targetMonth = 11; 
+        targetYear--; 
+    } else if (targetMonth > 11) { 
+        targetMonth = 0; 
+        targetYear++; 
     }
+
+    if (maxDateStr) {
+        const parts = maxDateStr.split('-');
+        const maxYear = parseInt(parts[0], 10);
+        const maxMonth = parseInt(parts[1], 10) - 1;
+        if ((targetYear > maxYear) || (targetYear === maxYear && targetMonth > maxMonth)) {
+            return; // Block navigating arrow past max month/year
+        }
+    }
+
+    viewMonth = targetMonth;
+    viewYear = targetYear;
     renderCalendar();
 }
 
 function handleDayClick(dayEl) {
     const clickedDate = dayEl.getAttribute('data-date');
     if (!clickedDate) return;
+
+    // Strict guard against future dates
+    const maxDateStr = document.getElementById('max-available-date') ? document.getElementById('max-available-date').value : '';
+    if (maxDateStr && clickedDate > maxDateStr) return;
 
     if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
       selectedStartDate = clickedDate;
@@ -386,7 +420,7 @@ function handleDayClick(dayEl) {
       }
     }
     updateCalendarHighlights();
-  }
+}
 
 function updateCalendarHighlights() {
     const dayCells = document.querySelectorAll('.calendar-day-item');

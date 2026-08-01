@@ -175,7 +175,7 @@
     <div class="flex items-center gap-4 flex-1 justify-end">
         <div class="relative min-w-[200px]">
             <!-- Dynamic Dropdown linked to Google Sheet Locations -->
-            <select name="outlet" onchange="this.form.submit()" class="w-full appearance-none bg-white border border-outline-variant rounded-lg px-4 py-2 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none pr-10">
+            <select name="outlet" onchange="this.form.submit()" style="-webkit-appearance: none; -moz-appearance: none; appearance: none;" class="w-full appearance-none bg-white border border-outline-variant rounded-lg px-4 py-2 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none pr-10">
                 <option value="">All Outlets</option>
                 {% for loc in outlets %}
                 <option value="{{ loc }}" {% if loc == selected_outlet %}selected{% endif %}>{{ loc }}</option>

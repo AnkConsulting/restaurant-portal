@@ -172,17 +172,11 @@
         <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
         <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
 
-        <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none group min-w-[280px]">
+        <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none group min-w-[300px]">
             <div class="flex items-center gap-3">
               <span class="material-symbols-outlined text-gray-500 text-[20px]">calendar_today</span>
               <span id="date-picker-label" class="text-sm font-medium text-gray-700">
-                {% if start_date and end_date and start_date != end_date %}
-                  {{ start_date }} to {{ end_date }}
-                {% elif start_date %}
-                  {{ start_date }}
-                {% else %}
-                  Select Date / Range
-                {% endif %}
+                <!-- Javascript formats and injects text here -->
               </span>
             </div>
             <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors">expand_more</span>
@@ -514,7 +508,10 @@
       avatarBadge.innerText = initials || "RP";
     }
     
-    // Initialize Calendar on Page Load
+    // Initialize Calendar & Labels on Page Load
+    if (selectedStartDate && !selectedEndDate) {
+      selectedEndDate = selectedStartDate;
+    }
     renderMonthYearDropdowns();
     renderCalendar();
   });
@@ -528,7 +525,18 @@
   let viewYear = viewDate.getFullYear();
   let viewMonth = viewDate.getMonth();
   
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  // Formats 'YYYY-MM-DD' into 'DD/MMM/YYYY' (e.g., '01/Aug/2026')
+  function formatDateLabel(dateStr) {
+    if (!dateStr) return "";
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const day = parts[2];
+    const month = monthNames[parseInt(parts[1], 10) - 1];
+    const year = parts[0];
+    return `${day}/${month}/${year}`;
+  }
 
   function renderMonthYearDropdowns() {
     document.getElementById('month-text').innerText = monthNames[viewMonth];
@@ -626,13 +634,11 @@
       selectedStartDate = clickedDate;
       selectedEndDate = null;
     } else if (selectedStartDate && !selectedEndDate) {
-      // Second click: create range
+      // Second click: create range or enforce condition
       if (clickedDate < selectedStartDate) {
-        selectedEndDate = selectedStartDate;
+        // Condition Enforcement: Auto-swap so Start <= End
+        selectedEndDate = selectedStartDate; 
         selectedStartDate = clickedDate;
-      } else if (clickedDate === selectedStartDate) {
-        // Double clicking same date creates a single-date range
-        selectedEndDate = clickedDate;
       } else {
         selectedEndDate = clickedDate;
       }
@@ -656,12 +662,12 @@
       }
     });
 
-    // 2. Update Label Text Instantly
+    // 2. Update Label Text with requested format (e.g. 01/Aug/2026 to 01/Aug/2026)
     const labelEl = document.getElementById('date-picker-label');
-    if (selectedStartDate && selectedEndDate && selectedStartDate !== selectedEndDate) {
-        labelEl.innerText = `${selectedStartDate} to ${selectedEndDate}`;
+    if (selectedStartDate && selectedEndDate) {
+        labelEl.innerText = `${formatDateLabel(selectedStartDate)} to ${formatDateLabel(selectedEndDate)}`;
     } else if (selectedStartDate) {
-        labelEl.innerText = `${selectedStartDate}`;
+        labelEl.innerText = `${formatDateLabel(selectedStartDate)} to ...`;
     } else {
         labelEl.innerText = 'Select Date / Range';
     }
@@ -673,11 +679,13 @@
       return;
     }
 
-    const finalStart = selectedStartDate;
-    const finalEnd = selectedEndDate ? selectedEndDate : selectedStartDate;
+    // Auto-fill condition: If user only clicked one date, make the end date the exact same date.
+    if (!selectedEndDate) {
+      selectedEndDate = selectedStartDate;
+    }
 
-    document.getElementById('start-date-input').value = finalStart;
-    document.getElementById('end-date-input').value = finalEnd;
+    document.getElementById('start-date-input').value = selectedStartDate;
+    document.getElementById('end-date-input').value = selectedEndDate;
 
     document.getElementById('filter-form').submit();
   }

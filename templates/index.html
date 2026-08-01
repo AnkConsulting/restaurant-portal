@@ -131,263 +131,95 @@
 <span class="text-body-md text-on-surface">Use Default Platform Theme</span>
 <label class="relative inline-flex items-center cursor-pointer">
 <input checked="" class="sr-only peer" type="checkbox" value=""/>
-<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-</label>
-</div>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5Here is a complete, structured HTML document. I have set this up as a financial reporting template with a sample data table, complete with basic CSS styling to ensure it is readable and well-formatted right out of the box. 
 
-<!-- Logout Option Snippet -->
-    <div class="mt-4 pt-4 border-t border-outline-variant">
-      <a 
-        href="/logout"
-        class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-error-container/10 rounded-lg transition-colors duration-200 group no-underline"
-      >
-        <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
-        <span class="font-title-small">Logout</span>
-      </a>
-    </div>    
-</div>
-</div>
-<div class="md:flex flex-col items-end">
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Welcome,</span>
-<span class="font-title-md text-title-md text-on-surface">{{ selected_brand }}</span>
-</div>
-<div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-title-md text-title-md">
-                MC
-            </div>
-</div>
-</header>
-<!-- Main Content Area -->
-<main class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto">
-<!-- Horizontal Control Bar -->
-<form method="get" action="/" class="flex flex-wrap items-center justify-between gap-4 mb-8">
-    <!-- Preserves the selected brand -->
-    <input type="hidden" name="brand" value="{{ selected_brand }}">
-    
-    <div class="flex items-center gap-3">
-        <div class="flex items-center bg-white border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
-            <span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">calendar_today</span>
-            <!-- Real HTML5 Date Pickers -->
-            <input type="date" name="start_date" class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md outline-none text-on-surface-variant" />
-            <span class="mx-2 text-on-surface-variant">to</span>
-            <input type="date" name="end_date" class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md outline-none text-on-surface-variant" />
-        </div>
-    </div>
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consolidated Payout Analytics</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            padding: 2rem;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f1f3f5;
+            font-weight: 600;
+            color: #495057;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
 
-    <div class="flex items-center gap-4 flex-1 justify-end">
+    <div class="container">
+        <h2>Payout Settlement Summary</h2>
         
-        <!-- Bulletproof Dropdown with Inline Appearance Hack -->
-        <div class="relative min-w-[200px] w-full md:w-auto">
-            <select name="outlet" onchange="this.form.submit()" style="-webkit-appearance: none; -moz-appearance: none; appearance: none;" class="w-full md:w-[220px] bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer appearance-none">
-                <option value="">All Outlets</option>
-                {% for loc in outlets %}
-                <option value="{{ loc }}" {% if loc == selected_outlet %}selected{% endif %}>{{ loc }}</option>
-                {% endfor %}
-            </select>
-            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant flex items-center">
-                <span class="material-symbols-outlined">expand_more</span>
-            </div>
-        </div>
-
-        <div class="flex items-center bg-white border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all min-w-[240px]">
-            <span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">search</span>
-            <!-- Search Box connected to Res ID -->
-            <input type="text" name="search_res_id" value="{{ search_res_id }}" class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md w-full outline-none" placeholder="Search by Res ID..." />
-            <button type="submit" class="hidden">Search</button>
-        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Restaurant Name</th>
+                    <th>Report Period</th>
+                    <th>Location</th>
+                    <th>Res ID</th>
+                    <th>GMV</th>
+                    <th>Total GST</th>
+                    <th>CV (Comm Value)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Aramane Donne Biriyani</td>
+                    <td>April 2026</td>
+                    <td>Malleshwaram</td>
+                    <td>648545</td>
+                    <td>₹1,50,000</td>
+                    <td>₹7,500</td>
+                    <td>₹1,42,500</td>
+                </tr>
+                <tr>
+                    <td>Bombay Brasserie</td>
+                    <td>May 2026</td>
+                    <td>Nagavara</td>
+                    <td>997632</td>
+                    <td>₹2,10,000</td>
+                    <td>₹10,500</td>
+                    <td>₹1,99,500</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-</form>
 
-<!-- KPI Row (Updated to prevent values breaking out of cards) -->
-<section class="grid grid-cols-5 gap-6 mb-8">
-<!-- GMV -->
-<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
-<div class="flex justify-between items-start mb-2">
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Total Daily GMV</span>
-<span class="material-symbols-outlined text-primary shrink-0" style="font-variation-settings: 'FILL' 0;">payments</span>
-</div>
-<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
-<div class="h-8 w-full bg-gradient-to-r from-primary/10 to-transparent rounded">
-<!-- Placeholder for Sparkline -->
-<svg class="w-full h-full text-primary" preserveaspectratio="none" viewbox="0 0 100 20">
-<path d="M0 15 L20 10 L40 18 L60 5 L80 12 L100 2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
-</svg>
-</div>
-</div>
-<!-- Delivered Orders -->
-<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
-<div class="flex justify-between items-start mb-2">
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Delivered Orders</span>
-<span class="material-symbols-outlined text-secondary shrink-0" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
-</div>
-<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_orders }}">{{ total_orders }}</div>
-<div class="font-body-md text-body-md text-secondary flex items-center truncate">
-<span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
-                    <span class="truncate">+5.2% vs last week</span>
-                </div>
-</div>
-<!-- AOV -->
-<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
-<div class="flex justify-between items-start mb-2">
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">AOV</span>
-<span class="material-symbols-outlined text-tertiary shrink-0" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
-</div>
-<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
-<div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
-                    Steady
-                </div>
-</div>
-<!-- Sales from Ads -->
-<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
-<div class="flex justify-between items-start mb-2">
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Sales from Ads</span>
-<span class="material-symbols-outlined text-primary-container shrink-0" style="font-variation-settings: 'FILL' 0;">campaign</span>
-</div>
-<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
-<div class="font-body-md text-body-md text-secondary flex items-center truncate">
-<span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
-                    <span class="truncate">+12% ROAS</span>
-                </div>
-</div>
-<!-- Discount Given -->
-<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
-<div class="flex justify-between items-start mb-2">
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Discount Given</span>
-<span class="material-symbols-outlined text-error shrink-0" style="font-variation-settings: 'FILL' 0;">sell</span>
-</div>
-<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ discount_given }}">{{ discount_given }}</div>
-<div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
-                    <span class="truncate">7.7% of GMV</span>
-                </div>
-</div>
-</section>
-
-<!-- Charts Row -->
-<section class="grid grid-cols-2 gap-6 mb-8">
-<!-- Donut Chart -->
-<div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
-<h3 class="font-title-md text-title-md text-on-surface mb-6">Orders by Platform</h3>
-<div class="flex-1 flex items-center justify-center relative">
-<!-- Custom SVG Donut -->
-<svg class="w-48 h-48 transform -rotate-90" viewbox="0 0 100 100">
-<circle cx="50" cy="50" fill="transparent" r="40" stroke="#e0e3e5" stroke-width="16"></circle>
-<!-- Swiggy roughly 60% -->
-<circle cx="50" cy="50" fill="transparent" r="40" stroke="#004ac6" stroke-dasharray="251.2" stroke-dashoffset="100.48" stroke-width="16"></circle>
-</svg>
-<div class="absolute inset-0 flex flex-col items-center justify-center">
-<span class="font-headline-lg text-headline-lg text-on-surface">4.8k</span>
-<span class="font-label-sm text-label-sm text-on-surface-variant">Total Orders</span>
-</div>
-</div>
-<div class="flex justify-center gap-6 mt-4">
-<div class="flex items-center gap-2">
-<div class="w-3 h-3 rounded-full bg-primary"></div>
-<span class="font-body-md text-body-md text-on-surface">Swiggy (60%)</span>
-</div>
-<div class="flex items-center gap-2">
-<div class="w-3 h-3 rounded-full bg-surface-variant"></div>
-<span class="font-body-md text-body-md text-on-surface">Zomato (40%)</span>
-</div>
-</div>
-</div>
-<!-- Area Chart -->
-<div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
-<div class="flex justify-between items-center mb-6">
-<h3 class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
-<div class="flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-primary"></span>
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Sales</span>
-</div>
-</div>
-<div class="flex-1 w-full relative flex items-end border-l border-b border-surface-container-high pb-6 pl-4">
-<!-- Simple pseudo-chart using SVG -->
-<svg class="w-full h-full absolute bottom-6 left-4 right-0" preserveaspectratio="none" viewbox="0 0 400 200">
-<defs>
-<lineargradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
-<stop offset="0%" stop-color="#004ac6" stop-opacity="0.1"></stop>
-<stop offset="100%" stop-color="#004ac6" stop-opacity="0"></stop>
-</lineargradient>
-</defs>
-<path d="M0 150 L50 120 L100 160 L150 90 L200 110 L250 60 L300 80 L350 30 L400 50 L400 200 L0 200 Z" fill="url(#areaGradient)"></path>
-<path d="M0 150 L50 120 L100 160 L150 90 L200 110 L250 60 L300 80 L350 30 L400 50" fill="none" stroke="#004ac6" stroke-linejoin="round" stroke-width="2"></path>
-</svg>
-<!-- Y Axis Labels -->
-<div class="absolute left-0 top-0 bottom-6 flex flex-col justify-between items-end text-label-sm text-on-surface-variant pr-2">
-<span>100k</span>
-<span>50k</span>
-<span>0</span>
-</div>
-<!-- X Axis Labels -->
-<div class="absolute bottom-0 left-4 right-0 flex justify-between text-label-sm text-on-surface-variant pt-2">
-<span>Mon</span>
-<span>Tue</span>
-<span>Wed</span>
-<span>Thu</span>
-<span>Fri</span>
-<span>Sat</span>
-<span>Sun</span>
-</div>
-</div>
-</div>
-</section>
-<!-- Data Table -->
-<section class="elevation-1 card-radius overflow-hidden">
-<div class="px-6 py-4 border-b border-surface-container-high bg-white">
-<h2 class="font-title-md text-title-md text-on-surface">FILTERED DAILY OPERATIONAL REPORT</h2>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left border-collapse">
-<thead>
-<tr class="bg-[#F1F5F9] font-label-sm text-label-sm text-on-surface-variant uppercase border-b border-surface-container-high">
-<th class="py-4 px-6 font-medium">Restaurant Name</th>
-<th class="py-4 px-6 font-medium">Report Period</th>
-<th class="py-4 px-6 font-medium">Location</th>
-<th class="py-4 px-6 font-medium">Res ID</th>
-<th class="py-4 px-6 font-medium">Platform</th>
-<th class="py-4 px-6 font-medium text-right">Delivered Orders</th>
-<th class="py-4 px-6 font-medium text-right">Sales</th>
-<th class="py-4 px-6 font-medium text-right">GMV</th>
-<th class="py-4 px-6 font-medium text-right">Sales from Ads</th>
-<th class="py-4 px-6 font-medium text-right">Discount Given</th>
-</tr>
-</thead>
-<tbody class="font-body-md text-body-md text-on-surface">
-
-{% for row in table_data %}
-<tr class="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
-<td class="py-4 px-6">{{ row['Restaurant Name'] }}</td>
-<td class="py-4 px-6 text-on-surface-variant">{{ row['Report Period'] }}</td>
-<td class="py-4 px-6">{{ row['Location'] }}</td>
-<td class="py-4 px-6 font-label-sm text-outline">{{ row['Res ID'] }}</td>
-<td class="py-4 px-6">{{ row['Platform'] }}</td>
-<td class="py-4 px-6 text-right font-semibold">{{ "{:,}".format(row['Delivered orders']|int) }}</td>
-<td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['Sales']) }}</td>
-<td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['GMV']) }}</td>
-<td class="py-4 px-6 text-right text-primary-container">₹{{ "{:,.2f}".format(row['Sales from Ads']) }}</td>
-<td class="py-4 px-6 text-right text-error">₹{{ "{:,.2f}".format(row['Discount given']) }}</td>
-</tr>
-{% else %}
-<tr>
-<td colspan="10" class="py-8 text-center text-on-surface-variant">No operational data found for the selected filter.</td>
-</tr>
-{% endfor %}
-
-</tbody>
-</table>
-</div>
-</section>
-</main>
-
-<!-- Dynamic Avatar Initials Script -->
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const brandName = "{{ selected_brand }}".trim();
-    const avatarBadge = document.getElementById("avatar-initials");
-    if (avatarBadge && brandName) {
-      const words = brandName.split(/\s+/);
-      let initials = words.map(w => w[0]).join("").toUpperCase();
-      if (initials.length > 2) initials = initials.substring(0, 2);
-      avatarBadge.innerText = initials || "RP";
-    }
-  });
-</script>
-</body></html>
+</body>
+</html>

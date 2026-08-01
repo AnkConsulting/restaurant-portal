@@ -4,11 +4,9 @@
 <!-- FORCED DESKTOP VIEWPORT: Tells mobile/tablet to render a 1280px wide canvas -->
 <meta content="width=1280" name="viewport"/>
 <title>Restaurant Daily Analytics Portal</title>
-<!-- Tailwind, Material Symbols, Fonts -->
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
-<!-- Chart.js Library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script id="tailwind-config">
@@ -158,11 +156,17 @@
 </div>
 <div class="md:flex flex-col items-end">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Welcome,</span>
-<span class="font-title-md text-title-md text-on-surface">{{ selected_brand }}</span>
+<span id="user-display-name" class="font-title-md text-title-md text-on-surface">
+    {% if is_admin %}
+        ANK Consulting Admin
+    {% else %}
+        {{ selected_brand }}
+    {% endif %}
+</span>
 </div>
 <div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-title-md text-title-md">
-                MC
-            </div>
+    <!-- JS injected -->
+</div>
 </div>
 </header>
 <!-- Main Content Area -->

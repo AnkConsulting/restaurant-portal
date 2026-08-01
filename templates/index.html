@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<!-- FORCED DESKTOP VIEWPORT: Tells mobile/tablet to render a 1280px wide canvas -->
+<meta content="width=1280" name="viewport"/>
 <title>Restaurant Daily Analytics Portal</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -108,7 +109,7 @@
 <header class="fixed top-0 w-full z-50 bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
 <div class="flex items-center gap-4">
 <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="https://lh3.googleusercontent.com/aida/AP1WRLuz4IG3uVeIARhKHBi7swr1vh6-iHc7HBKIckZ1upgROrNSEa-FFTeHTPdHfikgdcIx2oeA1gzAez9Ve14ic5MlmmBhOYZNWv2NAc6jUCKiuNDjZlDB5PBwHCwABuOU4obtMht047b9RnjdxBQ2ibPz592zgksT4GfjSJ1fp1z3BiaXaUCI_SlCXXxGOX0Ecd-3klVOSL44_LF7oXNKHvA2lol0C3c6IWrxBlTXMQtUVuOQKAMMc6-xAL-u"/>
-<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight hidden md:block">Restaurant Daily Analytics Portal</h1>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight md:block">Restaurant Daily Analytics Portal</h1>
 </div>
 <div class="flex items-center gap-4"><div class="relative group">
 <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant">
@@ -146,7 +147,7 @@
     </div>    
 </div>
 </div>
-<div class="hidden md:flex flex-col items-end">
+<div class="md:flex flex-col items-end">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Welcome,</span>
 <span class="font-title-md text-title-md text-on-surface">{{ selected_brand }}</span>
 </div>
@@ -196,7 +197,7 @@
     </div>
 </form>
 <!-- KPI Row -->
-<section class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+<section class="grid grid-cols-5 gap-6 mb-8">
 <!-- GMV -->
 <div class="elevation-1 card-radius p-4 flex flex-col justify-between">
 <div class="flex justify-between items-start mb-2">
@@ -259,7 +260,7 @@
 </div>
 </section>
 <!-- Charts Row -->
-<section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+<section class="grid grid-cols-2 gap-6 mb-8">
 <!-- Donut Chart -->
 <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
 <h3 class="font-title-md text-title-md text-on-surface mb-6">Orders by Platform</h3>

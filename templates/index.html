@@ -166,17 +166,94 @@
 <!-- Horizontal Control Bar -->
 <form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
     
-    <div class="flex items-center gap-3">
-        <div class="flex items-center bg-white border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
-            <span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">calendar_today</span>
-            <!-- Real HTML5 Date Pickers -->
-            <input type="date" name="start_date" class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md outline-none text-on-surface-variant" />
-            <span class="mx-2 text-on-surface-variant">to</span>
-            <input type="date" name="end_date" class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md outline-none text-on-surface-variant" />
+    <!-- Docker-Style Date Picker Component -->
+    <div class="relative w-full md:w-auto z-[60]" id="date-dropdown-container">
+        <!-- Hidden inputs for backend form submission -->
+        <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
+        <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
+
+        <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none group min-w-[260px]">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-gray-500 text-[20px]">calendar_today</span>
+              <span class="text-sm font-medium text-gray-700">{{ start_date if start_date else '01-07-2026' }} to {{ end_date if end_date else '31-07-2026' }}</span>
+            </div>
+            <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors">expand_more</span>
+        </button>
+      
+        <!-- Calendar Popover Content -->
+        <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
+            <div class="p-4">
+              <!-- Calendar Header -->
+              <div class="flex items-center justify-between mb-6">
+                <button type="button" class="p-1 hover:bg-gray-100 rounded-full transition-colors">
+                  <span class="material-symbols-outlined text-gray-500">chevron_left</span>
+                </button>
+                <h3 class="font-bold text-gray-900">July 2026</h3>
+                <button type="button" class="p-1 hover:bg-gray-100 rounded-full transition-colors">
+                  <span class="material-symbols-outlined text-gray-500">chevron_right</span>
+                </button>
+              </div>
+
+              <!-- Weekdays -->
+              <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
+                <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+              </div>
+
+              <!-- Days Grid -->
+              <div class="grid grid-cols-7 gap-1 text-center text-sm">
+                <div class="py-2 text-gray-300">28</div>
+                <div class="py-2 text-gray-300">29</div>
+                <div class="py-2 text-gray-300">30</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">1</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">2</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">3</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">4</div>
+                
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">5</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">6</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">7</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">8</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">9</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">10</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">11</div>
+                
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">12</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">13</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">14</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">15</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">16</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">17</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">18</div>
+                
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">19</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">20</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">21</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">22</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">23</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">24</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">25</div>
+                
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">26</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">27</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">28</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">29</div>
+                <div class="py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">30</div>
+                <div class="py-2 text-white bg-[#2563eb] rounded-lg cursor-pointer font-bold">31</div>
+                <div class="py-2 text-gray-300">1</div>
+              </div>
+
+              <!-- Action Footer -->
+              <div class="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
+                <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2">Cancel</button>
+                <button type="button" onclick="document.getElementById('filter-form').submit()" class="bg-[#2563eb] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100">
+                  Apply Range
+                </button>
+              </div>
+            </div>
         </div>
     </div>
 
-    <div class="flex items-center gap-4 flex-1 justify-end">
+    <div class="flex items-center gap-4 flex-1 justify-end z-[50]">
         
         {% if is_admin %}
         <!-- Searchable Admin Brand Dropdown -->
@@ -461,7 +538,7 @@
     }
   });
 
-  // 2. Custom Searchable Dropdown Logic
+  // 2. Custom Searchable Dropdown & Date Picker Logic
   function toggleCustomDropdown(menuId, event) {
     event.stopPropagation(); // Prevent the body click listener from firing instantly
     
@@ -516,6 +593,7 @@
     const brandContainer = document.getElementById('brand-dropdown-container');
     const outletContainer = document.getElementById('outlet-dropdown-container');
     const platformContainer = document.getElementById('platform-dropdown-container');
+    const dateContainer = document.getElementById('date-dropdown-container');
     
     if (brandContainer && !brandContainer.contains(event.target)) {
         document.getElementById('brand-menu')?.classList.add('hidden');
@@ -525,6 +603,9 @@
     }
     if (platformContainer && !platformContainer.contains(event.target)) {
         document.getElementById('platform-menu')?.classList.add('hidden');
+    }
+    if (dateContainer && !dateContainer.contains(event.target)) {
+        document.getElementById('calendar-menu')?.classList.add('hidden');
     }
   });
 </script>

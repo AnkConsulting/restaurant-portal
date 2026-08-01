@@ -158,140 +158,12 @@
 <main class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto">
 <form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
     
-    <div class="relative w-full md:w-auto z-[60]" id="date-dropdown-container">
-        <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
-        <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
-        
-        <div onclick="toggleCustomDropdown('calendar-menu', event)" class="bg-white border border-outline-variant rounded-lg pl-4 pr-3 py-2.5 font-body-md text-sm text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between min-w-[270px] shadow-sm">
-            <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-on-surface-variant text-[20px]">calendar_today</span>
-                <span id="date-display-text" class="truncate font-medium text-[15px]">{{ start_date }} — {{ end_date }}</span>
-            </div>
-            <span class="material-symbols-outlined text-on-surface-variant pointer-events-none ml-2">expand_more</span>
-        </div>
-
-        <div id="calendar-menu" class="hidden absolute mt-2 left-0 bg-white border border-outline-variant rounded-xl shadow-2xl flex flex-col md:flex-row w-[780px] lg:w-[860px] overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
-            <div class="w-full md:w-56 border-b md:border-b-0 md:border-r border-surface-container-high p-4 space-y-1 bg-surface-bright">
-                <button type="button" onclick="setDateRange('2025-01-01', '2025-01-01', 'Jan 01, 2025')" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">Today</button>
-                <button type="button" onclick="setDateRange('2025-01-01', '2025-01-01', 'Jan 01, 2025')" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">Yesterday</button>
-                <button type="button" onclick="setDateRange('2025-01-06', '2025-01-12', 'Jan 06, 2025 — Jan 12, 2025')" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">This week</button>
-                <button type="button" onclick="setDateRange('2025-01-12', '2025-01-16', 'Jan 12, 2025 — Jan 16, 2025')" class="w-full text-left px-4 py-2 text-sm font-semibold text-primary bg-primary-container rounded-md transition-colors">Last week</button>
-                <button type="button" onclick="setDateRange('2025-01-01', '2025-01-31', 'Jan 01, 2025 — Jan 31, 2025')" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">This month</button>
-                <button type="button" onclick="setDateRange('2024-12-01', '2024-12-31', 'Dec 01, 2024 — Dec 31, 2024')" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">Last month</button>
-                <button type="button" onclick="setDateRange('2025-01-01', '2025-12-31', '2025 Year')" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">This year</button>
-                <button type="button" onclick="setDateRange('2024-01-01', '2024-12-31', '2024 Year')" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">Last year</button>
-                <button type="button" onclick="setDateRange('2024-01-01', '2026-12-31', 'All Time')" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors border-t border-surface-container-high mt-2 pt-3">All time</button>
-            </div>
-
-            <div class="flex-1 p-6 bg-white">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <button type="button" class="p-1 hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center">
-                                <span class="material-symbols-outlined text-outline">chevron_left</span>
-                            </button>
-                            <h3 class="font-bold text-on-surface">January 2025</h3>
-                            <button type="button" class="p-1 hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center invisible">
-                                <span class="material-symbols-outlined text-outline">chevron_right</span>
-                            </button>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-outline mb-2">
-                            <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1 text-center">
-                            <div class="py-2 text-sm text-outline-variant">30</div>
-                            <div class="py-2 text-sm text-outline-variant">31</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer relative">1<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div></div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">2</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">3</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">4</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">5</div>
-                            
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">6</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">7</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">8</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">9</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">10</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">11</div>
-                            
-                            <div class="py-2 text-sm text-on-primary bg-primary rounded-l-md cursor-pointer">12</div>
-                            <div class="py-2 text-sm text-on-surface bg-primary-container cursor-pointer">13</div>
-                            <div class="py-2 text-sm text-on-surface bg-primary-container cursor-pointer">14</div>
-                            <div class="py-2 text-sm text-on-surface bg-primary-container cursor-pointer">15</div>
-                            <div class="py-2 text-sm text-on-primary bg-primary rounded-r-md cursor-pointer">16</div>
-                            
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">17</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">18</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">19</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">20</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">21</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">22</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">23</div>
-                            
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">24</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">25</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">26</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">27</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer relative">28<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div></div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">29</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">30</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">31</div>
-                        </div>
-                    </div>
-
-                    <div class="hidden lg:block">
-                        <div class="flex items-center justify-between mb-4">
-                            <button type="button" class="p-1 hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center invisible">
-                                <span class="material-symbols-outlined text-outline">chevron_left</span>
-                            </button>
-                            <h3 class="font-bold text-on-surface">February 2025</h3>
-                            <button type="button" class="p-1 hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center">
-                                <span class="material-symbols-outlined text-outline">chevron_right</span>
-                            </button>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-outline mb-2">
-                            <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1 text-center">
-                            <div class="py-2 text-sm text-outline-variant">27</div>
-                            <div class="py-2 text-sm text-outline-variant">28</div>
-                            <div class="py-2 text-sm text-outline-variant">29</div>
-                            <div class="py-2 text-sm text-outline-variant">30</div>
-                            <div class="py-2 text-sm text-outline-variant">31</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">1</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer relative">2<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div></div>
-                            
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">3</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">4</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">5</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">6</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">7</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">8</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">9</div>
-                            
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">10</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">11</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">12</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">13</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer relative">14<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div></div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">15</div>
-                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">16</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-8 pt-6 border-t border-surface-container-high flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center gap-2">
-                        <input type="text" id="footer-start-input" value="{{ start_date }}" class="w-32 px-3 py-2 text-sm border border-outline-variant rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-on-surface bg-white" onchange="updateCustomDateRange()">
-                        <span class="text-outline-variant">—</span>
-                        <input type="text" id="footer-end-input" value="{{ end_date }}" class="w-32 px-3 py-2 text-sm border border-outline-variant rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-on-surface bg-white" onchange="updateCustomDateRange()">
-                    </div>
-                    <div class="flex items-center gap-3 w-full sm:w-auto">
-                        <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="flex-1 sm:flex-none px-6 py-2 text-sm font-medium text-on-surface border border-outline-variant rounded-md hover:bg-surface-container-low transition-colors">Cancel</button>
-                        <button type="button" onclick="document.getElementById('filter-form').submit()" class="flex-1 sm:flex-none px-6 py-2 text-sm font-medium text-on-primary bg-primary rounded-md hover:opacity-90 transition-shadow shadow-sm">Apply</button>
-                    </div>
-                </div>
-            </div>
+    <div class="flex items-center gap-3 z-[60]">
+        <div class="flex items-center bg-white border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+            <span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">calendar_today</span>
+            <input type="date" name="start_date" value="{{ start_date }}" class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md outline-none text-on-surface-variant cursor-pointer" onchange="this.form.submit()" />
+            <span class="mx-2 text-on-surface-variant">to</span>
+            <input type="date" name="end_date" value="{{ end_date }}" class="border-none bg-transparent p-0 focus:ring-0 font-body-md text-body-md outline-none text-on-surface-variant cursor-pointer" onchange="this.form.submit()" />
         </div>
     </div>
 
@@ -301,7 +173,7 @@
         <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
             <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
             
-            <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between">
+            <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                 <span class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
                 <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
             </div>
@@ -325,7 +197,7 @@
         <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
             <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
             
-            <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between">
+            <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                 <span class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
                 <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
             </div>
@@ -346,7 +218,7 @@
         <div class="relative min-w-[220px] w-full md:w-auto" id="platform-dropdown-container">
             <input type="hidden" name="platform" id="platform-input" value="{{ selected_platform }}">
             
-            <div onclick="toggleCustomDropdown('platform-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between">
+            <div onclick="toggleCustomDropdown('platform-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                 <span class="truncate">{{ selected_platform if selected_platform else 'All Platforms' }}</span>
                 <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
             </div>
@@ -367,7 +239,7 @@
     </div>
 </form>
 
-<section class="grid grid-cols-5 gap-6 mb-8">
+<section class="grid grid-cols-5 gap-6 mb-8 z-10 relative">
 <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
 <div class="flex justify-between items-start mb-2">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Total Daily GMV</span>
@@ -424,7 +296,7 @@
 </div>
 </section>
 
-<section class="grid grid-cols-2 gap-6 mb-8">
+<section class="grid grid-cols-2 gap-6 mb-8 relative z-0">
 <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
 <h3 class="font-title-md text-title-md text-on-surface mb-6">Orders by Platform</h3>
 <div class="flex-1 flex items-center justify-center relative">
@@ -484,7 +356,7 @@
 </div>
 </div>
 </section>
-<section class="elevation-1 card-radius overflow-hidden">
+<section class="elevation-1 card-radius overflow-hidden relative z-0">
 <div class="px-6 py-4 border-b border-surface-container-high bg-white">
 <h2 class="font-title-md text-title-md text-on-surface">FILTERED DAILY OPERATIONAL REPORT</h2>
 </div>
@@ -544,34 +416,7 @@
     }
   });
 
-  // 2. Date Range Picker Functionality
-  function setDateRange(startDate, endDate, displayText) {
-    document.getElementById('start-date-input').value = startDate;
-    document.getElementById('end-date-input').value = endDate;
-    
-    document.getElementById('footer-start-input').value = startDate;
-    document.getElementById('footer-end-input').value = endDate;
-    
-    const displayEl = document.getElementById('date-display-text');
-    if (displayEl) {
-        displayEl.innerText = displayText;
-    }
-  }
-
-  function updateCustomDateRange() {
-    const startVal = document.getElementById('footer-start-input').value;
-    const endVal = document.getElementById('footer-end-input').value;
-    
-    document.getElementById('start-date-input').value = startVal;
-    document.getElementById('end-date-input').value = endVal;
-    
-    const displayEl = document.getElementById('date-display-text');
-    if (displayEl) {
-        displayEl.innerText = startVal + ' — ' + endVal;
-    }
-  }
-
-  // 3. Custom Searchable Dropdown Logic
+  // 2. Custom Searchable Dropdown Logic
   function toggleCustomDropdown(menuId, event) {
     event.stopPropagation(); // Prevent the body click listener from firing instantly
     
@@ -626,7 +471,6 @@
     const brandContainer = document.getElementById('brand-dropdown-container');
     const outletContainer = document.getElementById('outlet-dropdown-container');
     const platformContainer = document.getElementById('platform-dropdown-container');
-    const dateContainer = document.getElementById('date-dropdown-container');
     
     if (brandContainer && !brandContainer.contains(event.target)) {
         document.getElementById('brand-menu')?.classList.add('hidden');
@@ -636,9 +480,6 @@
     }
     if (platformContainer && !platformContainer.contains(event.target)) {
         document.getElementById('platform-menu')?.classList.add('hidden');
-    }
-    if (dateContainer && !dateContainer.contains(event.target)) {
-        document.getElementById('calendar-menu')?.classList.add('hidden');
     }
   });
 </script>

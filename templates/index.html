@@ -134,7 +134,7 @@
 </label>
 </div>
 
-<!-- 🟢 PASTE THE LOGOUT SNIPPET HERE, AT THE VERY BOTTOM BEFORE THIS CLOSING DIV -->
+<!-- Logout Option Snippet -->
     <div class="mt-4 pt-4 border-t border-outline-variant">
       <a 
         href="/logout"
@@ -150,7 +150,7 @@
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Welcome,</span>
 <span class="font-title-md text-title-md text-on-surface">{{ selected_brand }}</span>
 </div>
-<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-title-md text-title-md">
+<div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-title-md text-title-md">
                 MC
             </div>
 </div>
@@ -370,4 +370,18 @@
 </div>
 </section>
 </main>
+
+<!-- Dynamic Avatar Initials Script -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const brandName = "{{ selected_brand }}".trim();
+    const avatarBadge = document.getElementById("avatar-initials");
+    if (avatarBadge && brandName) {
+      const words = brandName.split(/\s+/);
+      let initials = words.map(w => w[0]).join("").toUpperCase();
+      if (initials.length > 2) initials = initials.substring(0, 2);
+      avatarBadge.innerText = initials || "RP";
+    }
+  });
+</script>
 </body></html>

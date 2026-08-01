@@ -47,7 +47,7 @@ def load_data():
             ]
         )
 
-    # Clean numeric columns
+    # Clean numeric columns robustly
     numeric_cols = [
         "Delivered orders",
         "Sales",
@@ -58,8 +58,9 @@ def load_data():
     ]
     for col in numeric_cols:
         if col in df.columns:
-            # Ensure commas are removed before converting to numeric
-            df[col] = pd.to_numeric(df[col].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
+            # Strip out commas, spaces, and currency symbols safely before converting
+            cleaned_series = df[col].astype(str).str.replace(r'[₹, ]', '', regex=True)
+            df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
 
     # Apply CV calculation logic 
     if "GMV" in df.columns and "Total GST" in df.columns:
@@ -94,18 +95,20 @@ async def render_dashboard(
 
     df = load_data()
 
+    # ALWAYS Parse dates safely at the top level with dayfirst=True
+    if "Report Period" in df.columns:
+        df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
+
     # 2. Data Isolation Filtering
     if not is_admin:
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
 
     # 3. Date Range Filtering
-    if start_date and end_date:
-        if "Report Period" in df.columns:
-            df["_temp_date"] = pd.to_datetime(df["Report Period"], errors="coerce")
-            start = pd.to_datetime(start_date, errors="coerce")
-            end = pd.to_datetime(end_date, errors="coerce")
-            if pd.notnull(start) and pd.notnull(end):
-                df = df[(df["_temp_date"] >= start) & (df["_temp_date"] <= end)]
+    if start_date and end_date and "_temp_date" in df.columns:
+        start = pd.to_datetime(start_date, errors="coerce")
+        end = pd.to_datetime(end_date, errors="coerce")
+        if pd.notnull(start) and pd.notnull(end):
+            df = df[(df["_temp_date"] >= start) & (df["_temp_date"] <= end)]
 
     # Multi-tenant brand isolation
     all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
@@ -129,26 +132,20 @@ async def render_dashboard(
     sales_ads = filtered_df["Sales from Ads"].sum() if "Sales from Ads" in filtered_df.columns else 0.0
     discount_given = filtered_df["Discount given"].sum() if "Discount given" in filtered_df.columns else 0.0
 
-    table_records = filtered_df.to_dict(orient="records")
-
-    # --- NEW: CHART DATA AGGREGATION ---
-    # Donut Chart: Orders by Platform
+    # Chart Data Aggregation
     if "Platform" in filtered_df.columns and "Delivered orders" in filtered_df.columns:
         platform_orders = filtered_df.groupby("Platform")["Delivered orders"].sum().to_dict()
     else:
         platform_orders = {}
 
-    # Area Chart: Daily Sales Trend
     trend_labels = []
     trend_values = []
-    if "Report Period" in filtered_df.columns and "Sales" in filtered_df.columns:
-        # Group by date and sum sales
-        trend_df = filtered_df.groupby("Report Period")["Sales"].sum().reset_index()
-        # Sort by actual date
-        trend_df["_sort_date"] = pd.to_datetime(trend_df["Report Period"], errors="coerce")
-        trend_df = trend_df.sort_values("_sort_date")
+    if "_temp_date" in filtered_df.columns and "Sales" in filtered_df.columns:
+        # Group by true parsed date to ensure perfect chronological sorting
+        trend_df = filtered_df.groupby("_temp_date")["Sales"].sum().reset_index()
+        trend_df = trend_df.sort_values("_temp_date")
         
-        trend_labels = trend_df["Report Period"].astype(str).tolist()
+        trend_labels = trend_df["_temp_date"].dt.strftime('%d-%m-%Y').tolist()
         trend_values = trend_df["Sales"].tolist()
 
     chart_data = {
@@ -156,6 +153,12 @@ async def render_dashboard(
         "trend_labels": trend_labels,
         "trend_values": trend_values
     }
+
+    # Clean up _temp_date before passing to frontend table
+    if "_temp_date" in filtered_df.columns:
+        filtered_df = filtered_df.drop(columns=["_temp_date"])
+        
+    table_records = filtered_df.to_dict(orient="records")
 
     # 4. JSON Response for Seamless Async Refresh
     if ajax == "1":
@@ -183,7 +186,7 @@ async def render_dashboard(
             "outlets": outlets,
             "platforms": platforms,
             "table_data": formatted_table_data,
-            "chart_data": chart_data  # Pass chart data to JS
+            "chart_data": chart_data
         })
 
     # Standard HTML Response (Initial Page Load)
@@ -199,15 +202,15 @@ async def render_dashboard(
             "selected_outlet": outlet or "",
             "platforms": platforms,
             "selected_platform": platform or "",
-            "start_date": start_date or "2026-07-01",
-            "end_date": end_date or "2026-07-31",
+            "start_date": start_date or "",
+            "end_date": end_date or "",
             "total_gmv": f"₹{total_gmv:,.2f}",
             "total_orders": f"{total_orders:,}",
             "avg_aov": f"₹{avg_aov:,.2f}",
             "sales_ads": f"₹{sales_ads:,.2f}",
             "discount_given": f"₹{discount_given:,.2f}",
             "table_data": table_records,
-            "chart_data": chart_data  # Pass initial chart data to template
+            "chart_data": chart_data
         },
     )
 

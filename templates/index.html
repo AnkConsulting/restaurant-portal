@@ -80,14 +80,6 @@
                         "body-md": ["Hanken Grotesk"],
                         "label-sm": ["JetBrains Mono"],
                         "title-md": ["Hanken Grotesk"]
-                    },
-                    "fontSize": {
-                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
-                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
-                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
-                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
-                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
-                        "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }]
                     }
                 }
             }
@@ -170,116 +162,439 @@
             <span class="material-symbols-outlined text-on-surface-variant pointer-events-none ml-2">expand_more</span>
         </div>
 
-        <div id="calendar-menu" class="hidden absolute mt-2 left-0 bg-white border border-outline-variant rounded-xl shadow-2xl w-[750px] overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
-            <div class="flex flex-col md:flex-row font-body-md">
-                
-                <div class="w-full md:w-56 border-b md:border-b-0 md:border-r border-surface-container-high p-4 space-y-1 bg-surface-bright">
-                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface hover:bg-surface-container-high rounded-md transition-colors">Today</button>
-                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface hover:bg-surface-container-high rounded-md transition-colors">Yesterday</button>
-                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface hover:bg-surface-container-high rounded-md transition-colors">This week</button>
-                    <button type="button" class="w-full text-left px-4 py-2 text-sm font-semibold text-primary bg-primary/10 rounded-md transition-colors">Last week</button>
-                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface hover:bg-surface-container-high rounded-md transition-colors">This month</button>
-                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface hover:bg-surface-container-high rounded-md transition-colors">Last month</button>
-                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface hover:bg-surface-container-high rounded-md transition-colors">This year</button>
-                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface hover:bg-surface-container-high rounded-md transition-colors border-b border-surface-container-high pb-2">Last year</button>
-                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface hover:bg-surface-container-high rounded-md transition-colors mt-2">All time</button>
-                </div>
+        <div id="calendar-menu" class="hidden absolute mt-2 left-0 bg-white border border-outline-variant rounded-xl shadow-2xl flex flex-col md:flex-row w-[780px] lg:w-[860px] overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
+            <div class="w-full md:w-56 border-b md:border-b-0 md:border-r border-surface-container-high p-4 space-y-1 bg-surface-bright">
+                <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">Today</button>
+                <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">Yesterday</button>
+                <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">This week</button>
+                <button type="button" class="w-full text-left px-4 py-2 text-sm font-semibold text-primary bg-primary-container rounded-md transition-colors">Last week</button>
+                <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">This month</button>
+                <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">Last month</button>
+                <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">This year</button>
+                <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors">Last year</button>
+                <button type="button" class="w-full text-left px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-high rounded-md transition-colors border-t border-surface-container-high mt-2 pt-3">All time</button>
+            </div>
 
-                <div class="flex-1 p-6 bg-white">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <button type="button" class="p-1 hover:bg-surface-container-high rounded-full transition-colors flex items-center">
-                                    <span class="material-symbols-outlined text-outline">chevron_left</span>
-                                </button>
-                                <h3 class="font-bold text-on-surface text-sm">January 2025</h3>
-                                <button type="button" class="p-1 hover:bg-surface-container-high rounded-full transition-colors invisible flex items-center">
-                                    <span class="material-symbols-outlined text-outline">chevron_right</span>
-                                </button>
-                            </div>
-                            <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-outline-variant mb-2">
-                                <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
-                            </div>
-                            <div class="grid grid-cols-7 gap-1 text-center">
-                                <div class="py-2 text-sm text-outline-variant">30</div>
-                                <div class="py-2 text-sm text-outline-variant">31</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer relative">1<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div></div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">2</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">3</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">4</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">5</div>
-                                
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">6</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">7</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">8</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">9</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">10</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">11</div>
-                                <div class="py-2 text-sm text-on-primary bg-primary rounded-l cursor-pointer">12</div>
-                                
-                                <div class="py-2 text-sm text-on-surface bg-primary/10 cursor-pointer">13</div>
-                                <div class="py-2 text-sm text-on-surface bg-primary/10 cursor-pointer">14</div>
-                                <div class="py-2 text-sm text-on-surface bg-primary/10 cursor-pointer">15</div>
-                                <div class="py-2 text-sm text-on-primary bg-primary rounded-r cursor-pointer">16</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">17</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">18</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">19</div>
-                                
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">20</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">21</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">22</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">23</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">24</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">25</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">26</div>
-                                
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">27</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">28</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">29</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">30</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">31</div>
-                                <div class="py-2 text-sm text-outline-variant">1</div>
-                                <div class="py-2 text-sm text-outline-variant">2</div>
-                            </div>
+            <div class="flex-1 p-6 bg-white">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <button type="button" class="p-1 hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center">
+                                <span class="material-symbols-outlined text-outline">chevron_left</span>
+                            </button>
+                            <h3 class="font-bold text-on-surface">January 2025</h3>
+                            <button type="button" class="p-1 hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center invisible">
+                                <span class="material-symbols-outlined text-outline">chevron_right</span>
+                            </button>
                         </div>
-
-                        <div class="hidden lg:block">
-                            <div class="flex items-center justify-between mb-4">
-                                <button type="button" class="p-1 hover:bg-surface-container-high rounded-full transition-colors invisible flex items-center">
-                                    <span class="material-symbols-outlined text-outline">chevron_left</span>
-                                </button>
-                                <h3 class="font-bold text-on-surface text-sm">February 2025</h3>
-                                <button type="button" class="p-1 hover:bg-surface-container-high rounded-full transition-colors flex items-center">
-                                    <span class="material-symbols-outlined text-outline">chevron_right</span>
-                                </button>
-                            </div>
-                            <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-outline-variant mb-2">
-                                <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
-                            </div>
-                            <div class="grid grid-cols-7 gap-1 text-center">
-                                <div class="py-2 text-sm text-outline-variant">27</div>
-                                <div class="py-2 text-sm text-outline-variant">28</div>
-                                <div class="py-2 text-sm text-outline-variant">29</div>
-                                <div class="py-2 text-sm text-outline-variant">30</div>
-                                <div class="py-2 text-sm text-outline-variant">31</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">1</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">2</div>
-                                
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">3</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">4</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">5</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">6</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">7</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">8</div>
-                                <div class="py-2 text-sm text-on-surface hover:bg-surface-bright rounded cursor-pointer">9</div>
-                            </div>
+                        <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-outline mb-2">
+                            <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-center">
+                            <div class="py-2 text-sm text-outline-variant">30</div>
+                            <div class="py-2 text-sm text-outline-variant">31</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer relative">1<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div></div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">2</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">3</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">4</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">5</div>
+                            
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">6</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">7</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">8</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">9</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">10</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">11</div>
+                            
+                            <div class="py-2 text-sm text-on-primary bg-primary rounded-l-md cursor-pointer">12</div>
+                            <div class="py-2 text-sm text-on-surface bg-primary-container cursor-pointer">13</div>
+                            <div class="py-2 text-sm text-on-surface bg-primary-container cursor-pointer">14</div>
+                            <div class="py-2 text-sm text-on-surface bg-primary-container cursor-pointer">15</div>
+                            <div class="py-2 text-sm text-on-primary bg-primary rounded-r-md cursor-pointer">16</div>
+                            
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">17</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">18</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">19</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">20</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">21</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">22</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">23</div>
+                            
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">24</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">25</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">26</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">27</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer relative">28<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div></div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">29</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">30</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">31</div>
                         </div>
                     </div>
 
-                    <div class="mt-8 pt-6 border-t border-surface-container-high flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div class="flex items-center gap-2">
-                            <input type="text" value="Jan 12, 2025" readonly class="w-32 px-3 py-2 text-sm border border-outline-variant rounded-md focus:outline-none bg-surface-bright text-on-surface">
-                            <span class="text-outline-variant">—</span>
-                            <input type="text" value="Jan 16, 2025" readonly class="w-32 px-3 py-2 text-sm border border-outline-variant rounded-md focus:outline-none bg-surface-bright text-on-surface">
+                    <div class="hidden lg:block">
+                        <div class="flex items-center justify-between mb-4">
+                            <button type="button" class="p-1 hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center invisible">
+                                <span class="material-symbols-outlined text-outline">chevron_left</span>
+                            </button>
+                            <h3 class="font-bold text-on-surface">February 2025</h3>
+                            <button type="button" class="p-1 hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center">
+                                <span class="material-symbols-outlined text-outline">chevron_right</span>
+                            </button>
                         </div>
+                        <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-outline mb-2">
+                            <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-center">
+                            <div class="py-2 text-sm text-outline-variant">27</div>
+                            <div class="py-2 text-sm text-outline-variant">28</div>
+                            <div class="py-2 text-sm text-outline-variant">29</div>
+                            <div class="py-2 text-sm text-outline-variant">30</div>
+                            <div class="py-2 text-sm text-outline-variant">31</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">1</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer relative">2<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div></div>
+                            
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">3</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">4</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">5</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">6</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">7</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">8</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">9</div>
+                            
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">10</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">11</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">12</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">13</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer relative">14<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div></div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">15</div>
+                            <div class="py-2 text-sm text-on-surface hover:bg-surface-container-low rounded cursor-pointer">16</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-surface-container-high flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-2">
+                        <input type="text" value="Jan 12, 2025" readonly class="w-32 px-3 py-2 text-sm border border-outline-variant rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-on-surface bg-white">
+                        <span class="text-outline-variant">—</span>
+                        <input type="text" value="Jan 16, 2025" readonly class="w-32 px-3 py-2 text-sm border border-outline-variant rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-on-surface bg-white">
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="flex-1 sm:flex-none px-6 py-2 text-sm font-medium text-on-surface border border-outline-variant rounded-md hover:bg-surface-container-low transition-colors">Cancel</button>
+                        <button type="button" onclick="document.getElementById('filter-form').submit()" class="flex-1 sm:flex-none px-6 py-2 text-sm font-medium text-on-primary bg-primary rounded-md hover:opacity-90 transition-shadow shadow-sm">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-4 flex-1 justify-end z-[50]">
+        
+        {% if is_admin %}
+        <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
+            <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
+            <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <span class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
+                <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+            </div>
+            <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                    <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
+                </div>
+                <ul id="brand-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
+                    <li onclick="submitCustomDropdown('brand-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Brands</li>
+                    {% for b in all_brands %}
+                    <li onclick="submitCustomDropdown('brand-input', '{{ b }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ b }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% else %}
+        <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
+        {% endif %}
+
+        <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
+            <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
+            <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <span class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
+                <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+            </div>
+            <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                    <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
+                </div>
+                <ul id="outlet-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
+                    <li onclick="submitCustomDropdown('outlet-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Outlets</li>
+                    {% for loc in outlets %}
+                    <li onclick="submitCustomDropdown('outlet-input', '{{ loc }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ loc }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="relative min-w-[220px] w-full md:w-auto" id="platform-dropdown-container">
+            <input type="hidden" name="platform" id="platform-input" value="{{ selected_platform }}">
+            <div onclick="toggleCustomDropdown('platform-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <span class="truncate">{{ selected_platform if selected_platform else 'All Platforms' }}</span>
+                <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+            </div>
+            <div id="platform-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                    <input type="text" id="platform-search" onkeyup="filterCustomDropdown('platform-search', 'platform-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search platforms...">
+                </div>
+                <ul id="platform-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
+                    <li onclick="submitCustomDropdown('platform-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Platforms</li>
+                    {% for p in platforms %}
+                    <li onclick="submitCustomDropdown('platform-input', '{{ p }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ p }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<section class="grid grid-cols-5 gap-6 mb-8 z-10 relative">
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Total Daily GMV</span>
+<span class="material-symbols-outlined text-primary shrink-0" style="font-variation-settings: 'FILL' 0;">payments</span>
+</div>
+<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
+<div class="h-8 w-full bg-gradient-to-r from-primary/10 to-transparent rounded">
+<svg class="w-full h-full text-primary" preserveaspectratio="none" viewbox="0 0 100 20">
+<path d="M0 15 L20 10 L40 18 L60 5 L80 12 L100 2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Delivered Orders</span>
+<span class="material-symbols-outlined text-secondary shrink-0" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
+</div>
+<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_orders }}">{{ total_orders }}</div>
+<div class="font-body-md text-body-md text-secondary flex items-center truncate">
+<span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
+                    <span class="truncate">+5.2% vs last week</span>
+                </div>
+</div>
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">AOV</span>
+<span class="material-symbols-outlined text-tertiary shrink-0" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
+</div>
+<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
+<div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
+                    Steady
+                </div>
+</div>
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Sales from Ads</span>
+<span class="material-symbols-outlined text-primary-container shrink-0" style="font-variation-settings: 'FILL' 0;">campaign</span>
+</div>
+<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
+<div class="font-body-md text-body-md text-secondary flex items-center truncate">
+<span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
+                    <span class="truncate">+12% ROAS</span>
+                </div>
+</div>
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Discount Given</span>
+<span class="material-symbols-outlined text-error shrink-0" style="font-variation-settings: 'FILL' 0;">sell</span>
+</div>
+<div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ discount_given }}">{{ discount_given }}</div>
+<div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
+                    <span class="truncate">7.7% of GMV</span>
+                </div>
+</div>
+</section>
+
+<section class="grid grid-cols-2 gap-6 mb-8 relative z-0">
+<div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
+<h3 class="font-title-md text-title-md text-on-surface mb-6">Orders by Platform</h3>
+<div class="flex-1 flex items-center justify-center relative">
+<svg class="w-48 h-48 transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="transparent" r="40" stroke="#e0e3e5" stroke-width="16"></circle>
+<circle cx="50" cy="50" fill="transparent" r="40" stroke="#004ac6" stroke-dasharray="251.2" stroke-dashoffset="100.48" stroke-width="16"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-lg text-headline-lg text-on-surface">4.8k</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Total Orders</span>
+</div>
+</div>
+<div class="flex justify-center gap-6 mt-4">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="font-body-md text-body-md text-on-surface">Swiggy (60%)</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-surface-variant"></div>
+<span class="font-body-md text-body-md text-on-surface">Zomato (40%)</span>
+</div>
+</div>
+</div>
+<div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Sales</span>
+</div>
+</div>
+<div class="flex-1 w-full relative flex items-end border-l border-b border-surface-container-high pb-6 pl-4">
+<svg class="w-full h-full absolute bottom-6 left-4 right-0" preserveaspectratio="none" viewbox="0 0 400 200">
+<defs>
+<lineargradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#004ac6" stop-opacity="0.1"></stop>
+<stop offset="100%" stop-color="#004ac6" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0 150 L50 120 L100 160 L150 90 L200 110 L250 60 L300 80 L350 30 L400 50 L400 200 L0 200 Z" fill="url(#areaGradient)"></path>
+<path d="M0 150 L50 120 L100 160 L150 90 L200 110 L250 60 L300 80 L350 30 L400 50" fill="none" stroke="#004ac6" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<div class="absolute left-0 top-0 bottom-6 flex flex-col justify-between items-end text-label-sm text-on-surface-variant pr-2">
+<span>100k</span>
+<span>50k</span>
+<span>0</span>
+</div>
+<div class="absolute bottom-0 left-4 right-0 flex justify-between text-label-sm text-on-surface-variant pt-2">
+<span>Mon</span>
+<span>Tue</span>
+<span>Wed</span>
+<span>Thu</span>
+<span>Fri</span>
+<span>Sat</span>
+<span>Sun</span>
+</div>
+</div>
+</div>
+</section>
+<section class="elevation-1 card-radius overflow-hidden relative z-0">
+<div class="px-6 py-4 border-b border-surface-container-high bg-white">
+<h2 class="font-title-md text-title-md text-on-surface">FILTERED DAILY OPERATIONAL REPORT</h2>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F1F5F9] font-label-sm text-label-sm text-on-surface-variant uppercase border-b border-surface-container-high">
+<th class="py-4 px-6 font-medium">Restaurant Name</th>
+<th class="py-4 px-6 font-medium">Report Period</th>
+<th class="py-4 px-6 font-medium">Location</th>
+<th class="py-4 px-6 font-medium">Res ID</th>
+<th class="py-4 px-6 font-medium">Platform</th>
+<th class="py-4 px-6 font-medium text-right">Delivered Orders</th>
+<th class="py-4 px-6 font-medium text-right">Sales</th>
+<th class="py-4 px-6 font-medium text-right">GMV</th>
+<th class="py-4 px-6 font-medium text-right">Sales from Ads</th>
+<th class="py-4 px-6 font-medium text-right">Discount Given</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+
+{% for row in table_data %}
+<tr class="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
+<td class="py-4 px-6">{{ row['Restaurant Name'] }}</td>
+<td class="py-4 px-6 text-on-surface-variant">{{ row['Report Period'] }}</td>
+<td class="py-4 px-6">{{ row['Location'] }}</td>
+<td class="py-4 px-6 font-label-sm text-outline">{{ row['Res ID'] }}</td>
+<td class="py-4 px-6">{{ row['Platform'] }}</td>
+<td class="py-4 px-6 text-right font-semibold">{{ "{:,}".format(row['Delivered orders']|int) }}</td>
+<td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['Sales']) }}</td>
+<td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['GMV']) }}</td>
+<td class="py-4 px-6 text-right text-primary-container">₹{{ "{:,.2f}".format(row['Sales from Ads']) }}</td>
+<td class="py-4 px-6 text-right text-error">₹{{ "{:,.2f}".format(row['Discount given']) }}</td>
+</tr>
+{% else %}
+<tr>
+<td colspan="10" class="py-8 text-center text-on-surface-variant">No operational data found for the selected filter.</td>
+</tr>
+{% endfor %}
+
+</tbody>
+</table>
+</div>
+</section>
+</main>
+
+<script>
+  // 1. Dynamic Avatar Initials
+  document.addEventListener("DOMContentLoaded", function () {
+    const brandName = "{{ selected_brand }}".trim();
+    const avatarBadge = document.getElementById("avatar-initials");
+    if (avatarBadge && brandName) {
+      const words = brandName.split(/\s+/);
+      let initials = words.map(w => w[0]).join("").toUpperCase();
+      if (initials.length > 2) initials = initials.substring(0, 2);
+      avatarBadge.innerText = initials || "RP";
+    }
+  });
+
+  // 2. Custom Searchable Dropdown Logic
+  function toggleCustomDropdown(menuId, event) {
+    event.stopPropagation();
+    
+    // Hide all menus first
+    document.querySelectorAll('.dropdown-menu-custom').forEach(menu => {
+        if (menu.id !== menuId) menu.classList.add('hidden');
+    });
+
+    // Toggle target
+    const menu = document.getElementById(menuId);
+    menu.classList.toggle('hidden');
+    
+    // Focus search input if applicable
+    if (!menu.classList.contains('hidden')) {
+        const searchInput = menu.querySelector('input[type="text"]');
+        if (searchInput) searchInput.focus();
+    }
+  }
+
+  function filterCustomDropdown(inputId, listId) {
+    const filter = document.getElementById(inputId).value.toLowerCase();
+    const lis = document.getElementById(listId).getElementsByTagName('li');
+    
+    for (let i = 1; i < lis.length; i++) {
+        let txtValue = lis[i].textContent || lis[i].innerText;
+        if (txtValue.toLowerCase().indexOf(filter) > -1) {
+            lis[i].style.display = "";
+        } else {
+            lis[i].style.display = "none";
+        }
+    }
+  }
+
+  function submitCustomDropdown(inputId, selectedValue) {
+    const hiddenInput = document.getElementById(inputId);
+    hiddenInput.value = selectedValue;
+    
+    if (inputId === 'brand-input') {
+        const outletInput = document.getElementById('outlet-input');
+        if (outletInput) outletInput.value = "";
+    }
+    
+    document.getElementById('filter-form').submit();
+  }
+
+  // 3. Click-outside to close menus
+  document.addEventListener('click', function(event) {
+    const brandContainer = document.getElementById('brand-dropdown-container');
+    const outletContainer = document.getElementById('outlet-dropdown-container');
+    const platformContainer = document.getElementById('platform-dropdown-container');
+    const dateContainer = document.getElementById('date-dropdown-container');
+    
+    if (brandContainer && !brandContainer.contains(event.target)) {
+        document.getElementById('brand-menu')?.classList.add('hidden');
+    }
+    if (outletContainer && !outletContainer.contains(event.target)) {
+        document.getElementById('outlet-menu')?.classList.add('hidden');
+    }
+    if (platformContainer && !platformContainer.contains(event.target)) {
+        document.getElementById('platform-menu')?.classList.add('hidden');
+    }
+    if (dateContainer && !dateContainer.contains(event.target)) {
+        document.getElementById('calendar-menu')?.classList.add('hidden');
+    }
+  });
+</script>
+</body></html>

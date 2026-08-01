@@ -76,7 +76,9 @@ async def render_dashboard(
     request: Request,
     brand: Optional[str] = Query(None),
     outlet: Optional[str] = Query(None),
-    platform: Optional[str] = Query(None), # Replaced search_res_id with platform
+    platform: Optional[str] = Query(None),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None),
 ):
     # 1. Security Check: Is user logged in?
     if not request.session.get("logged_in"):
@@ -92,6 +94,15 @@ async def render_dashboard(
         # Stakeholders only see rows matching their authorized Restaurant IDs
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
 
+    # 3. Date Range Filtering Implementation
+    if start_date and end_date:
+        if "Report Period" in df.columns:
+            df["_temp_date"] = pd.to_datetime(df["Report Period"], errors="coerce")
+            start = pd.to_datetime(start_date, errors="coerce")
+            end = pd.to_datetime(end_date, errors="coerce")
+            if pd.notnull(start) and pd.notnull(end):
+                df = df[(df["_temp_date"] >= start) & (df["_temp_date"] <= end)]
+
     # Multi-tenant brand isolation
     all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
     selected_brand = brand if brand in all_brands else (all_brands[0] if all_brands else "")
@@ -102,7 +113,7 @@ async def render_dashboard(
     if outlet and outlet in outlets:
         filtered_df = filtered_df[filtered_df["Location"] == outlet]
 
-    # Platform filter (New feature)
+    # Platform filter
     platforms = sorted(filtered_df["Platform"].dropna().unique().tolist())
     if platform and platform in platforms:
         filtered_df = filtered_df[filtered_df["Platform"] == platform]
@@ -140,8 +151,10 @@ async def render_dashboard(
             "selected_brand": selected_brand,
             "outlets": outlets,
             "selected_outlet": outlet or "",
-            "platforms": platforms,               # Feed platforms to template
-            "selected_platform": platform or "",  # Feed selected platform
+            "platforms": platforms,
+            "selected_platform": platform or "",
+            "start_date": start_date or "2025-01-12",
+            "end_date": end_date or "2025-01-16",
             "total_gmv": f"₹{total_gmv:,.2f}",
             "total_orders": f"{total_orders:,}",
             "avg_aov": f"₹{avg_aov:,.2f}",

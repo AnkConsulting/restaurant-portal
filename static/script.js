@@ -11,27 +11,27 @@ let trendChartInstance = null;
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-// Platform Brand Colors Map (Using exact requested HEX codes)
+// Platform Brand Colors Map
 const PLATFORM_COLORS = {
     'Swiggy': '#FC8019',
     'Zomato': '#E23744'
 };
-const DEFAULT_COLOR = '#004ac6'; // Fallback for any unknown platforms
+const DEFAULT_COLOR = '#004ac6';
 
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. Dynamic Avatar Initials
-    const brandInput = document.getElementById("brand-input");
-    const brandName = brandInput ? brandInput.value.trim() : "";
+    // 1. Dynamic Avatar Initials (Now reads from the visual display name)
+    const displayNameEl = document.getElementById("user-display-name");
+    const displayName = displayNameEl ? displayNameEl.innerText.trim() : "";
     const avatarBadge = document.getElementById("avatar-initials");
     
-    if (avatarBadge && brandName) {
-      const words = brandName.split(/\s+/);
+    if (avatarBadge && displayName) {
+      const words = displayName.split(/\s+/);
       let initials = words.map(w => w[0]).join("").toUpperCase();
       if (initials.length > 2) initials = initials.substring(0, 2);
       avatarBadge.innerText = initials || "RP";
     }
     
-    // 2. Initialize Calendar Dates from Hidden Inputs
+    // 2. Initialize Calendar Dates
     const startInput = document.getElementById('start-date-input');
     const endInput = document.getElementById('end-date-input');
     
@@ -59,23 +59,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // --- CHART.JS VISUALIZATION LOGIC ---
 function initCharts(data) {
-    // 1. Orders by Platform Donut Chart
     const donutCtx = document.getElementById('platformDonutChart').getContext('2d');
     
     const platformLabels = Object.keys(data.platform_donut);
     const platformValues = Object.values(data.platform_donut);
     
-    // Calculate total orders to generate percentages
     const totalOrders = platformValues.reduce((sum, val) => sum + val, 0);
-    
-    // Append percentage to the label (e.g. "Swiggy (60%)")
     const labelsWithPct = platformLabels.map((platform, i) => {
         const val = platformValues[i];
         const pct = totalOrders > 0 ? Math.round((val / totalOrders) * 100) : 0;
         return `${platform} (${pct}%)`;
     });
 
-    // Map colors based on the platform name dynamically
     const mappedColors = platformLabels.map(platform => PLATFORM_COLORS[platform] || DEFAULT_COLOR);
 
     donutChartInstance = new Chart(donutCtx, {
@@ -92,7 +87,7 @@ function initCharts(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '55%', // Made thicker (was 75%)
+            cutout: '55%', 
             plugins: {
                 legend: {
                     position: 'bottom',
@@ -105,10 +100,9 @@ function initCharts(data) {
         }
     });
 
-    // 2. Daily Sales Trend Area Chart
     const trendCtx = document.getElementById('salesTrendChart').getContext('2d');
     let gradient = trendCtx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(0, 74, 198, 0.2)'); // theme primary color with opacity
+    gradient.addColorStop(0, 'rgba(0, 74, 198, 0.2)'); 
     gradient.addColorStop(1, 'rgba(0, 74, 198, 0)');
 
     trendChartInstance = new Chart(trendCtx, {
@@ -122,7 +116,7 @@ function initCharts(data) {
                 backgroundColor: gradient,
                 borderWidth: 2,
                 fill: true,
-                tension: 0.3, // smooth curves
+                tension: 0.3,
                 pointRadius: 3,
                 pointBackgroundColor: '#ffffff',
                 pointBorderColor: '#004ac6'
@@ -143,7 +137,7 @@ function initCharts(data) {
                     border: { display: false },
                     ticks: { 
                         font: { family: "'Hanken Grotesk', sans-serif" },
-                        callback: function(value) { return '₹' + (value/1000) + 'k'; } // shorthand formatting
+                        callback: function(value) { return '₹' + (value/1000) + 'k'; }
                     }
                 }
             }
@@ -154,11 +148,9 @@ function initCharts(data) {
 function updateCharts(data) {
     if (!donutChartInstance || !trendChartInstance) return;
 
-    // Update Donut Chart
     const platformLabels = Object.keys(data.platform_donut);
     const platformValues = Object.values(data.platform_donut);
     
-    // Recalculate percentages for updated data
     const totalOrders = platformValues.reduce((sum, val) => sum + val, 0);
     const labelsWithPct = platformLabels.map((platform, i) => {
         const val = platformValues[i];
@@ -173,12 +165,10 @@ function updateCharts(data) {
     donutChartInstance.data.datasets[0].backgroundColor = mappedColors;
     donutChartInstance.update();
 
-    // Update Trend Chart
     trendChartInstance.data.labels = data.trend_labels;
     trendChartInstance.data.datasets[0].data = data.trend_values;
     trendChartInstance.update();
 }
-
 
 // --- ASYNC DASHBOARD REFRESH (AJAX) ---
 async function fetchDashboardData() {

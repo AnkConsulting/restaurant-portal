@@ -5,8 +5,8 @@
 <meta content="width=1280" name="viewport"/>
 <title>Restaurant Daily Analytics Portal</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -128,7 +128,7 @@
 <label class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2 block">Upload Restaurant Logo</label>
 <div class="border-2 border-dashed border-outline-variant rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors cursor-pointer bg-surface-container-lowest">
 <span class="material-symbols-outlined text-primary">cloud_upload</span>
-<span class="text-body-md text-on-surface-variant text-sm">Drag &amp; drop or click</span>
+<span class="text-body-md text-on-surface-variant text-sm">Drag & drop or click</span>
 </div>
 </div>
 <!-- Toggle Switch -->
@@ -192,31 +192,36 @@
         <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
             <div class="p-4">
               
-              <!-- Calendar Header (Dynamic Navigation) -->
-              <div class="flex items-center justify-between mb-6">
-                <div class="flex gap-1">
-                  <!-- Prev Year -->
-                  <button type="button" onclick="navigateCalendar(0, -1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
-                    <span class="material-symbols-outlined text-gray-500 text-[18px]">keyboard_double_arrow_left</span>
-                  </button>
-                  <!-- Prev Month -->
-                  <button type="button" onclick="navigateCalendar(-1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
-                    <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_left</span>
-                  </button>
+              <!-- Calendar Header (Month/Year Dropdowns & Arrows) -->
+              <div class="flex items-center justify-between mb-4 relative">
+                <button type="button" onclick="navigateCalendar(-1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                  <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_left</span>
+                </button>
+                
+                <div class="flex gap-2 font-bold text-gray-900 text-sm items-center">
+                  <!-- Month Dropdown Trigger -->
+                  <div class="relative">
+                      <button type="button" onclick="toggleMonthDropdown(event)" id="current-month-btn" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                          <span id="month-text">July</span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+                      </button>
+                      <div id="month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-32 max-h-48 overflow-y-auto custom-scrollbar">
+                          <!-- JS injected months -->
+                      </div>
+                  </div>
+                  <!-- Year Dropdown Trigger -->
+                  <div class="relative">
+                      <button type="button" onclick="toggleYearDropdown(event)" id="current-year-btn" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                          <span id="year-text">2026</span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+                      </button>
+                      <div id="year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-24 max-h-48 overflow-y-auto custom-scrollbar">
+                          <!-- JS injected years -->
+                      </div>
+                  </div>
                 </div>
                 
-                <h3 id="calendar-month-year" class="font-bold text-gray-900 text-sm"></h3>
-                
-                <div class="flex gap-1">
-                  <!-- Next Month -->
-                  <button type="button" onclick="navigateCalendar(1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
-                    <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_right</span>
-                  </button>
-                  <!-- Next Year -->
-                  <button type="button" onclick="navigateCalendar(0, 1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
-                    <span class="material-symbols-outlined text-gray-500 text-[18px]">keyboard_double_arrow_right</span>
-                  </button>
-                </div>
+                <button type="button" onclick="navigateCalendar(1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                  <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_right</span>
+                </button>
               </div>
 
               <!-- Weekdays -->
@@ -510,6 +515,7 @@
     }
     
     // Initialize Calendar on Page Load
+    renderMonthYearDropdowns();
     renderCalendar();
   });
 
@@ -524,8 +530,55 @@
   
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+  function renderMonthYearDropdowns() {
+    document.getElementById('month-text').innerText = monthNames[viewMonth];
+    document.getElementById('year-text').innerText = viewYear;
+
+    const mList = document.getElementById('month-dropdown');
+    mList.innerHTML = monthNames.map((m, i) => 
+        `<div class="px-3 py-2 hover:bg-surface-container-high cursor-pointer text-sm font-medium ${i === viewMonth ? 'text-primary bg-primary/10' : 'text-on-surface'}" onclick="selectMonth(${i}, event)">${m}</div>`
+    ).join('');
+    
+    const yList = document.getElementById('year-dropdown');
+    let yHTML = '';
+    const currentYear = new Date().getFullYear();
+    for(let y = currentYear - 5; y <= currentYear + 5; y++) {
+        yHTML += `<div class="px-3 py-2 hover:bg-surface-container-high cursor-pointer text-sm font-medium ${y === viewYear ? 'text-primary bg-primary/10' : 'text-on-surface'}" onclick="selectYear(${y}, event)">${y}</div>`;
+    }
+    yList.innerHTML = yHTML;
+  }
+
+  function toggleMonthDropdown(e) {
+    e.stopPropagation();
+    document.getElementById('month-dropdown').classList.toggle('hidden');
+    document.getElementById('year-dropdown').classList.add('hidden');
+  }
+
+  function toggleYearDropdown(e) {
+    e.stopPropagation();
+    document.getElementById('year-dropdown').classList.toggle('hidden');
+    document.getElementById('month-dropdown').classList.add('hidden');
+  }
+
+  function selectMonth(m, e) {
+    e.stopPropagation();
+    viewMonth = m;
+    document.getElementById('month-dropdown').classList.add('hidden');
+    renderMonthYearDropdowns();
+    renderCalendar();
+  }
+
+  function selectYear(y, e) {
+    e.stopPropagation();
+    viewYear = y;
+    document.getElementById('year-dropdown').classList.add('hidden');
+    renderMonthYearDropdowns();
+    renderCalendar();
+  }
+
   function renderCalendar() {
-    document.getElementById('calendar-month-year').innerText = `${monthNames[viewMonth]} ${viewYear}`;
+    renderMonthYearDropdowns();
+    
     const grid = document.getElementById('calendar-days-grid');
     grid.innerHTML = "";
 
@@ -588,6 +641,7 @@
   }
 
   function updateCalendarHighlights() {
+    // 1. Highlight visual grid
     const dayCells = document.querySelectorAll('.calendar-day-item');
     dayCells.forEach(cell => {
       const cellDate = cell.getAttribute('data-date');
@@ -601,6 +655,16 @@
         cell.className = "calendar-day-item py-2 text-[#2563eb] bg-blue-50 font-semibold cursor-pointer rounded-lg";
       }
     });
+
+    // 2. Update Label Text Instantly
+    const labelEl = document.getElementById('date-picker-label');
+    if (selectedStartDate && selectedEndDate && selectedStartDate !== selectedEndDate) {
+        labelEl.innerText = `${selectedStartDate} to ${selectedEndDate}`;
+    } else if (selectedStartDate) {
+        labelEl.innerText = `${selectedStartDate}`;
+    } else {
+        labelEl.innerText = 'Select Date / Range';
+    }
   }
 
   function applyDateSelection() {
@@ -661,6 +725,7 @@
     document.getElementById('filter-form').submit();
   }
 
+  // Close custom dropdowns on click outside
   document.addEventListener('click', function(event) {
     const brandContainer = document.getElementById('brand-dropdown-container');
     const outletContainer = document.getElementById('outlet-dropdown-container');
@@ -679,6 +744,10 @@
     if (dateContainer && !dateContainer.contains(event.target)) {
         document.getElementById('calendar-menu')?.classList.add('hidden');
     }
+
+    // Close Month/Year inner dropdowns
+    document.getElementById('month-dropdown')?.classList.add('hidden');
+    document.getElementById('year-dropdown')?.classList.add('hidden');
   });
 </script>
 </body></html>

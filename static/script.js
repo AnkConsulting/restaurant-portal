@@ -11,6 +11,13 @@ let trendChartInstance = null;
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+// Platform Brand Colors Map
+const PLATFORM_COLORS = {
+    'Swiggy': '#FC8019',
+    'Zomato': '#E23744'
+};
+const DEFAULT_COLOR = '#004ac6'; // Fallback for any unknown platforms
+
 document.addEventListener("DOMContentLoaded", function () {
     // 1. Dynamic Avatar Initials
     const brandInput = document.getElementById("brand-input");
@@ -52,18 +59,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // --- CHART.JS VISUALIZATION LOGIC ---
 function initCharts(data) {
-    // Colors matching your Tailwind theme
-    const brandColors = ['#004ac6', '#006a61', '#606e84', '#ba1a1a', '#003ea8', '#86f2e4'];
-
     // 1. Orders by Platform Donut Chart
     const donutCtx = document.getElementById('platformDonutChart').getContext('2d');
+    
+    // Map colors based on the platform name dynamically
+    const platformLabels = Object.keys(data.platform_donut);
+    const mappedColors = platformLabels.map(platform => PLATFORM_COLORS[platform] || DEFAULT_COLOR);
+
     donutChartInstance = new Chart(donutCtx, {
         type: 'doughnut',
         data: {
-            labels: Object.keys(data.platform_donut),
+            labels: platformLabels,
             datasets: [{
                 data: Object.values(data.platform_donut),
-                backgroundColor: brandColors,
+                backgroundColor: mappedColors,
                 borderWidth: 0,
                 hoverOffset: 4
             }]
@@ -131,8 +140,12 @@ function updateCharts(data) {
     if (!donutChartInstance || !trendChartInstance) return;
 
     // Update Donut Chart
-    donutChartInstance.data.labels = Object.keys(data.platform_donut);
+    const platformLabels = Object.keys(data.platform_donut);
+    const mappedColors = platformLabels.map(platform => PLATFORM_COLORS[platform] || DEFAULT_COLOR);
+
+    donutChartInstance.data.labels = platformLabels;
     donutChartInstance.data.datasets[0].data = Object.values(data.platform_donut);
+    donutChartInstance.data.datasets[0].backgroundColor = mappedColors;
     donutChartInstance.update();
 
     // Update Trend Chart

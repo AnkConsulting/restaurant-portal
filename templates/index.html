@@ -166,7 +166,7 @@
 <!-- Horizontal Control Bar -->
 <form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
     
-    <!-- Docker-Style Date Picker Component -->
+    <!-- Dynamic Docker-Style Date Picker Component -->
     <div class="relative w-full md:w-auto z-[60]" id="date-dropdown-container">
         <!-- Hidden inputs for backend form submission -->
         <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
@@ -191,15 +191,32 @@
         <!-- Calendar Popover Content -->
         <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
             <div class="p-4">
-              <!-- Calendar Header -->
+              
+              <!-- Calendar Header (Dynamic Navigation) -->
               <div class="flex items-center justify-between mb-6">
-                <button type="button" class="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                  <span class="material-symbols-outlined text-gray-500">chevron_left</span>
-                </button>
-                <h3 class="font-bold text-gray-900">July 2026</h3>
-                <button type="button" class="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                  <span class="material-symbols-outlined text-gray-500">chevron_right</span>
-                </button>
+                <div class="flex gap-1">
+                  <!-- Prev Year -->
+                  <button type="button" onclick="navigateCalendar(0, -1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                    <span class="material-symbols-outlined text-gray-500 text-[18px]">keyboard_double_arrow_left</span>
+                  </button>
+                  <!-- Prev Month -->
+                  <button type="button" onclick="navigateCalendar(-1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                    <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_left</span>
+                  </button>
+                </div>
+                
+                <h3 id="calendar-month-year" class="font-bold text-gray-900 text-sm"></h3>
+                
+                <div class="flex gap-1">
+                  <!-- Next Month -->
+                  <button type="button" onclick="navigateCalendar(1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                    <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_right</span>
+                  </button>
+                  <!-- Next Year -->
+                  <button type="button" onclick="navigateCalendar(0, 1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                    <span class="material-symbols-outlined text-gray-500 text-[18px]">keyboard_double_arrow_right</span>
+                  </button>
+                </div>
               </div>
 
               <!-- Weekdays -->
@@ -207,54 +224,16 @@
                 <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
               </div>
 
-              <!-- Days Grid (Fully Interactive with data-date) -->
+              <!-- Days Grid (Injected by JS) -->
               <div class="grid grid-cols-7 gap-1 text-center text-sm" id="calendar-days-grid">
-                <div class="py-2 text-gray-300">28</div>
-                <div class="py-2 text-gray-300">29</div>
-                <div class="py-2 text-gray-300">30</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-01" onclick="handleDayClick(this)">1</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-02" onclick="handleDayClick(this)">2</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-03" onclick="handleDayClick(this)">3</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-04" onclick="handleDayClick(this)">4</div>
-                
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-05" onclick="handleDayClick(this)">5</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-06" onclick="handleDayClick(this)">6</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-07" onclick="handleDayClick(this)">7</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-08" onclick="handleDayClick(this)">8</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-09" onclick="handleDayClick(this)">9</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-10" onclick="handleDayClick(this)">10</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-11" onclick="handleDayClick(this)">11</div>
-                
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-12" onclick="handleDayClick(this)">12</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-13" onclick="handleDayClick(this)">13</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-14" onclick="handleDayClick(this)">14</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-15" onclick="handleDayClick(this)">15</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-16" onclick="handleDayClick(this)">16</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-17" onclick="handleDayClick(this)">17</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-18" onclick="handleDayClick(this)">18</div>
-                
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-19" onclick="handleDayClick(this)">19</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-20" onclick="handleDayClick(this)">20</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-21" onclick="handleDayClick(this)">21</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-22" onclick="handleDayClick(this)">22</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-23" onclick="handleDayClick(this)">23</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-24" onclick="handleDayClick(this)">24</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-25" onclick="handleDayClick(this)">25</div>
-                
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-26" onclick="handleDayClick(this)">26</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-27" onclick="handleDayClick(this)">27</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-28" onclick="handleDayClick(this)">28</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-29" onclick="handleDayClick(this)">29</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-30" onclick="handleDayClick(this)">30</div>
-                <div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="2026-07-31" onclick="handleDayClick(this)">31</div>
-                <div class="py-2 text-gray-300">1</div>
+                <!-- JavaScript automatically populates this grid -->
               </div>
 
               <!-- Action Footer -->
               <div class="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
                 <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2">Cancel</button>
                 <button type="button" onclick="applyDateSelection()" class="bg-[#2563eb] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100">
-                  Apply Selection
+                  Apply Range
                 </button>
               </div>
             </div>
@@ -286,6 +265,7 @@
             </div>
         </div>
         {% else %}
+        <!-- Stakeholder Fallback (Hidden from view) -->
         <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
         {% endif %}
 
@@ -528,18 +508,68 @@
       if (initials.length > 2) initials = initials.substring(0, 2);
       avatarBadge.innerText = initials || "RP";
     }
+    
+    // Initialize Calendar on Page Load
+    renderCalendar();
   });
 
-  // Interactive Docker Date Picker Selection Logic
+  // --- DYNAMIC DOCKER CALENDAR ENGINE ---
   let selectedStartDate = "{{ start_date }}" || null;
   let selectedEndDate = "{{ end_date }}" || null;
+  
+  // Set starting view month/year based on start_date or current date
+  let viewDate = selectedStartDate ? new Date(selectedStartDate) : new Date();
+  let viewYear = viewDate.getFullYear();
+  let viewMonth = viewDate.getMonth();
+  
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  function renderCalendar() {
+    document.getElementById('calendar-month-year').innerText = `${monthNames[viewMonth]} ${viewYear}`;
+    const grid = document.getElementById('calendar-days-grid');
+    grid.innerHTML = "";
+
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay(); // 0 is Sunday
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+    // 1. Add Empty Padding Days (for previous month overhang)
+    for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div class="py-2"></div>`;
+    }
+
+    // 2. Add Actual Days
+    for (let d = 1; d <= daysInMonth; d++) {
+        // Format as YYYY-MM-DD for accurate string comparisons
+        let monthStr = String(viewMonth + 1).padStart(2, '0');
+        let dayStr = String(d).padStart(2, '0');
+        let dateStr = `${viewYear}-${monthStr}-${dayStr}`;
+        
+        grid.innerHTML += `<div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="${dateStr}" onclick="handleDayClick(this)">${d}</div>`;
+    }
+    
+    updateCalendarHighlights();
+  }
+
+  function navigateCalendar(monthOffset, yearOffset) {
+    viewMonth += monthOffset;
+    viewYear += yearOffset;
+    
+    if (viewMonth < 0) { 
+        viewMonth = 11; 
+        viewYear--; 
+    } else if (viewMonth > 11) { 
+        viewMonth = 0; 
+        viewYear++; 
+    }
+    renderCalendar();
+  }
 
   function handleDayClick(dayEl) {
     const clickedDate = dayEl.getAttribute('data-date');
     if (!clickedDate) return;
 
     if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
-      // First click or resetting range
+      // First click or resetting an existing range
       selectedStartDate = clickedDate;
       selectedEndDate = null;
     } else if (selectedStartDate && !selectedEndDate) {
@@ -548,7 +578,7 @@
         selectedEndDate = selectedStartDate;
         selectedStartDate = clickedDate;
       } else if (clickedDate === selectedStartDate) {
-        // Double clicking same date = single date selection
+        // Double clicking same date creates a single-date range
         selectedEndDate = clickedDate;
       } else {
         selectedEndDate = clickedDate;
@@ -561,15 +591,14 @@
     const dayCells = document.querySelectorAll('.calendar-day-item');
     dayCells.forEach(cell => {
       const cellDate = cell.getAttribute('data-date');
-      // Reset classes
-      cell.className = "calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors";
+      cell.className = "calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"; // Reset
 
       if (selectedStartDate && cellDate === selectedStartDate) {
         cell.className = "calendar-day-item py-2 text-white bg-[#2563eb] rounded-lg cursor-pointer font-bold shadow-md shadow-blue-200";
       } else if (selectedEndDate && cellDate === selectedEndDate) {
         cell.className = "calendar-day-item py-2 text-white bg-[#2563eb] rounded-lg cursor-pointer font-bold shadow-md shadow-blue-200";
       } else if (selectedStartDate && selectedEndDate && cellDate > selectedStartDate && cellDate < selectedEndDate) {
-        cell.className = "calendar-day-item py-2 text-[#2563eb] bg-blue-50 font-semibold cursor-pointer";
+        cell.className = "calendar-day-item py-2 text-[#2563eb] bg-blue-50 font-semibold cursor-pointer rounded-lg";
       }
     });
   }
@@ -580,23 +609,16 @@
       return;
     }
 
-    // If only a single date was picked, make end_date equal to start_date
     const finalStart = selectedStartDate;
     const finalEnd = selectedEndDate ? selectedEndDate : selectedStartDate;
 
     document.getElementById('start-date-input').value = finalStart;
     document.getElementById('end-date-input').value = finalEnd;
 
-    // Submit form
     document.getElementById('filter-form').submit();
   }
 
-  // Initialize highlights on page load if dates are set
-  document.addEventListener("DOMContentLoaded", function () {
-    updateCalendarHighlights();
-  });
-
-  // Custom Searchable Dropdown Logic
+  // --- EXISTING DROPDOWN LOGIC ---
   function toggleCustomDropdown(menuId, event) {
     event.stopPropagation();
     
@@ -639,7 +661,6 @@
     document.getElementById('filter-form').submit();
   }
 
-  // Close custom dropdowns on click outside
   document.addEventListener('click', function(event) {
     const brandContainer = document.getElementById('brand-dropdown-container');
     const outletContainer = document.getElementById('outlet-dropdown-container');

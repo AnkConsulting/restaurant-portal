@@ -5,10 +5,14 @@ let viewDate = new Date();
 let viewYear = viewDate.getFullYear();
 let viewMonth = viewDate.getMonth();
 
+// Global Chart Instances
+let donutChartInstance = null;
+let trendChartInstance = null;
+
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. Dynamic Avatar Initials (Reads from hidden brand input)
+    // 1. Dynamic Avatar Initials
     const brandInput = document.getElementById("brand-input");
     const brandName = brandInput ? brandInput.value.trim() : "";
     const avatarBadge = document.getElementById("avatar-initials");
@@ -39,7 +43,103 @@ document.addEventListener("DOMContentLoaded", function () {
     
     renderMonthYearDropdowns();
     renderCalendar();
+
+    // 3. Initialize Chart.js
+    if (window.INITIAL_CHART_DATA) {
+        initCharts(window.INITIAL_CHART_DATA);
+    }
 });
+
+// --- CHART.JS VISUALIZATION LOGIC ---
+function initCharts(data) {
+    // Colors matching your Tailwind theme
+    const brandColors = ['#004ac6', '#006a61', '#606e84', '#ba1a1a', '#003ea8', '#86f2e4'];
+
+    // 1. Orders by Platform Donut Chart
+    const donutCtx = document.getElementById('platformDonutChart').getContext('2d');
+    donutChartInstance = new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(data.platform_donut),
+            datasets: [{
+                data: Object.values(data.platform_donut),
+                backgroundColor: brandColors,
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { font: { family: "'Hanken Grotesk', sans-serif" } }
+                }
+            }
+        }
+    });
+
+    // 2. Daily Sales Trend Area Chart
+    const trendCtx = document.getElementById('salesTrendChart').getContext('2d');
+    let gradient = trendCtx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(0, 74, 198, 0.2)'); // theme primary color with opacity
+    gradient.addColorStop(1, 'rgba(0, 74, 198, 0)');
+
+    trendChartInstance = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: data.trend_labels,
+            datasets: [{
+                label: 'Daily Sales (₹)',
+                data: data.trend_values,
+                borderColor: '#004ac6',
+                backgroundColor: gradient,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3, // smooth curves
+                pointRadius: 3,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#004ac6'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { family: "'Hanken Grotesk', sans-serif" } }
+                },
+                y: {
+                    border: { display: false },
+                    ticks: { 
+                        font: { family: "'Hanken Grotesk', sans-serif" },
+                        callback: function(value) { return '₹' + (value/1000) + 'k'; } // shorthand formatting
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateCharts(data) {
+    if (!donutChartInstance || !trendChartInstance) return;
+
+    // Update Donut Chart
+    donutChartInstance.data.labels = Object.keys(data.platform_donut);
+    donutChartInstance.data.datasets[0].data = Object.values(data.platform_donut);
+    donutChartInstance.update();
+
+    // Update Trend Chart
+    trendChartInstance.data.labels = data.trend_labels;
+    trendChartInstance.data.datasets[0].data = data.trend_values;
+    trendChartInstance.update();
+}
 
 
 // --- ASYNC DASHBOARD REFRESH (AJAX) ---
@@ -77,6 +177,11 @@ async function fetchDashboardData() {
         document.getElementById('kpi-ads').title = data.sales_ads;
         document.getElementById('kpi-discount').innerText = data.discount_given;
         document.getElementById('kpi-discount').title = data.discount_given;
+
+        // Update Charts Data
+        if (data.chart_data) {
+            updateCharts(data.chart_data);
+        }
 
         // Update Data Table
         const tbody = document.getElementById('data-table-body');
@@ -128,7 +233,6 @@ async function fetchDashboardData() {
         document.getElementById('main-content').style.opacity = '1';
     }
 }
-
 
 // --- DYNAMIC DOCKER CALENDAR ENGINE ---
 function formatDateLabel(dateStr) {

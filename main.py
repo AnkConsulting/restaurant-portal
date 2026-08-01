@@ -50,10 +50,16 @@ def load_data():
         "GMV",
         "Sales from Ads",
         "Discount given",
+        "Total GST"
     ]
     for col in numeric_cols:
         if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+            # Ensure commas are removed before converting to numeric
+            df[col] = pd.to_numeric(df[col].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
+
+    # Apply CV calculation logic 
+    if "GMV" in df.columns and "Total GST" in df.columns:
+        df["CV"] = df["GMV"] - df["Total GST"]
 
     # Strict Leading Column Enforcement
     leading_cols = ["Restaurant Name", "Report Period", "Location", "Res ID"]
@@ -87,8 +93,8 @@ async def render_dashboard(
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
 
     # Multi-tenant brand isolation
-    brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
-    selected_brand = brand if brand in brands else (brands[0] if brands else "")
+    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
+    selected_brand = brand if brand in all_brands else (all_brands[0] if all_brands else "")
     filtered_df = df[df["Restaurant Name"] == selected_brand]
 
     # Outlet filter
@@ -133,10 +139,10 @@ async def render_dashboard(
         context={
             "request": request,
             "is_admin": is_admin,
-            "brands": brands,
+            "all_brands": all_brands,
             "selected_brand": selected_brand,
             "outlets": outlets,
-            "selected_outlet": outlet or "All Outlets",
+            "selected_outlet": outlet or "",
             "search_res_id": search_res_id or "",
             "total_gmv": f"₹{total_gmv:,.2f}",
             "total_orders": f"{total_orders:,}",

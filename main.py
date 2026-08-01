@@ -76,7 +76,7 @@ async def render_dashboard(
     request: Request,
     brand: Optional[str] = Query(None),
     outlet: Optional[str] = Query(None),
-    search_res_id: Optional[str] = Query(None),
+    platform: Optional[str] = Query(None), # Replaced search_res_id with platform
 ):
     # 1. Security Check: Is user logged in?
     if not request.session.get("logged_in"):
@@ -102,13 +102,10 @@ async def render_dashboard(
     if outlet and outlet in outlets:
         filtered_df = filtered_df[filtered_df["Location"] == outlet]
 
-    # Search filter
-    if search_res_id:
-        filtered_df = filtered_df[
-            filtered_df["Res ID"]
-            .astype(str)
-            .str.contains(search_res_id, case=False)
-        ]
+    # Platform filter (New feature)
+    platforms = sorted(filtered_df["Platform"].dropna().unique().tolist())
+    if platform and platform in platforms:
+        filtered_df = filtered_df[filtered_df["Platform"] == platform]
 
     # Top-level KPIs
     total_gmv = (
@@ -143,7 +140,8 @@ async def render_dashboard(
             "selected_brand": selected_brand,
             "outlets": outlets,
             "selected_outlet": outlet or "",
-            "search_res_id": search_res_id or "",
+            "platforms": platforms,               # Feed platforms to template
+            "selected_platform": platform or "",  # Feed selected platform
             "total_gmv": f"₹{total_gmv:,.2f}",
             "total_orders": f"{total_orders:,}",
             "avg_aov": f"₹{avg_aov:,.2f}",

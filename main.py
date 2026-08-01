@@ -31,7 +31,6 @@ def load_data():
     try:
         df = pd.read_csv(SHEET_CSV_URL)
     except Exception:
-        # Fallback empty dataframe if URL is not yet connected
         return pd.DataFrame(
             columns=[
                 "Restaurant Name",
@@ -58,7 +57,6 @@ def load_data():
     ]
     for col in numeric_cols:
         if col in df.columns:
-            # Strip out commas, spaces, and currency symbols safely before converting
             cleaned_series = df[col].astype(str).str.replace(r'[₹, ]', '', regex=True)
             df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
 
@@ -95,39 +93,48 @@ async def render_dashboard(
 
     df = load_data()
 
-    # 2. Data Isolation Filtering
+    # Parse datetime safely at top level
+    if "Report Period" in df.columns:
+        df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
+
+    # 2. Data Isolation Filtering for Stakeholders
     if not is_admin:
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
 
-    # --- NEW: CALCULATE MAX AVAILABLE DATE BASED ON SHEET ---
+    # Brand, Outlet, Platform Isolation
+    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
+    selected_brand = brand if brand in all_brands else (all_brands[0] if all_brands else "")
+    context_df = df[df["Restaurant Name"] == selected_brand]
+
+    outlets = sorted(context_df["Location"].dropna().unique().tolist())
+    if outlet and outlet in outlets:
+        context_df = context_df[context_df["Location"] == outlet]
+
+    platforms = sorted(context_df["Platform"].dropna().unique().tolist())
+    if platform and platform in platforms:
+        context_df = context_df[context_df["Platform"] == platform]
+
+    # --- CALCULATE EXACT MAX AVAILABLE DATE FOR THIS CONTEXT ---
     max_available_date = ""
-    if "Report Period" in df.columns:
-        df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
-        max_date_obj = df["_temp_date"].max()
+    if "_temp_date" in context_df.columns and not context_df["_temp_date"].dropna().empty:
+        max_date_obj = context_df["_temp_date"].max()
         if pd.notnull(max_date_obj):
             max_available_date = max_date_obj.strftime("%Y-%m-%d")
 
-    # 3. Date Range Filtering
-    if start_date and end_date and "_temp_date" in df.columns:
-        start = pd.to_datetime(start_date, errors="coerce")
-        end = pd.to_datetime(end_date, errors="coerce")
-        if pd.notnull(start) and pd.notnull(end):
-            df = df[(df["_temp_date"] >= start) & (df["_temp_date"] <= end)]
+    # 3. Date Range Filtering & Strict Future Clamping
+    filtered_df = context_df.copy()
+    if "_temp_date" in filtered_df.columns:
+        # Clamp start/end dates if they exceed max_available_date
+        if end_date and max_available_date and end_date > max_available_date:
+            end_date = max_available_date
+        if start_date and max_available_date and start_date > max_available_date:
+            start_date = max_available_date
 
-    # Multi-tenant brand isolation
-    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
-    selected_brand = brand if brand in all_brands else (all_brands[0] if all_brands else "")
-    filtered_df = df[df["Restaurant Name"] == selected_brand]
-
-    # Outlet filter
-    outlets = sorted(filtered_df["Location"].dropna().unique().tolist())
-    if outlet and outlet in outlets:
-        filtered_df = filtered_df[filtered_df["Location"] == outlet]
-
-    # Platform filter
-    platforms = sorted(filtered_df["Platform"].dropna().unique().tolist())
-    if platform and platform in platforms:
-        filtered_df = filtered_df[filtered_df["Platform"] == platform]
+        if start_date and end_date:
+            start = pd.to_datetime(start_date, errors="coerce")
+            end = pd.to_datetime(end_date, errors="coerce")
+            if pd.notnull(start) and pd.notnull(end):
+                filtered_df = filtered_df[(filtered_df["_temp_date"] >= start) & (filtered_df["_temp_date"] <= end)]
 
     # Top-level KPIs
     total_gmv = filtered_df["GMV"].sum() if "GMV" in filtered_df.columns else 0.0
@@ -145,7 +152,6 @@ async def render_dashboard(
     trend_labels = []
     trend_values = []
     if "_temp_date" in filtered_df.columns and "Sales" in filtered_df.columns:
-        # Group by true parsed date to ensure perfect chronological sorting
         trend_df = filtered_df.groupby("_temp_date")["Sales"].sum().reset_index()
         trend_df = trend_df.sort_values("_temp_date")
         
@@ -158,7 +164,6 @@ async def render_dashboard(
         "trend_values": trend_values
     }
 
-    # Clean up _temp_date before passing to frontend table
     if "_temp_date" in filtered_df.columns:
         filtered_df = filtered_df.drop(columns=["_temp_date"])
         
@@ -182,7 +187,7 @@ async def render_dashboard(
             })
             
         return JSONResponse(content={
-            "max_available_date": max_available_date, # Pass max date to JS
+            "max_available_date": max_available_date,
             "total_gmv": f"₹{total_gmv:,.2f}",
             "total_orders": f"{total_orders:,}",
             "avg_aov": f"₹{avg_aov:,.2f}",
@@ -209,7 +214,7 @@ async def render_dashboard(
             "selected_platform": platform or "",
             "start_date": start_date or "",
             "end_date": end_date or "",
-            "max_available_date": max_available_date, # Pass max date to HTML
+            "max_available_date": max_available_date,
             "total_gmv": f"₹{total_gmv:,.2f}",
             "total_orders": f"{total_orders:,}",
             "avg_aov": f"₹{avg_aov:,.2f}",

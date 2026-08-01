@@ -173,7 +173,8 @@
 
     <div class="flex items-center gap-4 flex-1 justify-end">
         
-        <!-- Admin Brand Dropdown -->
+        {% if is_admin %}
+        <!-- Admin Brand Dropdown (Visible only to Admins) -->
         <div class="relative min-w-[200px] w-full md:w-auto">
             <select name="brand" onchange="this.form.submit()" style="-webkit-appearance: none; -moz-appearance: none; appearance: none;" class="w-full md:w-[220px] bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer appearance-none">
                 <option value="">All Brands</option>
@@ -185,6 +186,10 @@
                 <span class="material-symbols-outlined">expand_more</span>
             </div>
         </div>
+        {% else %}
+        <!-- Stakeholder Fallback (Hidden from view) -->
+        <input type="hidden" name="brand" value="{{ selected_brand }}">
+        {% endif %}
 
         <!-- Bulletproof Outlet Dropdown with Inline Appearance Hack -->
         <div class="relative min-w-[200px] w-full md:w-auto">

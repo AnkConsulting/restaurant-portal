@@ -174,17 +174,7 @@
 
     <div class="flex items-center gap-4 flex-1 justify-end">
         
-        <!-- UPDATED Dropdown Block Start -->
-        <div class="relative min-w-[200px]">
-          <select name="outlet" onchange="this.form.submit()" class="w-full appearance-none bg-white border border-outline-variant rounded-lg px-4 py-2 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none pr-10 cursor-pointer">
-            <option value="">All Outlets</option>
-            {% for loc in outlets %}
-            <option value="{{ loc }}" {% if loc == selected_outlet %}selected{% endif %}>{{ loc }}</option>
-            {% endfor %}
-          </select>
-          <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
-        </div>
-        <!-- UPDATED Dropdown Block End -->
+        <!-- DROPDOWN COMPLETELY REMOVED FROM HERE -->
 
         <div class="flex items-center bg-white border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all min-w-[240px]">
             <span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">search</span>

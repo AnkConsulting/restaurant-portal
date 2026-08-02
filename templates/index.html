@@ -147,17 +147,32 @@
                 </div>    
             </div>
         </div>
+        
+        <!-- RESTORED DYNAMIC WELCOME TEXT -->
         <div class="md:flex flex-col items-end">
             <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Welcome,</span>
             <span id="user-display-name" class="font-title-md text-title-md text-on-surface">
                 {% if is_admin %}
                     ANK Consulting Admin
                 {% else %}
-                    {{ selected_brand }}
+                    {% if selected_brand %}
+                        {{ selected_brand }}
+                    {% elif all_brands %}
+                        {{ all_brands[0] }}
+                    {% else %}
+                        Partner
+                    {% endif %}
                 {% endif %}
             </span>
         </div>
-        <img alt="User Logo" class="w-10 h-10 object-contain rounded-full border border-surface-container-high bg-white p-0.5" src="/static/ank-logo.png"/>
+        
+        <!-- DYNAMIC LOGO / INITIALS CHECK -->
+        {% if is_admin %}
+            <img alt="User Logo" class="w-10 h-10 object-contain rounded-full border border-surface-container-high bg-white p-0.5" src="/static/ank-logo.png"/>
+        {% else %}
+            <div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-title-md text-title-md font-bold shadow-sm"></div>
+        {% endif %}
+        
     </div>
 </header>
 

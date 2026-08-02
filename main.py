@@ -78,8 +78,6 @@ async def render_dashboard(
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
 
     all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
-    
-    # Default to empty string for "All Brands" on fresh login
     selected_brand = brand if brand in all_brands else ""
     
     if selected_brand:
@@ -130,10 +128,19 @@ async def render_dashboard(
     sales_ads = current_filtered["Sales from Ads"].sum() if "Sales from Ads" in current_filtered.columns else 0.0
     discount_given = current_filtered["Discount given"].sum() if "Discount given" in current_filtered.columns else 0.0
 
-    if "Platform" in current_filtered.columns and "Delivered orders" in current_filtered.columns:
-        platform_orders = current_filtered.groupby("Platform")["Delivered orders"].sum().to_dict()
-    else:
-        platform_orders = {}
+    # MULTI-METRIC DONUT AGGREGATIONS
+    platform_orders, platform_gmv, platform_sales, platform_ads, platform_discount = {}, {}, {}, {}, {}
+    if "Platform" in current_filtered.columns:
+        if "Delivered orders" in current_filtered.columns:
+            platform_orders = current_filtered.groupby("Platform")["Delivered orders"].sum().to_dict()
+        if "GMV" in current_filtered.columns:
+            platform_gmv = current_filtered.groupby("Platform")["GMV"].sum().to_dict()
+        if "Sales" in current_filtered.columns:
+            platform_sales = current_filtered.groupby("Platform")["Sales"].sum().to_dict()
+        if "Sales from Ads" in current_filtered.columns:
+            platform_ads = current_filtered.groupby("Platform")["Sales from Ads"].sum().to_dict()
+        if "Discount given" in current_filtered.columns:
+            platform_discount = current_filtered.groupby("Platform")["Discount given"].sum().to_dict()
 
     trend_labels = []
     sales_trend, gmv_trend, orders_trend, ads_trend, discount_trend = [], [], [], [], []
@@ -163,7 +170,11 @@ async def render_dashboard(
             prev_discount_trend = prev_trend_df["Discount given"].tolist() if "Discount given" in prev_trend_df.columns else []
 
     chart_data = {
-        "platform_donut": platform_orders,
+        "platform_orders": platform_orders,
+        "platform_gmv": platform_gmv,
+        "platform_sales": platform_sales,
+        "platform_ads": platform_ads,
+        "platform_discount": platform_discount,
         "trend_labels": trend_labels,
         "sales_trend": sales_trend,
         "gmv_trend": gmv_trend,

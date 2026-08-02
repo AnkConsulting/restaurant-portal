@@ -21,6 +21,14 @@ BRAND_MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwF
 def load_data():
     try:
         df = pd.read_csv(SHEET_CSV_URL)
+        
+        # 1. Clean all column headers to remove hidden trailing/leading spaces
+        df.columns = df.columns.str.strip()
+        
+        # 2. Aggressively drop the helper column immediately
+        if "Unique Drop Down" in df.columns:
+            df = df.drop(columns=["Unique Drop Down"])
+            
     except Exception:
         return pd.DataFrame(
             columns=[
@@ -306,10 +314,6 @@ def export_csv(
     # Clean up internal columns
     if "_temp_date" in filtered_df.columns:
         filtered_df = filtered_df.drop(columns=["_temp_date"])
-        
-    # Drop the helper column from the final export
-    if "Unique Drop Down" in filtered_df.columns:
-        filtered_df = filtered_df.drop(columns=["Unique Drop Down"])
 
     csv_data = filtered_df.to_csv(index=False)
     

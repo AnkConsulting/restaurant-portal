@@ -8,11 +8,10 @@ let viewMonth = viewDate.getMonth();
 // Global Chart Instances & State
 let donutChartInstance = null;
 let trendChartInstance = null;
-let currentMetric = 'sales'; // default active metric
+let currentMetric = 'sales';
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-// Platform Brand Colors Map
 const PLATFORM_COLORS = {
     'Swiggy': '#FC8019',
     'Zomato': '#E23744'
@@ -45,6 +44,13 @@ document.addEventListener("DOMContentLoaded", function () {
         viewDate = new Date(selectedStartDate);
         viewYear = viewDate.getFullYear();
         viewMonth = viewDate.getMonth();
+    } else {
+        const maxInput = document.getElementById('max-available-date');
+        if (maxInput && maxInput.value) {
+            viewDate = new Date(maxInput.value);
+            viewYear = viewDate.getFullYear();
+            viewMonth = viewDate.getMonth();
+        }
     }
     
     renderMonthYearDropdowns();
@@ -98,13 +104,12 @@ function initCharts(data) {
         }
     });
 
-    // Trend Chart Setup
     const trendCtx = document.getElementById('salesTrendChart').getContext('2d');
     let gradient = trendCtx.createLinearGradient(0, 0, 0, 300);
     gradient.addColorStop(0, 'rgba(0, 74, 198, 0.2)'); 
     gradient.addColorStop(1, 'rgba(0, 74, 198, 0)');
 
-    window.latestChartPayload = data; // Store globally for metric switching
+    window.latestChartPayload = data;
 
     trendChartInstance = new Chart(trendCtx, {
         type: 'line',
@@ -167,7 +172,6 @@ function initCharts(data) {
 function switchTrendMetric(metricType, btnEl) {
     currentMetric = metricType;
     
-    // Update button UI states
     document.querySelectorAll('.trend-btn').forEach(btn => {
         btn.className = "trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all";
     });
@@ -198,7 +202,6 @@ function switchTrendMetric(metricType, btnEl) {
         titleText = 'Discount Given Trend';
     }
 
-    // Dynamically update card header title
     const titleEl = document.getElementById('trend-chart-title');
     if (titleEl) titleEl.innerText = titleText;
 
@@ -501,7 +504,11 @@ function updateCalendarHighlights() {
 
     const labelEl = document.getElementById('date-picker-label');
     if (selectedStartDate && selectedEndDate) {
-        labelEl.innerText = `${formatDateLabel(selectedStartDate)} to ${formatDateLabel(selectedEndDate)}`;
+        if (selectedStartDate === selectedEndDate) {
+            labelEl.innerText = formatDateLabel(selectedStartDate);
+        } else {
+            labelEl.innerText = `${formatDateLabel(selectedStartDate)} to ${formatDateLabel(selectedEndDate)}`;
+        }
     } else if (selectedStartDate) {
         labelEl.innerText = `${formatDateLabel(selectedStartDate)} to ...`;
     } else {

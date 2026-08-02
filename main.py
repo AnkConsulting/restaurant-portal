@@ -12,22 +12,16 @@ app = FastAPI(title="Restaurant Daily Analytics Portal")
 # Add session security
 app.add_middleware(SessionMiddleware, secret_key="YOUR_SUPER_SECRET_SESSION_KEY")
 
-# This forces Render to find the exact path to your templates folder
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-# Mount the static directory so the browser can download script.js
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 
-# Published Google Sheet CSV URL for Main Financial Report
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=161887137&single=true&output=csv"
-
-# Published Google Sheet CSV URL for Brand_Mapping Security Registry
 BRAND_MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=766978685&single=true&output=csv"
 
 
 def load_data():
-    """Fetches live data directly from the published Google Sheet CSV link."""
     try:
         df = pd.read_csv(SHEET_CSV_URL)
     except Exception:
@@ -46,7 +40,6 @@ def load_data():
             ]
         )
 
-    # Clean numeric columns robustly
     numeric_cols = [
         "Delivered orders",
         "Delivered Orders",
@@ -62,17 +55,14 @@ def load_data():
             cleaned_series = df[col].astype(str).str.replace(r'[₹, ]', '', regex=True)
             df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
 
-    # Normalize common column key discrepancies
     if "Delivered Orders" in df.columns and "Delivered orders" not in df.columns:
         df["Delivered orders"] = df["Delivered Orders"]
     if "Discount Given" in df.columns and "Discount given" not in df.columns:
         df["Discount given"] = df["Discount Given"]
 
-    # Apply CV calculation logic 
     if "GMV" in df.columns and "Total GST" in df.columns:
         df["CV"] = df["GMV"] - df["Total GST"]
 
-    # Strict Leading Column Enforcement
     leading_cols = ["Restaurant Name", "Report Period", "Location", "Res ID"]
     other_cols = [c for c in df.columns if c not in leading_cols]
     ordered_cols = [c for c in leading_cols if c in df.columns] + [
@@ -92,7 +82,6 @@ async def render_dashboard(
     end_date: Optional[str] = Query(None),
     ajax: Optional[str] = Query(None)
 ):
-    # 1. Security Check
     if not request.session.get("logged_in"):
         return RedirectResponse(url="/login", status_code=303)
 
@@ -104,7 +93,6 @@ async def render_dashboard(
     if "Report Period" in df.columns:
         df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
 
-    # 2. Data Isolation Filtering for Stakeholders
     if not is_admin:
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
 
@@ -126,6 +114,12 @@ async def render_dashboard(
         if pd.notnull(max_date_obj):
             max_available_date = max_date_obj.strftime("%Y-%m-%d")
 
+    # --- DEFAULT TO LATEST AVAILABLE DATE IF NONE PROVIDED ---
+    if not start_date or not end_date:
+        if max_available_date:
+            start_date = max_available_date
+            end_date = max_available_date
+
     filtered_df = context_df.copy()
     if "_temp_date" in filtered_df.columns:
         if end_date and max_available_date and end_date > max_available_date:
@@ -139,14 +133,12 @@ async def render_dashboard(
             if pd.notnull(start) and pd.notnull(end):
                 filtered_df = filtered_df[(filtered_df["_temp_date"] >= start) & (filtered_df["_temp_date"] <= end)]
 
-    # Top-level KPIs
     total_gmv = filtered_df["GMV"].sum() if "GMV" in filtered_df.columns else 0.0
     total_orders = int(filtered_df["Delivered orders"].sum()) if "Delivered orders" in filtered_df.columns else 0
     avg_aov = (total_gmv / total_orders) if total_orders > 0 else 0.0
     sales_ads = filtered_df["Sales from Ads"].sum() if "Sales from Ads" in filtered_df.columns else 0.0
     discount_given = filtered_df["Discount given"].sum() if "Discount given" in filtered_df.columns else 0.0
 
-    # --- MULTI-METRIC TREND AGGREGATION ---
     if "Platform" in filtered_df.columns and "Delivered orders" in filtered_df.columns:
         platform_orders = filtered_df.groupby("Platform")["Delivered orders"].sum().to_dict()
     else:

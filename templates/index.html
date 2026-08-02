@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=1280" name="viewport"/>
-<title>Restaurant Daily Analytics Portal</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=1280" name="viewport"/>
+    <title>Restaurant Daily Analytics Portal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script id="tailwind-config">
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
@@ -95,7 +96,7 @@
             }
         }
     </script>
-<style type="text/tailwindcss">
+    <style type="text/tailwindcss">
         @layer utilities {
             .elevation-0 { @apply bg-surface-bright shadow-none; }
             .elevation-1 { @apply bg-white border border-surface-container-high shadow-[0_4px_12px_rgba(0,0,0,0.02)]; }
@@ -316,7 +317,16 @@
 
 <section class="grid grid-cols-2 gap-6 mb-8">
 <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
-<h3 class="font-title-md text-title-md text-on-surface mb-6">Orders by Platform</h3>
+<div class="flex flex-wrap justify-between items-center mb-6 gap-2">
+    <h3 id="donut-chart-title" class="font-title-md text-title-md text-on-surface">Orders by Platform</h3>
+    <div class="flex bg-surface-container-high p-1 rounded-lg text-xs font-semibold gap-1">
+        <button type="button" onclick="switchDonutMetric('sales', this)" class="donut-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Sales</button>
+        <button type="button" onclick="switchDonutMetric('gmv', this)" class="donut-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">GMV</button>
+        <button type="button" onclick="switchDonutMetric('orders', this)" class="donut-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all">Orders</button>
+        <button type="button" onclick="switchDonutMetric('ads', this)" class="donut-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Ads</button>
+        <button type="button" onclick="switchDonutMetric('discount', this)" class="donut-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Discount</button>
+    </div>
+</div>
 <div class="flex-1 w-full relative flex items-center justify-center p-2">
     <canvas id="platformDonutChart"></canvas>
 </div>

@@ -49,16 +49,24 @@ def load_data():
     # Clean numeric columns robustly
     numeric_cols = [
         "Delivered orders",
+        "Delivered Orders",
         "Sales",
         "GMV",
         "Sales from Ads",
         "Discount given",
+        "Discount Given",
         "Total GST"
     ]
     for col in numeric_cols:
         if col in df.columns:
             cleaned_series = df[col].astype(str).str.replace(r'[₹, ]', '', regex=True)
             df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
+
+    # Normalize common column key discrepancies
+    if "Delivered Orders" in df.columns and "Delivered orders" not in df.columns:
+        df["Delivered orders"] = df["Delivered Orders"]
+    if "Discount Given" in df.columns and "Discount given" not in df.columns:
+        df["Discount given"] = df["Discount Given"]
 
     # Apply CV calculation logic 
     if "GMV" in df.columns and "Total GST" in df.columns:
@@ -93,7 +101,6 @@ async def render_dashboard(
 
     df = load_data()
 
-    # Parse datetime safely at top level
     if "Report Period" in df.columns:
         df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
 
@@ -101,7 +108,6 @@ async def render_dashboard(
     if not is_admin:
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
 
-    # Brand, Outlet, Platform Isolation
     all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
     selected_brand = brand if brand in all_brands else (all_brands[0] if all_brands else "")
     context_df = df[df["Restaurant Name"] == selected_brand]
@@ -114,17 +120,14 @@ async def render_dashboard(
     if platform and platform in platforms:
         context_df = context_df[context_df["Platform"] == platform]
 
-    # --- CALCULATE EXACT MAX AVAILABLE DATE FOR THIS CONTEXT ---
     max_available_date = ""
     if "_temp_date" in context_df.columns and not context_df["_temp_date"].dropna().empty:
         max_date_obj = context_df["_temp_date"].max()
         if pd.notnull(max_date_obj):
             max_available_date = max_date_obj.strftime("%Y-%m-%d")
 
-    # 3. Date Range Filtering & Strict Future Clamping
     filtered_df = context_df.copy()
     if "_temp_date" in filtered_df.columns:
-        # Clamp start/end dates if they exceed max_available_date
         if end_date and max_available_date and end_date > max_available_date:
             end_date = max_available_date
         if start_date and max_available_date and start_date > max_available_date:
@@ -143,25 +146,44 @@ async def render_dashboard(
     sales_ads = filtered_df["Sales from Ads"].sum() if "Sales from Ads" in filtered_df.columns else 0.0
     discount_given = filtered_df["Discount given"].sum() if "Discount given" in filtered_df.columns else 0.0
 
-    # Chart Data Aggregation
+    # --- MULTI-METRIC TREND AGGREGATION ---
     if "Platform" in filtered_df.columns and "Delivered orders" in filtered_df.columns:
         platform_orders = filtered_df.groupby("Platform")["Delivered orders"].sum().to_dict()
     else:
         platform_orders = {}
 
     trend_labels = []
-    trend_values = []
-    if "_temp_date" in filtered_df.columns and "Sales" in filtered_df.columns:
-        trend_df = filtered_df.groupby("_temp_date")["Sales"].sum().reset_index()
-        trend_df = trend_df.sort_values("_temp_date")
-        
-        trend_labels = trend_df["_temp_date"].dt.strftime('%d-%m-%Y').tolist()
-        trend_values = trend_df["Sales"].tolist()
+    sales_trend = []
+    gmv_trend = []
+    orders_trend = []
+    ads_trend = []
+    discount_trend = []
+
+    if "_temp_date" in filtered_df.columns:
+        agg_dict = {}
+        for col in ["Sales", "GMV", "Delivered orders", "Sales from Ads", "Discount given"]:
+            if col in filtered_df.columns:
+                agg_dict[col] = "sum"
+
+        if agg_dict:
+            trend_df = filtered_df.groupby("_temp_date").agg(agg_dict).reset_index()
+            trend_df = trend_df.sort_values("_temp_date")
+            
+            trend_labels = trend_df["_temp_date"].dt.strftime('%d-%m-%Y').tolist()
+            sales_trend = trend_df["Sales"].tolist() if "Sales" in trend_df.columns else []
+            gmv_trend = trend_df["GMV"].tolist() if "GMV" in trend_df.columns else []
+            orders_trend = trend_df["Delivered orders"].tolist() if "Delivered orders" in trend_df.columns else []
+            ads_trend = trend_df["Sales from Ads"].tolist() if "Sales from Ads" in trend_df.columns else []
+            discount_trend = trend_df["Discount given"].tolist() if "Discount given" in trend_df.columns else []
 
     chart_data = {
         "platform_donut": platform_orders,
         "trend_labels": trend_labels,
-        "trend_values": trend_values
+        "sales_trend": sales_trend,
+        "gmv_trend": gmv_trend,
+        "orders_trend": orders_trend,
+        "ads_trend": ads_trend,
+        "discount_trend": discount_trend
     }
 
     if "_temp_date" in filtered_df.columns:
@@ -169,7 +191,6 @@ async def render_dashboard(
         
     table_records = filtered_df.to_dict(orient="records")
 
-    # 4. JSON Response for Seamless Async Refresh
     if ajax == "1":
         formatted_table_data = []
         for row in table_records:
@@ -199,7 +220,6 @@ async def render_dashboard(
             "chart_data": chart_data
         })
 
-    # Standard HTML Response (Initial Page Load)
     return templates.TemplateResponse(
         request=request,
         name="index.html",

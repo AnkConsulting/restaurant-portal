@@ -5,9 +5,10 @@ let viewDate = new Date();
 let viewYear = viewDate.getFullYear();
 let viewMonth = viewDate.getMonth();
 
-// Global Chart Instances
+// Global Chart Instances & State
 let donutChartInstance = null;
 let trendChartInstance = null;
+let currentMetric = 'sales'; // default active metric
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -19,7 +20,6 @@ const PLATFORM_COLORS = {
 const DEFAULT_COLOR = '#004ac6';
 
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. Dynamic Avatar Initials
     const displayNameEl = document.getElementById("user-display-name");
     const displayName = displayNameEl ? displayNameEl.innerText.trim() : "";
     const avatarBadge = document.getElementById("avatar-initials");
@@ -31,7 +31,6 @@ document.addEventListener("DOMContentLoaded", function () {
       avatarBadge.innerText = initials || "RP";
     }
     
-    // 2. Initialize Calendar Dates
     const startInput = document.getElementById('start-date-input');
     const endInput = document.getElementById('end-date-input');
     
@@ -51,7 +50,6 @@ document.addEventListener("DOMContentLoaded", function () {
     renderMonthYearDropdowns();
     renderCalendar();
 
-    // 3. Initialize Chart.js
     if (window.INITIAL_CHART_DATA) {
         initCharts(window.INITIAL_CHART_DATA);
     }
@@ -100,18 +98,21 @@ function initCharts(data) {
         }
     });
 
+    // Trend Chart Setup
     const trendCtx = document.getElementById('salesTrendChart').getContext('2d');
     let gradient = trendCtx.createLinearGradient(0, 0, 0, 300);
     gradient.addColorStop(0, 'rgba(0, 74, 198, 0.2)'); 
     gradient.addColorStop(1, 'rgba(0, 74, 198, 0)');
+
+    window.latestChartPayload = data; // Store globally for metric switching
 
     trendChartInstance = new Chart(trendCtx, {
         type: 'line',
         data: {
             labels: data.trend_labels,
             datasets: [{
-                label: 'Daily Sales (₹)',
-                data: data.trend_values,
+                label: 'Daily Sales',
+                data: data.sales_trend,
                 borderColor: '#004ac6',
                 backgroundColor: gradient,
                 borderWidth: 2,
@@ -126,7 +127,19 @@ function initCharts(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let val = context.raw;
+                            if (currentMetric === 'orders') {
+                                return `Orders: ${val.toLocaleString()}`;
+                            } else {
+                                return `Amount: ₹${val.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                            }
+                        }
+                    }
+                }
             },
             scales: {
                 x: {
@@ -137,7 +150,13 @@ function initCharts(data) {
                     border: { display: false },
                     ticks: { 
                         font: { family: "'Hanken Grotesk', sans-serif" },
-                        callback: function(value) { return '₹' + (value/1000) + 'k'; }
+                        callback: function(value) { 
+                            if (currentMetric === 'orders') {
+                                return value;
+                            } else {
+                                return '₹' + (value/1000) + 'k'; 
+                            }
+                        }
                     }
                 }
             }
@@ -145,8 +164,52 @@ function initCharts(data) {
     });
 }
 
+function switchTrendMetric(metricType, btnEl) {
+    currentMetric = metricType;
+    
+    // Update button UI states
+    document.querySelectorAll('.trend-btn').forEach(btn => {
+        btn.className = "trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all";
+    });
+    btnEl.className = "trend-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all";
+
+    if (!window.latestChartPayload) return;
+    const data = window.latestChartPayload;
+
+    let targetData = data.sales_trend;
+    let labelName = 'Daily Sales';
+    let titleText = 'Daily Sales Trend';
+
+    if (metricType === 'gmv') {
+        targetData = data.gmv_trend;
+        labelName = 'Daily GMV';
+        titleText = 'Daily GMV Trend';
+    } else if (metricType === 'orders') {
+        targetData = data.orders_trend;
+        labelName = 'Delivered Orders';
+        titleText = 'Delivered Orders Trend';
+    } else if (metricType === 'ads') {
+        targetData = data.ads_trend;
+        labelName = 'Ad Spend Sales';
+        titleText = 'Sales from Ads Trend';
+    } else if (metricType === 'discount') {
+        targetData = data.discount_trend;
+        labelName = 'Discount Given';
+        titleText = 'Discount Given Trend';
+    }
+
+    // Dynamically update card header title
+    const titleEl = document.getElementById('trend-chart-title');
+    if (titleEl) titleEl.innerText = titleText;
+
+    trendChartInstance.data.datasets[0].label = labelName;
+    trendChartInstance.data.datasets[0].data = targetData;
+    trendChartInstance.update();
+}
+
 function updateCharts(data) {
     if (!donutChartInstance || !trendChartInstance) return;
+    window.latestChartPayload = data;
 
     const platformLabels = Object.keys(data.platform_donut);
     const platformValues = Object.values(data.platform_donut);
@@ -165,8 +228,14 @@ function updateCharts(data) {
     donutChartInstance.data.datasets[0].backgroundColor = mappedColors;
     donutChartInstance.update();
 
+    let targetData = data.sales_trend;
+    if (currentMetric === 'gmv') targetData = data.gmv_trend;
+    else if (currentMetric === 'orders') targetData = data.orders_trend;
+    else if (currentMetric === 'ads') targetData = data.ads_trend;
+    else if (currentMetric === 'discount') targetData = data.discount_trend;
+
     trendChartInstance.data.labels = data.trend_labels;
-    trendChartInstance.data.datasets[0].data = data.trend_values;
+    trendChartInstance.data.datasets[0].data = targetData;
     trendChartInstance.update();
 }
 
@@ -194,13 +263,11 @@ async function fetchDashboardData() {
         const response = await fetch('/?' + params.toString());
         const data = await response.json();
         
-        // Update max available date silently
         const maxInput = document.getElementById('max-available-date');
         if (maxInput && data.max_available_date) {
             maxInput.value = data.max_available_date;
         }
 
-        // Update KPIs
         document.getElementById('kpi-gmv').innerText = data.total_gmv;
         document.getElementById('kpi-gmv').title = data.total_gmv;
         document.getElementById('kpi-orders').innerText = data.total_orders;
@@ -212,12 +279,10 @@ async function fetchDashboardData() {
         document.getElementById('kpi-discount').innerText = data.discount_given;
         document.getElementById('kpi-discount').title = data.discount_given;
 
-        // Update Charts Data
         if (data.chart_data) {
             updateCharts(data.chart_data);
         }
 
-        // Update Data Table
         const tbody = document.getElementById('data-table-body');
         tbody.innerHTML = '';
         if (data.table_data.length === 0) {
@@ -240,7 +305,6 @@ async function fetchDashboardData() {
             });
         }
         
-        // Refresh Dropdowns
         const outletList = document.getElementById('outlet-list');
         if (outletList) {
             outletList.innerHTML = `<li onclick="submitCustomDropdown('outlet-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Outlets</li>`;
@@ -261,7 +325,6 @@ async function fetchDashboardData() {
             menu.classList.add('hidden');
         });
 
-        // Re-render calendar so any disabled bounds adjust to new max available date
         renderCalendar();
 
     } catch (e) {
@@ -271,7 +334,7 @@ async function fetchDashboardData() {
     }
 }
 
-// --- DYNAMIC DOCKER CALENDAR ENGINE ---
+// --- CALENDAR ENGINE ---
 function formatDateLabel(dateStr) {
     if (!dateStr) return "";
     const parts = dateStr.split('-');
@@ -391,7 +454,7 @@ function navigateCalendar(monthOffset, yearOffset) {
         const maxYear = parseInt(parts[0], 10);
         const maxMonth = parseInt(parts[1], 10) - 1;
         if ((targetYear > maxYear) || (targetYear === maxYear && targetMonth > maxMonth)) {
-            return; // Block navigating arrow past max month/year
+            return;
         }
     }
 
@@ -404,7 +467,6 @@ function handleDayClick(dayEl) {
     const clickedDate = dayEl.getAttribute('data-date');
     if (!clickedDate) return;
 
-    // Strict guard against future dates
     const maxDateStr = document.getElementById('max-available-date') ? document.getElementById('max-available-date').value : '';
     if (maxDateStr && clickedDate > maxDateStr) return;
 

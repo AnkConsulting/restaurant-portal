@@ -5,7 +5,6 @@ let viewDate = new Date();
 let viewYear = viewDate.getFullYear();
 let viewMonth = viewDate.getMonth();
 
-// Global Chart Instances & State
 let donutChartInstance = null;
 let trendChartInstance = null;
 let currentMetric = 'sales';
@@ -67,7 +66,6 @@ function initCharts(data) {
     
     const platformLabels = Object.keys(data.platform_donut);
     const platformValues = Object.values(data.platform_donut);
-    
     const totalOrders = platformValues.reduce((sum, val) => sum + val, 0);
     const labelsWithPct = platformLabels.map((platform, i) => {
         const val = platformValues[i];
@@ -95,10 +93,7 @@ function initCharts(data) {
             plugins: {
                 legend: {
                     position: 'bottom',
-                    labels: { 
-                        font: { family: "'Hanken Grotesk', sans-serif", size: 14 },
-                        padding: 20
-                    }
+                    labels: { font: { family: "'Hanken Grotesk', sans-serif", size: 14 }, padding: 20 }
                 }
             }
         }
@@ -115,32 +110,52 @@ function initCharts(data) {
         type: 'line',
         data: {
             labels: data.trend_labels,
-            datasets: [{
-                label: 'Daily Sales',
-                data: data.sales_trend,
-                borderColor: '#004ac6',
-                backgroundColor: gradient,
-                borderWidth: 2,
-                fill: true,
-                tension: 0.3,
-                pointRadius: 3,
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: '#004ac6'
-            }]
+            datasets: [
+                {
+                    label: 'Current Period',
+                    data: data.sales_trend,
+                    borderColor: '#004ac6',
+                    backgroundColor: gradient,
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#004ac6'
+                },
+                {
+                    label: 'Previous Period',
+                    data: data.prev_sales_trend,
+                    borderColor: '#94a3b8', // Slate grey dashed line
+                    borderDash: [5, 5],
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#94a3b8'
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false },
+                legend: { 
+                    display: true, 
+                    position: 'top',
+                    align: 'end',
+                    labels: { boxWidth: 12, font: { family: "'Hanken Grotesk', sans-serif", size: 11 } }
+                },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
                             let val = context.raw;
+                            let label = context.dataset.label || '';
                             if (currentMetric === 'orders') {
-                                return `Orders: ${val.toLocaleString()}`;
+                                return `${label}: ${val.toLocaleString()} orders`;
                             } else {
-                                return `Amount: ₹${val.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                                return `${label}: ₹${val.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                             }
                         }
                     }
@@ -156,11 +171,8 @@ function initCharts(data) {
                     ticks: { 
                         font: { family: "'Hanken Grotesk', sans-serif" },
                         callback: function(value) { 
-                            if (currentMetric === 'orders') {
-                                return value;
-                            } else {
-                                return '₹' + (value/1000) + 'k'; 
-                            }
+                            if (currentMetric === 'orders') return value;
+                            return '₹' + (value/1000) + 'k'; 
                         }
                     }
                 }
@@ -181,32 +193,32 @@ function switchTrendMetric(metricType, btnEl) {
     const data = window.latestChartPayload;
 
     let targetData = data.sales_trend;
-    let labelName = 'Daily Sales';
+    let prevTargetData = data.prev_sales_trend;
     let titleText = 'Daily Sales Trend';
 
     if (metricType === 'gmv') {
         targetData = data.gmv_trend;
-        labelName = 'Daily GMV';
+        prevTargetData = data.prev_gmv_trend;
         titleText = 'Daily GMV Trend';
     } else if (metricType === 'orders') {
         targetData = data.orders_trend;
-        labelName = 'Delivered Orders';
+        prevTargetData = data.prev_orders_trend;
         titleText = 'Delivered Orders Trend';
     } else if (metricType === 'ads') {
         targetData = data.ads_trend;
-        labelName = 'Ad Spend Sales';
+        prevTargetData = data.prev_ads_trend;
         titleText = 'Sales from Ads Trend';
     } else if (metricType === 'discount') {
         targetData = data.discount_trend;
-        labelName = 'Discount Given';
+        prevTargetData = data.prev_discount_trend;
         titleText = 'Discount Given Trend';
     }
 
     const titleEl = document.getElementById('trend-chart-title');
     if (titleEl) titleEl.innerText = titleText;
 
-    trendChartInstance.data.datasets[0].label = labelName;
     trendChartInstance.data.datasets[0].data = targetData;
+    trendChartInstance.data.datasets[1].data = prevTargetData;
     trendChartInstance.update();
 }
 
@@ -216,7 +228,6 @@ function updateCharts(data) {
 
     const platformLabels = Object.keys(data.platform_donut);
     const platformValues = Object.values(data.platform_donut);
-    
     const totalOrders = platformValues.reduce((sum, val) => sum + val, 0);
     const labelsWithPct = platformLabels.map((platform, i) => {
         const val = platformValues[i];
@@ -232,17 +243,19 @@ function updateCharts(data) {
     donutChartInstance.update();
 
     let targetData = data.sales_trend;
-    if (currentMetric === 'gmv') targetData = data.gmv_trend;
-    else if (currentMetric === 'orders') targetData = data.orders_trend;
-    else if (currentMetric === 'ads') targetData = data.ads_trend;
-    else if (currentMetric === 'discount') targetData = data.discount_trend;
+    let prevTargetData = data.prev_sales_trend;
+    if (currentMetric === 'gmv') { targetData = data.gmv_trend; prevTargetData = data.prev_gmv_trend; }
+    else if (currentMetric === 'orders') { targetData = data.orders_trend; prevTargetData = data.prev_orders_trend; }
+    else if (currentMetric === 'ads') { targetData = data.ads_trend; prevTargetData = data.prev_ads_trend; }
+    else if (currentMetric === 'discount') { targetData = data.discount_trend; prevTargetData = data.prev_discount_trend; }
 
     trendChartInstance.data.labels = data.trend_labels;
     trendChartInstance.data.datasets[0].data = targetData;
+    trendChartInstance.data.datasets[1].data = prevTargetData;
     trendChartInstance.update();
 }
 
-// --- ASYNC DASHBOARD REFRESH (AJAX) ---
+// --- ASYNC DASHBOARD REFRESH ---
 async function fetchDashboardData() {
     document.getElementById('main-content').style.opacity = '0.5';
 
@@ -272,15 +285,10 @@ async function fetchDashboardData() {
         }
 
         document.getElementById('kpi-gmv').innerText = data.total_gmv;
-        document.getElementById('kpi-gmv').title = data.total_gmv;
         document.getElementById('kpi-orders').innerText = data.total_orders;
-        document.getElementById('kpi-orders').title = data.total_orders;
         document.getElementById('kpi-aov').innerText = data.avg_aov;
-        document.getElementById('kpi-aov').title = data.avg_aov;
         document.getElementById('kpi-ads').innerText = data.sales_ads;
-        document.getElementById('kpi-ads').title = data.sales_ads;
         document.getElementById('kpi-discount').innerText = data.discount_given;
-        document.getElementById('kpi-discount').title = data.discount_given;
 
         if (data.chart_data) {
             updateCharts(data.chart_data);
@@ -444,21 +452,14 @@ function navigateCalendar(monthOffset, yearOffset) {
     let targetMonth = viewMonth + monthOffset;
     let targetYear = viewYear + yearOffset;
     
-    if (targetMonth < 0) { 
-        targetMonth = 11; 
-        targetYear--; 
-    } else if (targetMonth > 11) { 
-        targetMonth = 0; 
-        targetYear++; 
-    }
+    if (targetMonth < 0) { targetMonth = 11; targetYear--; } 
+    else if (targetMonth > 11) { targetMonth = 0; targetYear++; }
 
     if (maxDateStr) {
         const parts = maxDateStr.split('-');
         const maxYear = parseInt(parts[0], 10);
         const maxMonth = parseInt(parts[1], 10) - 1;
-        if ((targetYear > maxYear) || (targetYear === maxYear && targetMonth > maxMonth)) {
-            return;
-        }
+        if ((targetYear > maxYear) || (targetYear === maxYear && targetMonth > maxMonth)) return;
     }
 
     viewMonth = targetMonth;
@@ -521,28 +522,20 @@ function applyDateSelection() {
         document.getElementById('calendar-menu')?.classList.add('hidden');
         return;
     }
-
-    if (!selectedEndDate) {
-      selectedEndDate = selectedStartDate;
-    }
+    if (!selectedEndDate) selectedEndDate = selectedStartDate;
 
     document.getElementById('start-date-input').value = selectedStartDate;
     document.getElementById('end-date-input').value = selectedEndDate;
-
     fetchDashboardData();
 }
 
-// --- DROPDOWN UI LOGIC ---
 function toggleCustomDropdown(menuId, event) {
     event.stopPropagation();
-    
     document.querySelectorAll('.dropdown-menu-custom').forEach(menu => {
         if (menu.id !== menuId) menu.classList.add('hidden');
     });
-
     const menu = document.getElementById(menuId);
     menu.classList.toggle('hidden');
-    
     if (!menu.classList.contains('hidden')) {
         const searchInput = menu.querySelector('input[type="text"]');
         if (searchInput) searchInput.focus();
@@ -552,21 +545,14 @@ function toggleCustomDropdown(menuId, event) {
 function filterCustomDropdown(inputId, listId) {
     const filter = document.getElementById(inputId).value.toLowerCase();
     const lis = document.getElementById(listId).getElementsByTagName('li');
-    
     for (let i = 1; i < lis.length; i++) {
         let txtValue = lis[i].textContent || lis[i].innerText;
-        if (txtValue.toLowerCase().indexOf(filter) > -1) {
-            lis[i].style.display = "";
-        } else {
-            lis[i].style.display = "none";
-        }
+        lis[i].style.display = txtValue.toLowerCase().indexOf(filter) > -1 ? "" : "none";
     }
 }
 
 function submitCustomDropdown(inputId, selectedValue) {
-    const hiddenInput = document.getElementById(inputId);
-    hiddenInput.value = selectedValue;
-    
+    document.getElementById(inputId).value = selectedValue;
     if (inputId === 'brand-input') {
         const outletInput = document.getElementById('outlet-input');
         if (outletInput) outletInput.value = "";
@@ -577,7 +563,6 @@ function submitCustomDropdown(inputId, selectedValue) {
     } else if (inputId === 'platform-input') {
         document.getElementById('platform-trigger-text').innerText = selectedValue || 'All Platforms';
     }
-    
     fetchDashboardData();
 }
 
@@ -587,18 +572,10 @@ document.addEventListener('click', function(event) {
     const platformContainer = document.getElementById('platform-dropdown-container');
     const dateContainer = document.getElementById('date-dropdown-container');
     
-    if (brandContainer && !brandContainer.contains(event.target)) {
-        document.getElementById('brand-menu')?.classList.add('hidden');
-    }
-    if (outletContainer && !outletContainer.contains(event.target)) {
-        document.getElementById('outlet-menu')?.classList.add('hidden');
-    }
-    if (platformContainer && !platformContainer.contains(event.target)) {
-        document.getElementById('platform-menu')?.classList.add('hidden');
-    }
-    if (dateContainer && !dateContainer.contains(event.target)) {
-        document.getElementById('calendar-menu')?.classList.add('hidden');
-    }
+    if (brandContainer && !brandContainer.contains(event.target)) document.getElementById('brand-menu')?.classList.add('hidden');
+    if (outletContainer && !outletContainer.contains(event.target)) document.getElementById('outlet-menu')?.classList.add('hidden');
+    if (platformContainer && !platformContainer.contains(event.target)) document.getElementById('platform-menu')?.classList.add('hidden');
+    if (dateContainer && !dateContainer.contains(event.target)) document.getElementById('calendar-menu')?.classList.add('hidden');
 
     document.getElementById('month-dropdown')?.classList.add('hidden');
     document.getElementById('year-dropdown')?.classList.add('hidden');

@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html class="light" lang="en">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=1280" name="viewport"/>
-    <title>Restaurant Daily Analytics Portal</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<!-- FORCED DESKTOP VIEWPORT -->
+<meta content="width=1280" name="viewport"/>
+<title>Restaurant Daily Analytics Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <script id="tailwind-config">
+<script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
@@ -96,7 +96,7 @@
             }
         }
     </script>
-    <style type="text/tailwindcss">
+<style type="text/tailwindcss">
         @layer utilities {
             .elevation-0 { @apply bg-surface-bright shadow-none; }
             .elevation-1 { @apply bg-white border border-surface-container-high shadow-[0_4px_12px_rgba(0,0,0,0.02)]; }
@@ -104,7 +104,6 @@
             .card-radius { @apply rounded-[16px]; }
             .btn-radius { @apply rounded-lg; }
             
-            /* Custom scrollbar for dropdowns */
             .custom-scrollbar::-webkit-scrollbar { width: 6px; }
             .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
             .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c3c6d7; border-radius: 20px; }
@@ -112,410 +111,281 @@
     </style>
 </head>
 <body class="bg-background text-on-background font-body-md min-h-screen">
-
 <header class="fixed top-0 w-full z-50 bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
-    <div class="flex items-center gap-4">
-        <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="https://lh3.googleusercontent.com/aida/AP1WRLuz4IG3uVeIARhKHBi7swr1vh6-iHc7HBKIckZ1upgROrNSEa-FFTeHTPdHfikgdcIx2oeA1gzAez9Ve14ic5MlmmBhOYZNWv2NAc6jUCKiuNDjZlDB5PBwHCwABuOU4obtMht047b9RnjdxBQ2ibPz592zgksT4GfjSJ1fp1z3BiaXaUCI_SlCXXxGOX0Ecd-3klVOSL44_LF7oXNKHvA2lol0C3c6IWrxBlTXMQtUVuOQKAMMc6-xAL-u"/>
-        <h1 class="font-headline-lg text-headline-lg text-primary tracking-tight md:block">Restaurant Daily Analytics Portal</h1>
-    </div>
-    
-    <div class="flex items-center gap-4">
-        <div class="relative group">
-            <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant">
-                <span class="material-symbols-outlined">settings</span>
-            </button>
-            <div class="absolute right-0 mt-2 w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
-                <h4 class="font-title-md text-title-md text-on-surface mb-4">Theme Settings</h4>
-                <div class="mb-6">
-                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2 block">Upload Restaurant Logo</label>
-                    <div class="border-2 border-dashed border-outline-variant rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors cursor-pointer bg-surface-container-lowest">
-                        <span class="material-symbols-outlined text-primary">cloud_upload</span>
-                        <span class="text-body-md text-on-surface-variant text-sm">Drag & drop or click</span>
-                    </div>
-                </div>
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-body-md text-on-surface">Use Default Platform Theme</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input checked="" class="sr-only peer" type="checkbox" value=""/>
-                        <div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    </label>
-                </div>
-                <div class="pt-4 border-t border-outline-variant">
-                    <a href="/logout" class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-error-container/10 rounded-lg transition-colors duration-200 group no-underline">
-                        <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
-                        <span class="font-title-small font-semibold">Logout</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="md:flex flex-col items-end">
-            <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Welcome,</span>
-            <span class="font-title-md text-title-md text-on-surface">
-                {% if is_admin %}
-                    ANK Consulting Admin
-                {% else %}
-                    {{ selected_brand }}
-                {% endif %}
-            </span>
-        </div>
-        <div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-title-md text-title-md">
-            MC
-        </div>
-    </div>
+<div class="flex items-center gap-4">
+<img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="https://lh3.googleusercontent.com/aida/AP1WRLuz4IG3uVeIARhKHBi7swr1vh6-iHc7HBKIckZ1upgROrNSEa-FFTeHTPdHfikgdcIx2oeA1gzAez9Ve14ic5MlmmBhOYZNWv2NAc6jUCKiuNDjZlDB5PBwHCwABuOU4obtMht047b9RnjdxBQ2ibPz592zgksT4GfjSJ1fp1z3BiaXaUCI_SlCXXxGOX0Ecd-3klVOSL44_LF7oXNKHvA2lol0C3c6IWrxBlTXMQtUVuOQKAMMc6-xAL-u"/>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight md:block">Restaurant Daily Analytics Portal</h1>
+</div>
+<div class="flex items-center gap-4"><div class="relative group">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="absolute right-0 mt-2 w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
+<h4 class="font-title-md text-title-md text-on-surface mb-4">Theme Settings</h4>
+<div class="mb-6">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2 block">Upload Restaurant Logo</label>
+<div class="border-2 border-dashed border-outline-variant rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors cursor-pointer bg-surface-container-lowest">
+<span class="material-symbols-outlined text-primary">cloud_upload</span>
+<span class="text-body-md text-on-surface-variant text-sm">Drag & drop or click</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-body-md text-on-surface">Use Default Platform Theme</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+    <div class="mt-4 pt-4 border-t border-outline-variant">
+      <a href="/logout" class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-error-container/10 rounded-lg transition-colors duration-200 group no-underline">
+        <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
+        <span class="font-title-small">Logout</span>
+      </a>
+    </div>    
+</div>
+</div>
+<div class="md:flex flex-col items-end">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Welcome,</span>
+<span id="user-display-name" class="font-title-md text-title-md text-on-surface">
+    {% if is_admin %}
+        ANK Consulting Admin
+    {% else %}
+        {{ selected_brand }}
+    {% endif %}
+</span>
+</div>
+<div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-title-md text-title-md"></div>
+</div>
 </header>
+<main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto transition-opacity duration-300">
+<form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
+    <div class="relative w-full md:w-auto z-[60]" id="date-dropdown-container">
+        <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
+        <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
+        <input type="hidden" id="max-available-date" value="{{ max_available_date }}">
 
-<main class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto">
-    <form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
-        
-        <div class="flex items-center gap-2 bg-white border border-outline-variant rounded-lg px-4 py-2">
-            <span class="material-symbols-outlined text-on-surface-variant text-[20px]">calendar_today</span>
-            <input type="date" name="start_date" value="{{ start_date }}" onchange="this.form.submit()" class="border-none text-sm font-body-md text-on-surface focus:outline-none bg-transparent cursor-pointer">
-            <span class="text-on-surface-variant">to</span>
-            <input type="date" name="end_date" value="{{ end_date }}" onchange="this.form.submit()" class="border-none text-sm font-body-md text-on-surface focus:outline-none bg-transparent cursor-pointer">
-        </div>
-
-        <div class="flex items-center gap-4 flex-1 justify-end">
-            
-            {% if is_admin %}
-            <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
-                <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
-                
-                <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between">
-                    <span class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
-                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
-                </div>
-
-                <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
-                    <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
-                    </div>
-                    <ul id="brand-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
-                        <li onclick="submitCustomDropdown('brand-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Brands</li>
-                        {% for b in all_brands %}
-                        <li onclick="submitCustomDropdown('brand-input', '{{ b }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ b }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
+        <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none group min-w-[300px]">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-gray-500 text-[20px]">calendar_today</span>
+              <span id="date-picker-label" class="text-sm font-medium text-gray-700"></span>
             </div>
-            {% else %}
+            <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors">expand_more</span>
+        </button>
+      
+        <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
+            <div class="p-4">
+              <div class="flex items-center justify-between mb-4 relative">
+                <button type="button" onclick="navigateCalendar(-1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                  <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_left</span>
+                </button>
+                <div class="flex gap-2 font-bold text-gray-900 text-sm items-center">
+                  <div class="relative">
+                      <button type="button" onclick="toggleMonthDropdown(event)" id="current-month-btn" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                          <span id="month-text">July</span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+                      </button>
+                      <div id="month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-32 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                  </div>
+                  <div class="relative">
+                      <button type="button" onclick="toggleYearDropdown(event)" id="current-year-btn" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                          <span id="year-text">2026</span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+                      </button>
+                      <div id="year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-24 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                  </div>
+                </div>
+                <button type="button" onclick="navigateCalendar(1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                  <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_right</span>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
+                <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+              </div>
+
+              <div class="grid grid-cols-7 gap-1 text-center text-sm" id="calendar-days-grid"></div>
+
+              <div class="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
+                <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2">Cancel</button>
+                <button type="button" onclick="applyDateSelection()" class="bg-[#2563eb] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100">
+                  Apply Range
+                </button>
+              </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-4 flex-1 justify-end z-[50]">
+        {% if is_admin %}
+        <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
             <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
-            {% endif %}
-
-            <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
-                <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
-                
-                <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between">
-                    <span class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
-                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+            <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
+                <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+            </div>
+            <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                    <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
                 </div>
-
-                <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
-                    <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
-                    </div>
-                    <ul id="outlet-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
-                        <li onclick="submitCustomDropdown('outlet-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Outlets</li>
-                        {% for loc in outlets %}
-                        <li onclick="submitCustomDropdown('outlet-input', '{{ loc }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ loc }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-
-            <div class="relative min-w-[220px] w-full md:w-auto" id="platform-dropdown-container">
-                <input type="hidden" name="platform" id="platform-input" value="{{ selected_platform }}">
-                
-                <div onclick="toggleCustomDropdown('platform-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between">
-                    <span class="truncate">{{ selected_platform if selected_platform else 'All Platforms' }}</span>
-                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
-                </div>
-
-                <div id="platform-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
-                    <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="platform-search" onkeyup="filterCustomDropdown('platform-search', 'platform-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search platforms...">
-                    </div>
-                    <ul id="platform-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
-                        <li onclick="submitCustomDropdown('platform-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Platforms</li>
-                        {% for p in platforms %}
-                        <li onclick="submitCustomDropdown('platform-input', '{{ p }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ p }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-
-        </div>
-    </form>
-
-    <section class="grid grid-cols-5 gap-6 mb-8">
-        <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
-            <div class="flex justify-between items-start mb-2">
-                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Total Daily GMV</span>
-                <span class="material-symbols-outlined text-primary shrink-0" style="font-variation-settings: 'FILL' 0;">payments</span>
-            </div>
-            <div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
-            <div class="h-8 w-full bg-gradient-to-r from-primary/10 to-transparent rounded">
-                <svg class="w-full h-full text-primary" preserveaspectratio="none" viewbox="0 0 100 20">
-                    <path d="M0 15 L20 10 L40 18 L60 5 L80 12 L100 2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
-                </svg>
-            </div>
-        </div>
-        <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
-            <div class="flex justify-between items-start mb-2">
-                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Delivered Orders</span>
-                <span class="material-symbols-outlined text-secondary shrink-0" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
-            </div>
-            <div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_orders }}">{{ total_orders }}</div>
-            <div class="font-body-md text-body-md text-secondary flex items-center truncate">
-                <span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
-                <span class="truncate">+5.2% vs last week</span>
-            </div>
-        </div>
-        <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
-            <div class="flex justify-between items-start mb-2">
-                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">AOV</span>
-                <span class="material-symbols-outlined text-tertiary shrink-0" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
-            </div>
-            <div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
-            <div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">Steady</div>
-        </div>
-        <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
-            <div class="flex justify-between items-start mb-2">
-                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Sales from Ads</span>
-                <span class="material-symbols-outlined text-primary-container shrink-0" style="font-variation-settings: 'FILL' 0;">campaign</span>
-            </div>
-            <div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
-            <div class="font-body-md text-body-md text-secondary flex items-center truncate">
-                <span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
-                <span class="truncate">+12% ROAS</span>
-            </div>
-        </div>
-        <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
-            <div class="flex justify-between items-start mb-2">
-                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Discount Given</span>
-                <span class="material-symbols-outlined text-error shrink-0" style="font-variation-settings: 'FILL' 0;">sell</span>
-            </div>
-            <div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ discount_given }}">{{ discount_given }}</div>
-            <div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
-                <span class="truncate">7.7% of GMV</span>
-            </div>
-        </div>
-    </section>
-
-    <section class="grid grid-cols-2 gap-6 mb-8">
-        <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
-            <h3 class="font-title-md text-title-md text-on-surface mb-6">Orders by Platform</h3>
-            <div class="flex-1 w-full relative flex items-center justify-center p-2">
-                <canvas id="platformDonutChart"></canvas>
-            </div>
-        </div>
-        <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-primary"></span>
-                    <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Sales</span>
-                </div>
-            </div>
-            <div class="flex-1 w-full relative p-2">
-                <canvas id="salesTrendChart"></canvas>
-            </div>
-        </div>
-    </section>
-
-    <section class="elevation-1 card-radius overflow-hidden">
-        <div class="px-6 py-4 border-b border-surface-container-high bg-white">
-            <h2 class="font-title-md text-title-md text-on-surface">FILTERED DAILY OPERATIONAL REPORT</h2>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#F1F5F9] font-label-sm text-label-sm text-on-surface-variant uppercase border-b border-surface-container-high">
-                        <th class="py-4 px-6 font-medium">Restaurant Name</th>
-                        <th class="py-4 px-6 font-medium">Report Period</th>
-                        <th class="py-4 px-6 font-medium">Location</th>
-                        <th class="py-4 px-6 font-medium">Res ID</th>
-                        <th class="py-4 px-6 font-medium">Platform</th>
-                        <th class="py-4 px-6 font-medium text-right">Delivered Orders</th>
-                        <th class="py-4 px-6 font-medium text-right">Sales</th>
-                        <th class="py-4 px-6 font-medium text-right">GMV</th>
-                        <th class="py-4 px-6 font-medium text-right">Sales from Ads</th>
-                        <th class="py-4 px-6 font-medium text-right">Discount Given</th>
-                    </tr>
-                </thead>
-                <tbody class="font-body-md text-body-md text-on-surface">
-                    {% for row in table_data %}
-                    <tr class="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
-                        <td class="py-4 px-6">{{ row['Restaurant Name'] }}</td>
-                        <td class="py-4 px-6 text-on-surface-variant">{{ row['Report Period'] }}</td>
-                        <td class="py-4 px-6">{{ row['Location'] }}</td>
-                        <td class="py-4 px-6 font-label-sm text-outline">{{ row['Res ID'] }}</td>
-                        <td class="py-4 px-6">{{ row['Platform'] }}</td>
-                        <td class="py-4 px-6 text-right font-semibold">{{ "{:,}".format(row['Delivered orders']|int) }}</td>
-                        <td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['Sales']) }}</td>
-                        <td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['GMV']) }}</td>
-                        <td class="py-4 px-6 text-right text-primary-container">₹{{ "{:,.2f}".format(row['Sales from Ads']) }}</td>
-                        <td class="py-4 px-6 text-right text-error">₹{{ "{:,.2f}".format(row['Discount given']) }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="10" class="py-8 text-center text-on-surface-variant">No operational data found for the selected filter.</td>
-                    </tr>
+                <ul id="brand-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
+                    <li onclick="submitCustomDropdown('brand-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Brands</li>
+                    {% for b in all_brands %}
+                    <li onclick="submitCustomDropdown('brand-input', '{{ b }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ b }}</li>
                     {% endfor %}
-                </tbody>
-            </table>
+                </ul>
+            </div>
         </div>
-    </section>
+        {% else %}
+        <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
+        {% endif %}
+
+        <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
+            <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
+            <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
+                <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+            </div>
+            <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                    <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
+                </div>
+                <ul id="outlet-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
+                    <li onclick="submitCustomDropdown('outlet-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Outlets</li>
+                    {% for loc in outlets %}
+                    <li onclick="submitCustomDropdown('outlet-input', '{{ loc }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ loc }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="relative min-w-[220px] w-full md:w-auto" id="platform-dropdown-container">
+            <input type="hidden" name="platform" id="platform-input" value="{{ selected_platform }}">
+            <div onclick="toggleCustomDropdown('platform-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <span id="platform-trigger-text" class="truncate">{{ selected_platform if selected_platform else 'All Platforms' }}</span>
+                <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+            </div>
+            <div id="platform-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                    <input type="text" id="platform-search" onkeyup="filterCustomDropdown('platform-search', 'platform-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search platforms...">
+                </div>
+                <ul id="platform-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
+                    <li onclick="submitCustomDropdown('platform-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Platforms</li>
+                    {% for p in platforms %}
+                    <li onclick="submitCustomDropdown('platform-input', '{{ p }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ p }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</form>
+
+<section class="grid grid-cols-5 gap-6 mb-8">
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Total Daily GMV</span>
+<span class="material-symbols-outlined text-primary shrink-0" style="font-variation-settings: 'FILL' 0;">payments</span>
+</div>
+<div id="kpi-gmv" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
+</div>
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Delivered Orders</span>
+<span class="material-symbols-outlined text-secondary shrink-0" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
+</div>
+<div id="kpi-orders" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_orders }}">{{ total_orders }}</div>
+</div>
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">AOV</span>
+<span class="material-symbols-outlined text-tertiary shrink-0" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
+</div>
+<div id="kpi-aov" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
+</div>
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Sales from Ads</span>
+<span class="material-symbols-outlined text-primary-container shrink-0" style="font-variation-settings: 'FILL' 0;">campaign</span>
+</div>
+<div id="kpi-ads" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
+</div>
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Discount Given</span>
+<span class="material-symbols-outlined text-error shrink-0" style="font-variation-settings: 'FILL' 0;">sell</span>
+</div>
+<div id="kpi-discount" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ discount_given }}">{{ discount_given }}</div>
+</div>
+</section>
+
+<section class="grid grid-cols-2 gap-6 mb-8">
+<div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
+<h3 class="font-title-md text-title-md text-on-surface mb-6">Orders by Platform</h3>
+<div class="flex-1 w-full relative flex items-center justify-center p-2">
+    <canvas id="platformDonutChart"></canvas>
+</div>
+</div>
+<div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
+<div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+    <h3 id="trend-chart-title" class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
+    <div class="flex bg-surface-container-high p-1 rounded-lg text-xs font-semibold gap-1">
+        <button type="button" onclick="switchTrendMetric('sales', this)" class="trend-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all">Sales</button>
+        <button type="button" onclick="switchTrendMetric('gmv', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">GMV</button>
+        <button type="button" onclick="switchTrendMetric('orders', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Orders</button>
+        <button type="button" onclick="switchTrendMetric('ads', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Ads</button>
+        <button type="button" onclick="switchTrendMetric('discount', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Discount</button>
+    </div>
+</div>
+<div class="flex-1 w-full relative p-2">
+    <canvas id="salesTrendChart"></canvas>
+</div>
+</div>
+</section>
+
+<section class="elevation-1 card-radius overflow-hidden">
+<div class="px-6 py-4 border-b border-surface-container-high bg-white">
+<h2 class="font-title-md text-title-md text-on-surface">FILTERED DAILY OPERATIONAL REPORT</h2>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F1F5F9] font-label-sm text-label-sm text-on-surface-variant uppercase border-b border-surface-container-high">
+<th class="py-4 px-6 font-medium">Restaurant Name</th>
+<th class="py-4 px-6 font-medium">Report Period</th>
+<th class="py-4 px-6 font-medium">Location</th>
+<th class="py-4 px-6 font-medium">Res ID</th>
+<th class="py-4 px-6 font-medium">Platform</th>
+<th class="py-4 px-6 font-medium text-right">Delivered Orders</th>
+<th class="py-4 px-6 font-medium text-right">Sales</th>
+<th class="py-4 px-6 font-medium text-right">GMV</th>
+<th class="py-4 px-6 font-medium text-right">Sales from Ads</th>
+<th class="py-4 px-6 font-medium text-right">Discount Given</th>
+</tr>
+</thead>
+<tbody id="data-table-body" class="font-body-md text-body-md text-on-surface">
+{% for row in table_data %}
+<tr class="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
+<td class="py-4 px-6">{{ row['Restaurant Name'] }}</td>
+<td class="py-4 px-6 text-on-surface-variant">{{ row['Report Period'] }}</td>
+<td class="py-4 px-6">{{ row['Location'] }}</td>
+<td class="py-4 px-6 font-label-sm text-outline">{{ row['Res ID'] }}</td>
+<td class="py-4 px-6">{{ row['Platform'] }}</td>
+<td class="py-4 px-6 text-right font-semibold">{{ "{:,}".format(row['Delivered orders']|int) }}</td>
+<td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['Sales']) }}</td>
+<td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['GMV']) }}</td>
+<td class="py-4 px-6 text-right text-primary-container">₹{{ "{:,.2f}".format(row['Sales from Ads']) }}</td>
+<td class="py-4 px-6 text-right text-error">₹{{ "{:,.2f}".format(row['Discount given']) }}</td>
+</tr>
+{% else %}
+<tr>
+<td colspan="10" class="py-8 text-center text-on-surface-variant">No operational data found for the selected filter.</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</section>
 </main>
 
 <script>
     window.INITIAL_CHART_DATA = {{ chart_data | tojson | safe }};
 </script>
-
-<script>
-  // Dynamic Avatar Initials
-  document.addEventListener("DOMContentLoaded", function () {
-    const brandName = "{{ selected_brand }}".trim();
-    const avatarBadge = document.getElementById("avatar-initials");
-    if (avatarBadge && brandName) {
-      const words = brandName.split(/\s+/);
-      let initials = words.map(w => w[0]).join("").toUpperCase();
-      if (initials.length > 2) initials = initials.substring(0, 2);
-      avatarBadge.innerText = initials || "RP";
-    }
-
-    // Initialize Chart.js
-    if (window.INITIAL_CHART_DATA) {
-        initCharts(window.INITIAL_CHART_DATA);
-    }
-  });
-
-  // Chart.js Rendering Logic
-  function initCharts(data) {
-      // Donut Chart
-      const donutCtx = document.getElementById('platformDonutChart').getContext('2d');
-      const platformLabels = Object.keys(data.platform_donut);
-      const platformValues = Object.values(data.platform_donut);
-      const totalOrders = platformValues.reduce((sum, val) => sum + val, 0);
-      const labelsWithPct = platformLabels.map((platform, i) => {
-          const val = platformValues[i];
-          const pct = totalOrders > 0 ? Math.round((val / totalOrders) * 100) : 0;
-          return `${platform} (${pct}%)`;
-      });
-      const PLATFORM_COLORS = { 'Swiggy': '#FC8019', 'Zomato': '#E23744' };
-      const mappedColors = platformLabels.map(p => PLATFORM_COLORS[p] || '#004ac6');
-
-      new Chart(donutCtx, {
-          type: 'doughnut',
-          data: {
-              labels: labelsWithPct,
-              datasets: [{
-                  data: platformValues,
-                  backgroundColor: mappedColors,
-                  borderWidth: 0,
-                  hoverOffset: 4
-              }]
-          },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              cutout: '75%',
-              plugins: {
-                  legend: { position: 'bottom', labels: { font: { family: "'Hanken Grotesk', sans-serif" } } }
-              }
-          }
-      });
-
-      // Area Trend Chart
-      const trendCtx = document.getElementById('salesTrendChart').getContext('2d');
-      let gradient = trendCtx.createLinearGradient(0, 0, 0, 300);
-      gradient.addColorStop(0, 'rgba(0, 74, 198, 0.2)');
-      gradient.addColorStop(1, 'rgba(0, 74, 198, 0)');
-
-      new Chart(trendCtx, {
-          type: 'line',
-          data: {
-              labels: data.trend_labels,
-              datasets: [{
-                  label: 'Daily Sales (₹)',
-                  data: data.trend_values,
-                  borderColor: '#004ac6',
-                  backgroundColor: gradient,
-                  borderWidth: 2,
-                  fill: true,
-                  tension: 0.3,
-                  pointRadius: 3,
-                  pointBackgroundColor: '#ffffff',
-                  pointBorderColor: '#004ac6'
-              }]
-          },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: {
-                  x: { grid: { display: false }, ticks: { font: { family: "'Hanken Grotesk', sans-serif" } } },
-                  y: { border: { display: false }, ticks: { font: { family: "'Hanken Grotesk', sans-serif" }, callback: v => '₹' + (v/1000) + 'k' } }
-              }
-          }
-      });
-  }
-
-  // Toggle custom dropdown visibility
-  function toggleCustomDropdown(menuId, event) {
-      event.stopPropagation();
-      document.querySelectorAll('.dropdown-menu-custom').forEach(menu => {
-          if (menu.id !== menuId) menu.classList.add('hidden');
-      });
-      const menu = document.getElementById(menuId);
-      menu.classList.toggle('hidden');
-      if (!menu.classList.contains('hidden')) {
-          const searchInput = menu.querySelector('input[type="text"]');
-          if (searchInput) searchInput.focus();
-      }
-  }
-
-  // Filter items in custom dropdowns
-  function filterCustomDropdown(inputId, listId) {
-      const filter = document.getElementById(inputId).value.toLowerCase();
-      const lis = document.getElementById(listId).getElementsByTagName('li');
-      for (let i = 1; i < lis.length; i++) {
-          let txtValue = lis[i].textContent || lis[i].innerText;
-          if (txtValue.toLowerCase().indexOf(filter) > -1) {
-              lis[i].style.display = "";
-          } else {
-              lis[i].style.display = "none";
-          }
-      }
-  }
-
-  // Submit custom dropdown choice
-  function submitCustomDropdown(inputId, selectedValue) {
-      const hiddenInput = document.getElementById(inputId);
-      hiddenInput.value = selectedValue;
-      if (inputId === 'brand-input') {
-          const outletInput = document.getElementById('outlet-input');
-          if (outletInput) outletInput.value = "";
-      }
-      document.getElementById('filter-form').submit();
-  }
-
-  // Close custom dropdowns on outside click
-  document.addEventListener('click', function(event) {
-      const brandContainer = document.getElementById('brand-dropdown-container');
-      const outletContainer = document.getElementById('outlet-dropdown-container');
-      const platformContainer = document.getElementById('platform-dropdown-container');
-      
-      if (brandContainer && !brandContainer.contains(event.target)) {
-          document.getElementById('brand-menu')?.classList.add('hidden');
-      }
-      if (outletContainer && !outletContainer.contains(event.target)) {
-          document.getElementById('outlet-menu')?.classList.add('hidden');
-      }
-      if (platformContainer && !platformContainer.contains(event.target)) {
-          document.getElementById('platform-menu')?.classList.add('hidden');
-      }
-  });
-</script>
-</body>
-</html>
+<script src="/static/script.js"></script>
+</body></html>

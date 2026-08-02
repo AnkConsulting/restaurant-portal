@@ -126,7 +126,7 @@ function initCharts(data) {
                 {
                     label: 'Previous Period',
                     data: data.prev_sales_trend,
-                    borderColor: '#94a3b8', // Slate grey dashed line
+                    borderColor: '#94a3b8',
                     borderDash: [5, 5],
                     borderWidth: 2,
                     fill: false,
@@ -149,6 +149,15 @@ function initCharts(data) {
                 },
                 tooltip: {
                     callbacks: {
+                        title: function(tooltipItems) {
+                            const index = tooltipItems[0].dataIndex;
+                            const datasetIndex = tooltipItems[0].datasetIndex;
+                            // If hovering over previous period dataset, show the corresponding previous date
+                            if (datasetIndex === 1 && window.latestChartPayload.prev_trend_labels) {
+                                return window.latestChartPayload.prev_trend_labels[index] || tooltipItems[0].label;
+                            }
+                            return tooltipItems[0].label;
+                        },
                         label: function(context) {
                             let val = context.raw;
                             let label = context.dataset.label || '';

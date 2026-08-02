@@ -8,7 +8,6 @@ import pandas as pd
 import os
 
 app = FastAPI(title="Restaurant Daily Analytics Portal")
-
 app.add_middleware(SessionMiddleware, secret_key="YOUR_SUPER_SECRET_SESSION_KEY")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -110,10 +109,8 @@ async def render_dashboard(
             end_date = max_available_date
             end_dt = pd.to_datetime(end_date, errors="coerce")
 
-        # Current Period Data Frame
         current_filtered = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
         
-        # Calculate Previous Month Corresponding Period for Comparison Overlay
         prev_start = start_dt - pd.DateOffset(months=1)
         prev_end = end_dt - pd.DateOffset(months=1)
         prev_filtered = filtered_df[(filtered_df["_temp_date"] >= prev_start) & (filtered_df["_temp_date"] <= prev_end)]
@@ -121,7 +118,6 @@ async def render_dashboard(
         current_filtered = filtered_df
         prev_filtered = pd.DataFrame(columns=filtered_df.columns)
 
-    # Top-level KPIs
     total_gmv = current_filtered["GMV"].sum() if "GMV" in current_filtered.columns else 0.0
     total_orders = int(current_filtered["Delivered orders"].sum()) if "Delivered orders" in current_filtered.columns else 0
     avg_aov = (total_gmv / total_orders) if total_orders > 0 else 0.0
@@ -133,14 +129,13 @@ async def render_dashboard(
     else:
         platform_orders = {}
 
-    # Aggregations for Current Trend
     trend_labels = []
     sales_trend, gmv_trend, orders_trend, ads_trend, discount_trend = [], [], [], [], []
+    prev_trend_labels = []
     prev_sales_trend, prev_gmv_trend, prev_orders_trend, prev_ads_trend, prev_discount_trend = [], [], [], [], []
 
     if "_temp_date" in current_filtered.columns and not current_filtered.empty:
         agg_dict = {col: "sum" for col in ["Sales", "GMV", "Delivered orders", "Sales from Ads", "Discount given"] if col in current_filtered.columns}
-        
         if agg_dict:
             trend_df = current_filtered.groupby("_temp_date").agg(agg_dict).reset_index().sort_values("_temp_date")
             trend_labels = trend_df["_temp_date"].dt.strftime('%d-%m-%Y').tolist()
@@ -154,6 +149,7 @@ async def render_dashboard(
         agg_dict = {col: "sum" for col in ["Sales", "GMV", "Delivered orders", "Sales from Ads", "Discount given"] if col in prev_filtered.columns}
         if agg_dict:
             prev_trend_df = prev_filtered.groupby("_temp_date").agg(agg_dict).reset_index().sort_values("_temp_date")
+            prev_trend_labels = prev_trend_df["_temp_date"].dt.strftime('%d-%m-%Y').tolist()
             prev_sales_trend = prev_trend_df["Sales"].tolist() if "Sales" in prev_trend_df.columns else []
             prev_gmv_trend = prev_trend_df["GMV"].tolist() if "GMV" in prev_trend_df.columns else []
             prev_orders_trend = prev_trend_df["Delivered orders"].tolist() if "Delivered orders" in prev_trend_df.columns else []
@@ -168,6 +164,7 @@ async def render_dashboard(
         "orders_trend": orders_trend,
         "ads_trend": ads_trend,
         "discount_trend": discount_trend,
+        "prev_trend_labels": prev_trend_labels,
         "prev_sales_trend": prev_sales_trend,
         "prev_gmv_trend": prev_gmv_trend,
         "prev_orders_trend": prev_orders_trend,
@@ -237,7 +234,7 @@ async def render_dashboard(
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, error: Optional[str] = None):
     if request.session.get("logged_in"):
-        return RedirectResponse(url="/", status_code=303)
+        return RedirectResponse(url="/login", status_code=303)
     return templates.TemplateResponse(request, "login.html", {"error": error})
 
 @app.post("/login")

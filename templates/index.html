@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
-<!-- FORCED DESKTOP VIEWPORT -->
 <meta content="width=1280" name="viewport"/>
 <title>Restaurant Daily Analytics Portal</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -111,7 +110,7 @@
     </style>
 </head>
 <body class="bg-background text-on-background font-body-md min-h-screen">
-<header class="fixed top-0 w-full z-50 bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
+<header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
 <div class="flex items-center gap-4">
 <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="https://lh3.googleusercontent.com/aida/AP1WRLuz4IG3uVeIARhKHBi7swr1vh6-iHc7HBKIckZ1upgROrNSEa-FFTeHTPdHfikgdcIx2oeA1gzAez9Ve14ic5MlmmBhOYZNWv2NAc6jUCKiuNDjZlDB5PBwHCwABuOU4obtMht047b9RnjdxBQ2ibPz592zgksT4GfjSJ1fp1z3BiaXaUCI_SlCXXxGOX0Ecd-3klVOSL44_LF7oXNKHvA2lol0C3c6IWrxBlTXMQtUVuOQKAMMc6-xAL-u"/>
 <h1 class="font-headline-lg text-headline-lg text-primary tracking-tight md:block">Restaurant Daily Analytics Portal</h1>
@@ -159,7 +158,7 @@
 </header>
 <main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto transition-opacity duration-300">
 <form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
-    <div class="relative w-full md:w-auto z-[60]" id="date-dropdown-container">
+    <div class="relative w-full md:w-auto z-40" id="date-dropdown-container">
         <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
         <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
         <input type="hidden" id="max-available-date" value="{{ max_available_date }}">

@@ -16,6 +16,7 @@ app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), na
 
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=161887137&single=true&output=csv"
 BRAND_MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=766978685&single=true&output=csv"
+INACTIVE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=920943544&single=true&output=csv"
 
 
 def load_data():
@@ -28,6 +29,20 @@ def load_data():
         # 2. Aggressively drop the exact helper column immediately
         if "Unique Dropdown Key" in df.columns:
             df = df.drop(columns=["Unique Dropdown Key"])
+            
+        # 3. Filter out inactive restaurants automatically
+        try:
+            inactive_df = pd.read_csv(INACTIVE_CSV_URL)
+            inactive_df.columns = inactive_df.columns.str.strip()
+            
+            inactive_swiggy = inactive_df["Swiggy Res ID"].dropna().astype(str).str.strip().tolist()
+            inactive_zomato = inactive_df["Zomato Res ID"].dropna().astype(str).str.strip().tolist()
+            inactive_ids = set(inactive_swiggy + inactive_zomato)
+            
+            if "Res ID" in df.columns:
+                df = df[~df["Res ID"].astype(str).str.strip().isin(inactive_ids)]
+        except Exception as e:
+            print(f"Could not load inactive restaurants sheet: {e}")
             
     except Exception:
         return pd.DataFrame(
@@ -311,7 +326,6 @@ def export_csv(
             end_dt = pd.to_datetime(end_date, errors="coerce")
         filtered_df = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
 
-    # Clean up internal columns
     if "_temp_date" in filtered_df.columns:
         filtered_df = filtered_df.drop(columns=["_temp_date"])
 

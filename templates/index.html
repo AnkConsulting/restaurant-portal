@@ -113,7 +113,6 @@
 </head>
 <body class="bg-background text-on-background font-body-md min-h-screen">
 
-<!-- CORRECTED Z-INDEX: Header set to z-[100] -->
 <header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
     <div class="flex items-center gap-4">
         <!-- TOP LEFT LOGO -->
@@ -167,7 +166,6 @@
 <main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto transition-opacity duration-300">
     <form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
         
-        <!-- CORRECTED Z-INDEX & RETAINED CUSTOM CALENDAR: z-40 so it stays beneath the header -->
         <div class="relative w-full md:w-auto z-40" id="date-dropdown-container">
             <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
             <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
@@ -363,9 +361,19 @@
         </div>
     </section>
 
+    <!-- NEW PAGINATION TABLE DESIGN -->
     <section class="elevation-1 card-radius overflow-hidden">
-        <div class="px-6 py-4 border-b border-surface-container-high bg-white">
+        <div class="px-6 py-4 border-b border-surface-container-high bg-white flex justify-between items-center">
             <h2 class="font-title-md text-title-md text-on-surface">FILTERED DAILY OPERATIONAL REPORT</h2>
+            <div class="flex items-center gap-2">
+                <label for="rows-per-page" class="text-sm font-medium text-on-surface-variant">Rows per page:</label>
+                <select id="rows-per-page" onchange="changeRowsPerPage(this.value)" class="text-sm border border-outline-variant rounded-md px-2 py-1.5 focus:ring-primary focus:border-primary bg-white text-on-surface outline-none cursor-pointer">
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="all">All</option>
+                </select>
+            </div>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
@@ -404,6 +412,18 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        
+        <!-- Pagination Controls Footer -->
+        <div class="px-6 py-4 border-t border-surface-container-high bg-white flex flex-wrap justify-between items-center gap-4" id="pagination-container">
+            <div class="text-sm text-on-surface-variant font-medium" id="pagination-info">
+                Showing 0 entries
+            </div>
+            <div class="flex items-center gap-1" id="pagination-controls">
+                <button id="prev-page-btn" onclick="prevPage()" class="px-3 py-1.5 border border-outline-variant rounded-md hover:bg-surface-container-high disabled:opacity-50 text-sm transition-colors text-on-surface font-medium">Prev</button>
+                <span id="page-numbers" class="flex gap-1 mx-2"></span>
+                <button id="next-page-btn" onclick="nextPage()" class="px-3 py-1.5 border border-outline-variant rounded-md hover:bg-surface-container-high disabled:opacity-50 text-sm transition-colors text-on-surface font-medium">Next</button>
+            </div>
         </div>
     </section>
 </main>

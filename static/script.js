@@ -8,6 +8,7 @@ let viewMonth = viewDate.getMonth();
 let donutChartInstance = null;
 let trendChartInstance = null;
 let currentMetric = 'sales';
+let currentDonutMetric = 'orders';
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -62,10 +63,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // --- CHART.JS VISUALIZATION LOGIC ---
 function initCharts(data) {
+    // 1. Initialize Donut Chart
     const donutCtx = document.getElementById('platformDonutChart').getContext('2d');
     
-    const platformLabels = Object.keys(data.platform_donut);
-    const platformValues = Object.values(data.platform_donut);
+    const platformLabels = Object.keys(data.platform_orders);
+    const platformValues = Object.values(data.platform_orders);
     const totalOrders = platformValues.reduce((sum, val) => sum + val, 0);
     const labelsWithPct = platformLabels.map((platform, i) => {
         const val = platformValues[i];
@@ -94,11 +96,25 @@ function initCharts(data) {
                 legend: {
                     position: 'bottom',
                     labels: { font: { family: "'Hanken Grotesk', sans-serif", size: 14 }, padding: 20 }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let val = context.raw;
+                            let label = context.label.split(' (')[0]; 
+                            if (currentDonutMetric === 'orders') {
+                                return `${label}: ${val.toLocaleString()} orders`;
+                            } else {
+                                return `${label}: ₹${val.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                            }
+                        }
+                    }
                 }
             }
         }
     });
 
+    // 2. Initialize Trend Chart
     const trendCtx = document.getElementById('salesTrendChart').getContext('2d');
     let gradient = trendCtx.createLinearGradient(0, 0, 0, 300);
     gradient.addColorStop(0, 'rgba(0, 74, 198, 0.2)'); 
@@ -152,7 +168,6 @@ function initCharts(data) {
                         title: function(tooltipItems) {
                             const index = tooltipItems[0].dataIndex;
                             const datasetIndex = tooltipItems[0].datasetIndex;
-                            // If hovering over previous period dataset, show the corresponding previous date
                             if (datasetIndex === 1 && window.latestChartPayload.prev_trend_labels) {
                                 return window.latestChartPayload.prev_trend_labels[index] || tooltipItems[0].label;
                             }
@@ -188,6 +203,52 @@ function initCharts(data) {
             }
         }
     });
+}
+
+function switchDonutMetric(metricType, btnEl) {
+    currentDonutMetric = metricType;
+    
+    document.querySelectorAll('.donut-btn').forEach(btn => {
+        btn.className = "donut-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all";
+    });
+    btnEl.className = "donut-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all";
+
+    if (!window.latestChartPayload) return;
+    const data = window.latestChartPayload;
+
+    let targetDataObj = data.platform_orders;
+    let titleText = 'Orders by Platform';
+
+    if (metricType === 'gmv') {
+        targetDataObj = data.platform_gmv;
+        titleText = 'GMV by Platform';
+    } else if (metricType === 'sales') {
+        targetDataObj = data.platform_sales;
+        titleText = 'Sales by Platform';
+    } else if (metricType === 'ads') {
+        targetDataObj = data.platform_ads;
+        titleText = 'Ad Spend by Platform';
+    } else if (metricType === 'discount') {
+        targetDataObj = data.platform_discount;
+        titleText = 'Discount by Platform';
+    }
+
+    const titleEl = document.getElementById('donut-chart-title');
+    if (titleEl) titleEl.innerText = titleText;
+
+    const platformLabels = Object.keys(targetDataObj);
+    const platformValues = Object.values(targetDataObj);
+    const total = platformValues.reduce((sum, val) => sum + val, 0);
+    
+    const labelsWithPct = platformLabels.map((platform, i) => {
+        const val = platformValues[i];
+        const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+        return `${platform} (${pct}%)`;
+    });
+
+    donutChartInstance.data.labels = labelsWithPct;
+    donutChartInstance.data.datasets[0].data = platformValues;
+    donutChartInstance.update();
 }
 
 function switchTrendMetric(metricType, btnEl) {
@@ -235,12 +296,19 @@ function updateCharts(data) {
     if (!donutChartInstance || !trendChartInstance) return;
     window.latestChartPayload = data;
 
-    const platformLabels = Object.keys(data.platform_donut);
-    const platformValues = Object.values(data.platform_donut);
-    const totalOrders = platformValues.reduce((sum, val) => sum + val, 0);
+    // Refresh Donut
+    let targetDonutObj = data.platform_orders;
+    if (currentDonutMetric === 'gmv') targetDonutObj = data.platform_gmv;
+    else if (currentDonutMetric === 'sales') targetDonutObj = data.platform_sales;
+    else if (currentDonutMetric === 'ads') targetDonutObj = data.platform_ads;
+    else if (currentDonutMetric === 'discount') targetDonutObj = data.platform_discount;
+
+    const platformLabels = Object.keys(targetDonutObj);
+    const platformValues = Object.values(targetDonutObj);
+    const totalDonut = platformValues.reduce((sum, val) => sum + val, 0);
     const labelsWithPct = platformLabels.map((platform, i) => {
         const val = platformValues[i];
-        const pct = totalOrders > 0 ? Math.round((val / totalOrders) * 100) : 0;
+        const pct = totalDonut > 0 ? Math.round((val / totalDonut) * 100) : 0;
         return `${platform} (${pct}%)`;
     });
 
@@ -251,16 +319,17 @@ function updateCharts(data) {
     donutChartInstance.data.datasets[0].backgroundColor = mappedColors;
     donutChartInstance.update();
 
-    let targetData = data.sales_trend;
-    let prevTargetData = data.prev_sales_trend;
-    if (currentMetric === 'gmv') { targetData = data.gmv_trend; prevTargetData = data.prev_gmv_trend; }
-    else if (currentMetric === 'orders') { targetData = data.orders_trend; prevTargetData = data.prev_orders_trend; }
-    else if (currentMetric === 'ads') { targetData = data.ads_trend; prevTargetData = data.prev_ads_trend; }
-    else if (currentMetric === 'discount') { targetData = data.discount_trend; prevTargetData = data.prev_discount_trend; }
+    // Refresh Trend
+    let targetTrendData = data.sales_trend;
+    let prevTargetTrendData = data.prev_sales_trend;
+    if (currentMetric === 'gmv') { targetTrendData = data.gmv_trend; prevTargetTrendData = data.prev_gmv_trend; }
+    else if (currentMetric === 'orders') { targetTrendData = data.orders_trend; prevTargetTrendData = data.prev_orders_trend; }
+    else if (currentMetric === 'ads') { targetTrendData = data.ads_trend; prevTargetTrendData = data.prev_ads_trend; }
+    else if (currentMetric === 'discount') { targetTrendData = data.discount_trend; prevTargetTrendData = data.prev_discount_trend; }
 
     trendChartInstance.data.labels = data.trend_labels;
-    trendChartInstance.data.datasets[0].data = targetData;
-    trendChartInstance.data.datasets[1].data = prevTargetData;
+    trendChartInstance.data.datasets[0].data = targetTrendData;
+    trendChartInstance.data.datasets[1].data = prevTargetTrendData;
     trendChartInstance.update();
 }
 

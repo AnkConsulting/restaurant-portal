@@ -396,14 +396,18 @@
     <canvas id="platformDonutChart"></canvas>
 </div>
 </div>
-<!-- Area Chart -->
+<!-- Area Chart with Metric Selector Toolbar -->
 <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
-<div class="flex justify-between items-center mb-6">
-<h3 class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
-<div class="flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-primary"></span>
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Sales</span>
-</div>
+<div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+    <h3 id="trend-chart-title" class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
+    <!-- Metric Selector Buttons -->
+    <div class="flex bg-surface-container-high p-1 rounded-lg text-xs font-semibold gap-1">
+        <button type="button" onclick="switchTrendMetric('sales', this)" class="trend-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all">Sales</button>
+        <button type="button" onclick="switchTrendMetric('gmv', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">GMV</button>
+        <button type="button" onclick="switchTrendMetric('orders', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Orders</button>
+        <button type="button" onclick="switchTrendMetric('ads', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Ads</button>
+        <button type="button" onclick="switchTrendMetric('discount', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Discount</button>
+    </div>
 </div>
 <div class="flex-1 w-full relative p-2">
     <canvas id="salesTrendChart"></canvas>

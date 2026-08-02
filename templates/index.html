@@ -1,281 +1,474 @@
-from typing import Optional
-from fastapi import FastAPI, Request, Query, Form
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
-from starlette.middleware.sessions import SessionMiddleware
-from fastapi.staticfiles import StaticFiles
-import pandas as pd
-import os
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<!-- FORCED DESKTOP VIEWPORT: Tells mobile/tablet to render a 1280px wide canvas -->
+<meta content="width=1280" name="viewport"/>
+<title>Restaurant Daily Analytics Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-app = FastAPI(title="Restaurant Daily Analytics Portal")
-
-# Add session security
-app.add_middleware(SessionMiddleware, secret_key="YOUR_SUPER_SECRET_SESSION_KEY")
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
-
-app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
-
-SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=161887137&single=true&output=csv"
-BRAND_MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=766978685&single=true&output=csv"
-
-
-def load_data():
-    try:
-        df = pd.read_csv(SHEET_CSV_URL)
-    except Exception:
-        return pd.DataFrame(
-            columns=[
-                "Restaurant Name",
-                "Report Period",
-                "Location",
-                "Res ID",
-                "Platform",
-                "Delivered orders",
-                "Sales",
-                "GMV",
-                "Sales from Ads",
-                "Discount given",
-            ]
-        )
-
-    numeric_cols = [
-        "Delivered orders",
-        "Delivered Orders",
-        "Sales",
-        "GMV",
-        "Sales from Ads",
-        "Discount given",
-        "Discount Given",
-        "Total GST"
-    ]
-    for col in numeric_cols:
-        if col in df.columns:
-            cleaned_series = df[col].astype(str).str.replace(r'[₹, ]', '', regex=True)
-            df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
-
-    if "Delivered Orders" in df.columns and "Delivered orders" not in df.columns:
-        df["Delivered orders"] = df["Delivered Orders"]
-    if "Discount Given" in df.columns and "Discount given" not in df.columns:
-        df["Discount given"] = df["Discount Given"]
-
-    if "GMV" in df.columns and "Total GST" in df.columns:
-        df["CV"] = df["GMV"] - df["Total GST"]
-
-    leading_cols = ["Restaurant Name", "Report Period", "Location", "Res ID"]
-    other_cols = [c for c in df.columns if c not in leading_cols]
-    ordered_cols = [c for c in leading_cols if c in df.columns] + [
-        c for c in other_cols if c in df.columns
-    ]
-
-    return df[ordered_cols]
-
-
-@app.get("/", response_class=HTMLResponse)
-async def render_dashboard(
-    request: Request,
-    brand: Optional[str] = Query(None),
-    outlet: Optional[str] = Query(None),
-    platform: Optional[str] = Query(None),
-    start_date: Optional[str] = Query(None),
-    end_date: Optional[str] = Query(None),
-    ajax: Optional[str] = Query(None)
-):
-    if not request.session.get("logged_in"):
-        return RedirectResponse(url="/login", status_code=303)
-
-    is_admin = request.session.get("is_admin", False)
-    authorized_res_ids = request.session.get("authorized_res_ids", [])
-
-    df = load_data()
-
-    if "Report Period" in df.columns:
-        df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
-
-    if not is_admin:
-        df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
-
-    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
-    selected_brand = brand if brand in all_brands else (all_brands[0] if all_brands else "")
-    context_df = df[df["Restaurant Name"] == selected_brand]
-
-    outlets = sorted(context_df["Location"].dropna().unique().tolist())
-    if outlet and outlet in outlets:
-        context_df = context_df[context_df["Location"] == outlet]
-
-    platforms = sorted(context_df["Platform"].dropna().unique().tolist())
-    if platform and platform in platforms:
-        context_df = context_df[context_df["Platform"] == platform]
-
-    max_available_date = ""
-    if "_temp_date" in context_df.columns and not context_df["_temp_date"].dropna().empty:
-        max_date_obj = context_df["_temp_date"].max()
-        if pd.notnull(max_date_obj):
-            max_available_date = max_date_obj.strftime("%Y-%m-%d")
-
-    # --- DEFAULT TO LATEST AVAILABLE DATE IF NONE PROVIDED ---
-    if not start_date or not end_date:
-        if max_available_date:
-            start_date = max_available_date
-            end_date = max_available_date
-
-    filtered_df = context_df.copy()
-    if "_temp_date" in filtered_df.columns:
-        if end_date and max_available_date and end_date > max_available_date:
-            end_date = max_available_date
-        if start_date and max_available_date and start_date > max_available_date:
-            start_date = max_available_date
-
-        if start_date and end_date:
-            start = pd.to_datetime(start_date, errors="coerce")
-            end = pd.to_datetime(end_date, errors="coerce")
-            if pd.notnull(start) and pd.notnull(end):
-                filtered_df = filtered_df[(filtered_df["_temp_date"] >= start) & (filtered_df["_temp_date"] <= end)]
-
-    total_gmv = filtered_df["GMV"].sum() if "GMV" in filtered_df.columns else 0.0
-    total_orders = int(filtered_df["Delivered orders"].sum()) if "Delivered orders" in filtered_df.columns else 0
-    avg_aov = (total_gmv / total_orders) if total_orders > 0 else 0.0
-    sales_ads = filtered_df["Sales from Ads"].sum() if "Sales from Ads" in filtered_df.columns else 0.0
-    discount_given = filtered_df["Discount given"].sum() if "Discount given" in filtered_df.columns else 0.0
-
-    if "Platform" in filtered_df.columns and "Delivered orders" in filtered_df.columns:
-        platform_orders = filtered_df.groupby("Platform")["Delivered orders"].sum().to_dict()
-    else:
-        platform_orders = {}
-
-    trend_labels = []
-    sales_trend = []
-    gmv_trend = []
-    orders_trend = []
-    ads_trend = []
-    discount_trend = []
-
-    if "_temp_date" in filtered_df.columns:
-        agg_dict = {}
-        for col in ["Sales", "GMV", "Delivered orders", "Sales from Ads", "Discount given"]:
-            if col in filtered_df.columns:
-                agg_dict[col] = "sum"
-
-        if agg_dict:
-            trend_df = filtered_df.groupby("_temp_date").agg(agg_dict).reset_index()
-            trend_df = trend_df.sort_values("_temp_date")
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c3c6d7",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-high": "#e6e8ea",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#b9c7e0",
+                        "tertiary-container": "#606e84",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-secondary-fixed-variant": "#005049",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "on-secondary-container": "#006f66",
+                        "surface-tint": "#0053db",
+                        "surface-bright": "#f7f9fb",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#d8dadc",
+                        "tertiary-fixed": "#d5e3fd",
+                        "on-tertiary-container": "#eaf0ff",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#e0e3e5",
+                        "on-secondary": "#ffffff",
+                        "on-background": "#191c1e",
+                        "primary": "#004ac6",
+                        "on-primary-container": "#eeefff",
+                        "surface": "#f7f9fb",
+                        "surface-container": "#eceef0",
+                        "secondary-fixed": "#89f5e7",
+                        "on-tertiary-fixed-variant": "#3a485c",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-container-highest": "#e0e3e5",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary-fixed": "#00174b",
+                        "secondary-container": "#86f2e4",
+                        "secondary": "#006a61",
+                        "primary-container": "#2563eb",
+                        "outline": "#737686",
+                        "tertiary": "#48566b",
+                        "on-surface-variant": "#434655",
+                        "on-tertiary-fixed": "#0d1c2f",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed": "#00201d",
+                        "secondary-fixed-dim": "#6bd8cb",
+                        "primary-fixed": "#dbe1ff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "background": "#f7f9fb",
+                        "inverse-primary": "#b4c5ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "max-width": "1440px",
+                        "margin-desktop": "32px",
+                        "base": "8px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-sm": ["JetBrains Mono"],
+                        "title-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .elevation-0 { @apply bg-surface-bright shadow-none; }
+            .elevation-1 { @apply bg-white border border-surface-container-high shadow-[0_4px_12px_rgba(0,0,0,0.02)]; }
+            .elevation-2 { @apply bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]; }
+            .card-radius { @apply rounded-[16px]; }
+            .btn-radius { @apply rounded-lg; }
             
-            trend_labels = trend_df["_temp_date"].dt.strftime('%d-%m-%Y').tolist()
-            sales_trend = trend_df["Sales"].tolist() if "Sales" in trend_df.columns else []
-            gmv_trend = trend_df["GMV"].tolist() if "GMV" in trend_df.columns else []
-            orders_trend = trend_df["Delivered orders"].tolist() if "Delivered orders" in trend_df.columns else []
-            ads_trend = trend_df["Sales from Ads"].tolist() if "Sales from Ads" in trend_df.columns else []
-            discount_trend = trend_df["Discount given"].tolist() if "Discount given" in trend_df.columns else []
+            /* Custom scrollbar for dropdowns */
+            .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+            .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c3c6d7; border-radius: 20px; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<!-- Fixed Top Header -->
+<header class="fixed top-0 w-full z-50 bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
+<div class="flex items-center gap-4">
+<img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="https://lh3.googleusercontent.com/aida/AP1WRLuz4IG3uVeIARhKHBi7swr1vh6-iHc7HBKIckZ1upgROrNSEa-FFTeHTPdHfikgdcIx2oeA1gzAez9Ve14ic5MlmmBhOYZNWv2NAc6jUCKiuNDjZlDB5PBwHCwABuOU4obtMht047b9RnjdxBQ2ibPz592zgksT4GfjSJ1fp1z3BiaXaUCI_SlCXXxGOX0Ecd-3klVOSL44_LF7oXNKHvA2lol0C3c6IWrxBlTXMQtUVuOQKAMMc6-xAL-u"/>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight md:block">Restaurant Daily Analytics Portal</h1>
+</div>
+<div class="flex items-center gap-4"><div class="relative group">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<!-- Settings Flyout Panel -->
+<div class="absolute right-0 mt-2 w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
+<h4 class="font-title-md text-title-md text-on-surface mb-4">Theme Settings</h4>
+<!-- Logo Upload Zone -->
+<div class="mb-6">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2 block">Upload Restaurant Logo</label>
+<div class="border-2 border-dashed border-outline-variant rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors cursor-pointer bg-surface-container-lowest">
+<span class="material-symbols-outlined text-primary">cloud_upload</span>
+<span class="text-body-md text-on-surface-variant text-sm">Drag & drop or click</span>
+</div>
+</div>
+<!-- Toggle Switch -->
+<div class="flex items-center justify-between">
+<span class="text-body-md text-on-surface">Use Default Platform Theme</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
 
-    chart_data = {
-        "platform_donut": platform_orders,
-        "trend_labels": trend_labels,
-        "sales_trend": sales_trend,
-        "gmv_trend": gmv_trend,
-        "orders_trend": orders_trend,
-        "ads_trend": ads_trend,
-        "discount_trend": discount_trend
-    }
-
-    if "_temp_date" in filtered_df.columns:
-        filtered_df = filtered_df.drop(columns=["_temp_date"])
-        
-    table_records = filtered_df.to_dict(orient="records")
-
-    if ajax == "1":
-        formatted_table_data = []
-        for row in table_records:
-            formatted_table_data.append({
-                "Restaurant Name": str(row.get('Restaurant Name', '')),
-                "Report Period": str(row.get('Report Period', '')),
-                "Location": str(row.get('Location', '')),
-                "Res ID": str(row.get('Res ID', '')),
-                "Platform": str(row.get('Platform', '')),
-                "Delivered orders": f"{int(row.get('Delivered orders', 0)):,}",
-                "Sales": f"₹{row.get('Sales', 0):,.2f}",
-                "GMV": f"₹{row.get('GMV', 0):,.2f}",
-                "Sales from Ads": f"₹{row.get('Sales from Ads', 0):,.2f}",
-                "Discount given": f"₹{row.get('Discount given', 0):,.2f}"
-            })
-            
-        return JSONResponse(content={
-            "max_available_date": max_available_date,
-            "total_gmv": f"₹{total_gmv:,.2f}",
-            "total_orders": f"{total_orders:,}",
-            "avg_aov": f"₹{avg_aov:,.2f}",
-            "sales_ads": f"₹{sales_ads:,.2f}",
-            "discount_given": f"₹{discount_given:,.2f}",
-            "outlets": outlets,
-            "platforms": platforms,
-            "table_data": formatted_table_data,
-            "chart_data": chart_data
-        })
-
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={
-            "request": request,
-            "is_admin": is_admin,
-            "all_brands": all_brands,
-            "selected_brand": selected_brand,
-            "outlets": outlets,
-            "selected_outlet": outlet or "",
-            "platforms": platforms,
-            "selected_platform": platform or "",
-            "start_date": start_date or "",
-            "end_date": end_date or "",
-            "max_available_date": max_available_date,
-            "total_gmv": f"₹{total_gmv:,.2f}",
-            "total_orders": f"{total_orders:,}",
-            "avg_aov": f"₹{avg_aov:,.2f}",
-            "sales_ads": f"₹{sales_ads:,.2f}",
-            "discount_given": f"₹{discount_given:,.2f}",
-            "table_data": table_records,
-            "chart_data": chart_data
-        },
-    )
-
-
-@app.get("/login", response_class=HTMLResponse)
-def login_page(request: Request, error: Optional[str] = None):
-    if request.session.get("logged_in"):
-        return RedirectResponse(url="/", status_code=303)
-    return templates.TemplateResponse(request, "login.html", {"error": error})
-
-
-@app.post("/login")
-def handle_login(request: Request, passkey: str = Form(...)):
-    MASTER_ADMIN_KEY = "AnK@2025"
+<!-- Logout Option Snippet -->
+    <div class="mt-4 pt-4 border-t border-outline-variant">
+      <a 
+        href="/logout"
+        class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-error-container/10 rounded-lg transition-colors duration-200 group no-underline"
+      >
+        <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
+        <span class="font-title-small">Logout</span>
+      </a>
+    </div>    
+</div>
+</div>
+<div class="md:flex flex-col items-end">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Welcome,</span>
+<span id="user-display-name" class="font-title-md text-title-md text-on-surface">
+    {% if is_admin %}
+        ANK Consulting Admin
+    {% else %}
+        {{ selected_brand }}
+    {% endif %}
+</span>
+</div>
+<div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-title-md text-title-md">
+    <!-- JS injected -->
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto transition-opacity duration-300">
+<!-- Horizontal Control Bar -->
+<form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
     
-    if passkey == MASTER_ADMIN_KEY:
-        request.session["logged_in"] = True
-        request.session["is_admin"] = True
-        request.session["authorized_res_ids"] = []
-        return RedirectResponse(url="/", status_code=303)
-    
-    try:
-        brand_df = pd.read_csv(BRAND_MAPPING_CSV_URL)
-        brand_df.columns = brand_df.columns.str.strip()
-        matched_rows = brand_df[brand_df['Passkeys'].astype(str).str.strip() == passkey.strip()]
+    <!-- Dynamic Docker-Style Date Picker Component -->
+    <div class="relative w-full md:w-auto z-[60]" id="date-dropdown-container">
+        <!-- Hidden inputs for backend form submission -->
+        <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
+        <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
+        <input type="hidden" id="max-available-date" value="{{ max_available_date }}">
+
+        <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none group min-w-[300px]">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-gray-500 text-[20px]">calendar_today</span>
+              <span id="date-picker-label" class="text-sm font-medium text-gray-700">
+                <!-- Javascript formats and injects text here -->
+              </span>
+            </div>
+            <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors">expand_more</span>
+        </button>
+      
+        <!-- Calendar Popover Content -->
+        <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
+            <div class="p-4">
+              
+              <!-- Calendar Header (Month/Year Dropdowns & Arrows) -->
+              <div class="flex items-center justify-between mb-4 relative">
+                <button type="button" onclick="navigateCalendar(-1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                  <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_left</span>
+                </button>
+                
+                <div class="flex gap-2 font-bold text-gray-900 text-sm items-center">
+                  <!-- Month Dropdown Trigger -->
+                  <div class="relative">
+                      <button type="button" onclick="toggleMonthDropdown(event)" id="current-month-btn" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                          <span id="month-text">July</span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+                      </button>
+                      <div id="month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-32 max-h-48 overflow-y-auto custom-scrollbar">
+                          <!-- JS injected months -->
+                      </div>
+                  </div>
+                  <!-- Year Dropdown Trigger -->
+                  <div class="relative">
+                      <button type="button" onclick="toggleYearDropdown(event)" id="current-year-btn" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                          <span id="year-text">2026</span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+                      </button>
+                      <div id="year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-24 max-h-48 overflow-y-auto custom-scrollbar">
+                          <!-- JS injected years -->
+                      </div>
+                  </div>
+                </div>
+                
+                <button type="button" onclick="navigateCalendar(1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                  <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_right</span>
+                </button>
+              </div>
+
+              <!-- Weekdays -->
+              <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
+                <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+              </div>
+
+              <!-- Days Grid (Injected by JS) -->
+              <div class="grid grid-cols-7 gap-1 text-center text-sm" id="calendar-days-grid">
+                <!-- JavaScript automatically populates this grid -->
+              </div>
+
+              <!-- Action Footer -->
+              <div class="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
+                <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2">Cancel</button>
+                <button type="button" onclick="applyDateSelection()" class="bg-[#2563eb] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100">
+                  Apply Range
+                </button>
+              </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-4 flex-1 justify-end z-[50]">
         
-        if not matched_rows.empty:
-            swiggy_ids = matched_rows['Swiggy Res ID'].dropna().astype(str).tolist()
-            zomato_ids = matched_rows['Zomato Res ID'].dropna().astype(str).tolist()
-            allowed_ids = swiggy_ids + zomato_ids
+        {% if is_admin %}
+        <!-- Searchable Admin Brand Dropdown -->
+        <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
+            <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
             
-            request.session["logged_in"] = True
-            request.session["is_admin"] = False
-            request.session["authorized_res_ids"] = allowed_ids
-            return RedirectResponse(url="/", status_code=303)
-    except Exception as e:
-        print(f"Login lookup error: {e}")
-        
-    return templates.TemplateResponse(request, "login.html", {"error": "Invalid Passkey. Please try again."})
+            <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
+                <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+            </div>
 
+            <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                    <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
+                </div>
+                <ul id="brand-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
+                    <li onclick="submitCustomDropdown('brand-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Brands</li>
+                    {% for b in all_brands %}
+                    <li onclick="submitCustomDropdown('brand-input', '{{ b }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ b }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% else %}
+        <!-- Stakeholder Fallback (Hidden from view) -->
+        <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
+        {% endif %}
 
-@app.get("/logout")
-def logout(request: Request):
-    request.session.clear()
-    return RedirectResponse(url="/login", status_code=303)
+        <!-- Searchable Outlet Dropdown -->
+        <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
+            <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
+            
+            <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
+                <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+            </div>
+
+            <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                    <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
+                </div>
+                <ul id="outlet-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
+                    <li onclick="submitCustomDropdown('outlet-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Outlets</li>
+                    {% for loc in outlets %}
+                    <li onclick="submitCustomDropdown('outlet-input', '{{ loc }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ loc }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Searchable Platform Dropdown -->
+        <div class="relative min-w-[220px] w-full md:w-auto" id="platform-dropdown-container">
+            <input type="hidden" name="platform" id="platform-input" value="{{ selected_platform }}">
+            
+            <div onclick="toggleCustomDropdown('platform-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <span id="platform-trigger-text" class="truncate">{{ selected_platform if selected_platform else 'All Platforms' }}</span>
+                <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+            </div>
+
+            <div id="platform-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                    <input type="text" id="platform-search" onkeyup="filterCustomDropdown('platform-search', 'platform-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search platforms...">
+                </div>
+                <ul id="platform-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
+                    <li onclick="submitCustomDropdown('platform-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Platforms</li>
+                    {% for p in platforms %}
+                    <li onclick="submitCustomDropdown('platform-input', '{{ p }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ p }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<!-- KPI Row -->
+<section class="grid grid-cols-5 gap-6 mb-8">
+<!-- GMV -->
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Total Daily GMV</span>
+<span class="material-symbols-outlined text-primary shrink-0" style="font-variation-settings: 'FILL' 0;">payments</span>
+</div>
+<div id="kpi-gmv" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
+<div class="h-8 w-full bg-gradient-to-r from-primary/10 to-transparent rounded">
+<svg class="w-full h-full text-primary" preserveaspectratio="none" viewbox="0 0 100 20">
+<path d="M0 15 L20 10 L40 18 L60 5 L80 12 L100 2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Delivered Orders -->
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Delivered Orders</span>
+<span class="material-symbols-outlined text-secondary shrink-0" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
+</div>
+<div id="kpi-orders" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_orders }}">{{ total_orders }}</div>
+<div class="font-body-md text-body-md text-secondary flex items-center truncate">
+<span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
+                    <span class="truncate">+5.2% vs last week</span>
+                </div>
+</div>
+<!-- AOV -->
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">AOV</span>
+<span class="material-symbols-outlined text-tertiary shrink-0" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
+</div>
+<div id="kpi-aov" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
+<div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
+                    Steady
+                </div>
+</div>
+<!-- Sales from Ads -->
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Sales from Ads</span>
+<span class="material-symbols-outlined text-primary-container shrink-0" style="font-variation-settings: 'FILL' 0;">campaign</span>
+</div>
+<div id="kpi-ads" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
+<div class="font-body-md text-body-md text-secondary flex items-center truncate">
+<span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
+                    <span class="truncate">+12% ROAS</span>
+                </div>
+</div>
+<!-- Discount Given -->
+<div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Discount Given</span>
+<span class="material-symbols-outlined text-error shrink-0" style="font-variation-settings: 'FILL' 0;">sell</span>
+</div>
+<div id="kpi-discount" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ discount_given }}">{{ discount_given }}</div>
+<div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
+                    <span class="truncate">7.7% of GMV</span>
+                </div>
+</div>
+</section>
+
+<!-- Charts Row (Chart.js Integration) -->
+<section class="grid grid-cols-2 gap-6 mb-8">
+<!-- Donut Chart -->
+<div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
+<h3 class="font-title-md text-title-md text-on-surface mb-6">Orders by Platform</h3>
+<div class="flex-1 w-full relative flex items-center justify-center p-2">
+    <canvas id="platformDonutChart"></canvas>
+</div>
+</div>
+<!-- Area Chart with Metric Selector Toolbar -->
+<div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
+<div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+    <h3 id="trend-chart-title" class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
+    <!-- Metric Selector Buttons -->
+    <div class="flex bg-surface-container-high p-1 rounded-lg text-xs font-semibold gap-1">
+        <button type="button" onclick="switchTrendMetric('sales', this)" class="trend-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all">Sales</button>
+        <button type="button" onclick="switchTrendMetric('gmv', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">GMV</button>
+        <button type="button" onclick="switchTrendMetric('orders', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Orders</button>
+        <button type="button" onclick="switchTrendMetric('ads', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Ads</button>
+        <button type="button" onclick="switchTrendMetric('discount', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Discount</button>
+    </div>
+</div>
+<div class="flex-1 w-full relative p-2">
+    <canvas id="salesTrendChart"></canvas>
+</div>
+</div>
+</section>
+
+<!-- Data Table -->
+<section class="elevation-1 card-radius overflow-hidden">
+<div class="px-6 py-4 border-b border-surface-container-high bg-white">
+<h2 class="font-title-md text-title-md text-on-surface">FILTERED DAILY OPERATIONAL REPORT</h2>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F1F5F9] font-label-sm text-label-sm text-on-surface-variant uppercase border-b border-surface-container-high">
+<th class="py-4 px-6 font-medium">Restaurant Name</th>
+<th class="py-4 px-6 font-medium">Report Period</th>
+<th class="py-4 px-6 font-medium">Location</th>
+<th class="py-4 px-6 font-medium">Res ID</th>
+<th class="py-4 px-6 font-medium">Platform</th>
+<th class="py-4 px-6 font-medium text-right">Delivered Orders</th>
+<th class="py-4 px-6 font-medium text-right">Sales</th>
+<th class="py-4 px-6 font-medium text-right">GMV</th>
+<th class="py-4 px-6 font-medium text-right">Sales from Ads</th>
+<th class="py-4 px-6 font-medium text-right">Discount Given</th>
+</tr>
+</thead>
+<tbody id="data-table-body" class="font-body-md text-body-md text-on-surface">
+
+{% for row in table_data %}
+<tr class="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
+<td class="py-4 px-6">{{ row['Restaurant Name'] }}</td>
+<td class="py-4 px-6 text-on-surface-variant">{{ row['Report Period'] }}</td>
+<td class="py-4 px-6">{{ row['Location'] }}</td>
+<td class="py-4 px-6 font-label-sm text-outline">{{ row['Res ID'] }}</td>
+<td class="py-4 px-6">{{ row['Platform'] }}</td>
+<td class="py-4 px-6 text-right font-semibold">{{ "{:,}".format(row['Delivered orders']|int) }}</td>
+<td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['Sales']) }}</td>
+<td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['GMV']) }}</td>
+<td class="py-4 px-6 text-right text-primary-container">₹{{ "{:,.2f}".format(row['Sales from Ads']) }}</td>
+<td class="py-4 px-6 text-right text-error">₹{{ "{:,.2f}".format(row['Discount given']) }}</td>
+</tr>
+{% else %}
+<tr>
+<td colspan="10" class="py-8 text-center text-on-surface-variant">No operational data found for the selected filter.</td>
+</tr>
+{% endfor %}
+
+</tbody>
+</table>
+</div>
+</section>
+</main>
+
+<!-- Safely Pass Python Chart Data to JS -->
+<script>
+    window.INITIAL_CHART_DATA = {{ chart_data | tojson | safe }};
+</script>
+
+<!-- External Script Import -->
+<script src="/static/script.js"></script>
+
+</body></html>

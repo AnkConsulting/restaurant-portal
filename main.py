@@ -9,12 +9,10 @@ import os
 
 app = FastAPI(title="Restaurant Daily Analytics Portal")
 
-# Add session security
 app.add_middleware(SessionMiddleware, secret_key="YOUR_SUPER_SECRET_SESSION_KEY")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
-
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=161887137&single=true&output=csv"
@@ -27,28 +25,14 @@ def load_data():
     except Exception:
         return pd.DataFrame(
             columns=[
-                "Restaurant Name",
-                "Report Period",
-                "Location",
-                "Res ID",
-                "Platform",
-                "Delivered orders",
-                "Sales",
-                "GMV",
-                "Sales from Ads",
-                "Discount given",
+                "Restaurant Name", "Report Period", "Location", "Res ID",
+                "Platform", "Delivered orders", "Sales", "GMV", "Sales from Ads", "Discount given"
             ]
         )
 
     numeric_cols = [
-        "Delivered orders",
-        "Delivered Orders",
-        "Sales",
-        "GMV",
-        "Sales from Ads",
-        "Discount given",
-        "Discount Given",
-        "Total GST"
+        "Delivered orders", "Delivered Orders", "Sales", "GMV", 
+        "Sales from Ads", "Discount given", "Discount Given", "Total GST"
     ]
     for col in numeric_cols:
         if col in df.columns:
@@ -65,9 +49,7 @@ def load_data():
 
     leading_cols = ["Restaurant Name", "Report Period", "Location", "Res ID"]
     other_cols = [c for c in df.columns if c not in leading_cols]
-    ordered_cols = [c for c in leading_cols if c in df.columns] + [
-        c for c in other_cols if c in df.columns
-    ]
+    ordered_cols = [c for c in leading_cols if c in df.columns] + [c for c in other_cols if c in df.columns]
 
     return df[ordered_cols]
 
@@ -114,59 +96,69 @@ async def render_dashboard(
         if pd.notnull(max_date_obj):
             max_available_date = max_date_obj.strftime("%Y-%m-%d")
 
-    # --- DEFAULT TO LATEST AVAILABLE DATE IF NONE PROVIDED ---
     if not start_date or not end_date:
         if max_available_date:
             start_date = max_available_date
             end_date = max_available_date
 
     filtered_df = context_df.copy()
-    if "_temp_date" in filtered_df.columns:
-        if end_date and max_available_date and end_date > max_available_date:
+    start_dt = pd.to_datetime(start_date, errors="coerce")
+    end_dt = pd.to_datetime(end_date, errors="coerce")
+
+    if pd.notnull(start_dt) and pd.notnull(end_dt):
+        if end_date > max_available_date:
             end_date = max_available_date
-        if start_date and max_available_date and start_date > max_available_date:
-            start_date = max_available_date
+            end_dt = pd.to_datetime(end_date, errors="coerce")
 
-        if start_date and end_date:
-            start = pd.to_datetime(start_date, errors="coerce")
-            end = pd.to_datetime(end_date, errors="coerce")
-            if pd.notnull(start) and pd.notnull(end):
-                filtered_df = filtered_df[(filtered_df["_temp_date"] >= start) & (filtered_df["_temp_date"] <= end)]
+        # Current Period Data Frame
+        current_filtered = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
+        
+        # Calculate Previous Month Corresponding Period for Comparison Overlay
+        prev_start = start_dt - pd.DateOffset(months=1)
+        prev_end = end_dt - pd.DateOffset(months=1)
+        prev_filtered = filtered_df[(filtered_df["_temp_date"] >= prev_start) & (filtered_df["_temp_date"] <= prev_end)]
+    else:
+        current_filtered = filtered_df
+        prev_filtered = pd.DataFrame(columns=filtered_df.columns)
 
-    total_gmv = filtered_df["GMV"].sum() if "GMV" in filtered_df.columns else 0.0
-    total_orders = int(filtered_df["Delivered orders"].sum()) if "Delivered orders" in filtered_df.columns else 0
+    # Top-level KPIs
+    total_gmv = current_filtered["GMV"].sum() if "GMV" in current_filtered.columns else 0.0
+    total_orders = int(current_filtered["Delivered orders"].sum()) if "Delivered orders" in current_filtered.columns else 0
     avg_aov = (total_gmv / total_orders) if total_orders > 0 else 0.0
-    sales_ads = filtered_df["Sales from Ads"].sum() if "Sales from Ads" in filtered_df.columns else 0.0
-    discount_given = filtered_df["Discount given"].sum() if "Discount given" in filtered_df.columns else 0.0
+    sales_ads = current_filtered["Sales from Ads"].sum() if "Sales from Ads" in current_filtered.columns else 0.0
+    discount_given = current_filtered["Discount given"].sum() if "Discount given" in current_filtered.columns else 0.0
 
-    if "Platform" in filtered_df.columns and "Delivered orders" in filtered_df.columns:
-        platform_orders = filtered_df.groupby("Platform")["Delivered orders"].sum().to_dict()
+    if "Platform" in current_filtered.columns and "Delivered orders" in current_filtered.columns:
+        platform_orders = current_filtered.groupby("Platform")["Delivered orders"].sum().to_dict()
     else:
         platform_orders = {}
 
+    # Aggregations for Current Trend
     trend_labels = []
-    sales_trend = []
-    gmv_trend = []
-    orders_trend = []
-    ads_trend = []
-    discount_trend = []
+    sales_trend, gmv_trend, orders_trend, ads_trend, discount_trend = [], [], [], [], []
+    prev_sales_trend, prev_gmv_trend, prev_orders_trend, prev_ads_trend, prev_discount_trend = [], [], [], [], []
 
-    if "_temp_date" in filtered_df.columns:
-        agg_dict = {}
-        for col in ["Sales", "GMV", "Delivered orders", "Sales from Ads", "Discount given"]:
-            if col in filtered_df.columns:
-                agg_dict[col] = "sum"
-
+    if "_temp_date" in current_filtered.columns and not current_filtered.empty:
+        agg_dict = {col: "sum" for col in ["Sales", "GMV", "Delivered orders", "Sales from Ads", "Discount given"] if col in current_filtered.columns}
+        
         if agg_dict:
-            trend_df = filtered_df.groupby("_temp_date").agg(agg_dict).reset_index()
-            trend_df = trend_df.sort_values("_temp_date")
-            
+            trend_df = current_filtered.groupby("_temp_date").agg(agg_dict).reset_index().sort_values("_temp_date")
             trend_labels = trend_df["_temp_date"].dt.strftime('%d-%m-%Y').tolist()
             sales_trend = trend_df["Sales"].tolist() if "Sales" in trend_df.columns else []
             gmv_trend = trend_df["GMV"].tolist() if "GMV" in trend_df.columns else []
             orders_trend = trend_df["Delivered orders"].tolist() if "Delivered orders" in trend_df.columns else []
             ads_trend = trend_df["Sales from Ads"].tolist() if "Sales from Ads" in trend_df.columns else []
             discount_trend = trend_df["Discount given"].tolist() if "Discount given" in trend_df.columns else []
+
+    if "_temp_date" in prev_filtered.columns and not prev_filtered.empty:
+        agg_dict = {col: "sum" for col in ["Sales", "GMV", "Delivered orders", "Sales from Ads", "Discount given"] if col in prev_filtered.columns}
+        if agg_dict:
+            prev_trend_df = prev_filtered.groupby("_temp_date").agg(agg_dict).reset_index().sort_values("_temp_date")
+            prev_sales_trend = prev_trend_df["Sales"].tolist() if "Sales" in prev_trend_df.columns else []
+            prev_gmv_trend = prev_trend_df["GMV"].tolist() if "GMV" in prev_trend_df.columns else []
+            prev_orders_trend = prev_trend_df["Delivered orders"].tolist() if "Delivered orders" in prev_trend_df.columns else []
+            prev_ads_trend = prev_trend_df["Sales from Ads"].tolist() if "Sales from Ads" in prev_trend_df.columns else []
+            prev_discount_trend = prev_trend_df["Discount given"].tolist() if "Discount given" in prev_trend_df.columns else []
 
     chart_data = {
         "platform_donut": platform_orders,
@@ -175,13 +167,18 @@ async def render_dashboard(
         "gmv_trend": gmv_trend,
         "orders_trend": orders_trend,
         "ads_trend": ads_trend,
-        "discount_trend": discount_trend
+        "discount_trend": discount_trend,
+        "prev_sales_trend": prev_sales_trend,
+        "prev_gmv_trend": prev_gmv_trend,
+        "prev_orders_trend": prev_orders_trend,
+        "prev_ads_trend": prev_ads_trend,
+        "prev_discount_trend": prev_discount_trend
     }
 
-    if "_temp_date" in filtered_df.columns:
-        filtered_df = filtered_df.drop(columns=["_temp_date"])
+    if "_temp_date" in current_filtered.columns:
+        current_filtered = current_filtered.drop(columns=["_temp_date"])
         
-    table_records = filtered_df.to_dict(orient="records")
+    table_records = current_filtered.to_dict(orient="records")
 
     if ajax == "1":
         formatted_table_data = []
@@ -237,43 +234,33 @@ async def render_dashboard(
         },
     )
 
-
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, error: Optional[str] = None):
     if request.session.get("logged_in"):
         return RedirectResponse(url="/", status_code=303)
     return templates.TemplateResponse(request, "login.html", {"error": error})
 
-
 @app.post("/login")
 def handle_login(request: Request, passkey: str = Form(...)):
     MASTER_ADMIN_KEY = "AnK@2025"
-    
     if passkey == MASTER_ADMIN_KEY:
         request.session["logged_in"] = True
         request.session["is_admin"] = True
         request.session["authorized_res_ids"] = []
         return RedirectResponse(url="/", status_code=303)
-    
     try:
         brand_df = pd.read_csv(BRAND_MAPPING_CSV_URL)
         brand_df.columns = brand_df.columns.str.strip()
         matched_rows = brand_df[brand_df['Passkeys'].astype(str).str.strip() == passkey.strip()]
-        
         if not matched_rows.empty:
-            swiggy_ids = matched_rows['Swiggy Res ID'].dropna().astype(str).tolist()
-            zomato_ids = matched_rows['Zomato Res ID'].dropna().astype(str).tolist()
-            allowed_ids = swiggy_ids + zomato_ids
-            
+            allowed_ids = matched_rows['Swiggy Res ID'].dropna().astype(str).tolist() + matched_rows['Zomato Res ID'].dropna().astype(str).tolist()
             request.session["logged_in"] = True
             request.session["is_admin"] = False
             request.session["authorized_res_ids"] = allowed_ids
             return RedirectResponse(url="/", status_code=303)
     except Exception as e:
-        print(f"Login lookup error: {e}")
-        
-    return templates.TemplateResponse(request, "login.html", {"error": "Invalid Passkey. Please try again."})
-
+        print(f"Login error: {e}")
+    return templates.TemplateResponse(request, "login.html", {"error": "Invalid Passkey."})
 
 @app.get("/logout")
 def logout(request: Request):

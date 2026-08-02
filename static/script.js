@@ -1,4 +1,4 @@
-// --- INITIALIZATION ---
+// --- INITIALIZATION & GLOBALS ---
 let selectedStartDate = null;
 let selectedEndDate = null;
 let viewDate = new Date();
@@ -9,6 +9,11 @@ let donutChartInstance = null;
 let trendChartInstance = null;
 let currentMetric = 'sales';
 let currentDonutMetric = 'orders';
+
+// Pagination Globals
+let currentPage = 1;
+let rowsPerPage = 20;
+let allTableRows = [];
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -59,11 +64,109 @@ document.addEventListener("DOMContentLoaded", function () {
     if (window.INITIAL_CHART_DATA) {
         initCharts(window.INITIAL_CHART_DATA);
     }
+
+    // Initialize Table Pagination
+    const initialRows = document.querySelectorAll('#data-table-body tr');
+    if (initialRows.length === 1 && initialRows[0].innerText.includes("No operational data found")) {
+        allTableRows = [];
+    } else {
+        allTableRows = Array.from(initialRows);
+    }
+    applyTablePagination();
 });
+
+// --- PAGINATION LOGIC ---
+function changeRowsPerPage(val) {
+    rowsPerPage = val;
+    currentPage = 1;
+    applyTablePagination();
+}
+
+function prevPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        applyTablePagination();
+    }
+}
+
+function nextPage() {
+    const maxPage = rowsPerPage === 'all' ? 1 : Math.ceil(allTableRows.length / rowsPerPage);
+    if (currentPage < maxPage) {
+        currentPage++;
+        applyTablePagination();
+    }
+}
+
+function goToPage(page) {
+    currentPage = page;
+    applyTablePagination();
+}
+
+function applyTablePagination() {
+    const tbody = document.getElementById('data-table-body');
+    tbody.innerHTML = '';
+    
+    const totalRows = allTableRows.length;
+    
+    if (totalRows === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="py-8 text-center text-on-surface-variant">No operational data found for the selected filter.</td></tr>`;
+        document.getElementById('pagination-info').innerText = "Showing 0 entries";
+        document.getElementById('pagination-controls').style.display = 'none';
+        return;
+    }
+
+    document.getElementById('pagination-controls').style.display = 'flex';
+
+    let startIndex = 0;
+    let endIndex = totalRows;
+
+    if (rowsPerPage !== 'all') {
+        const limit = parseInt(rowsPerPage);
+        startIndex = (currentPage - 1) * limit;
+        endIndex = Math.min(startIndex + limit, totalRows);
+    }
+
+    const rowsToShow = allTableRows.slice(startIndex, endIndex);
+    rowsToShow.forEach(row => tbody.appendChild(row));
+
+    document.getElementById('pagination-info').innerText = `Showing ${startIndex + 1} to ${endIndex} of ${totalRows} entries`;
+
+    const prevBtn = document.getElementById('prev-page-btn');
+    const nextBtn = document.getElementById('next-page-btn');
+    const pageNumbersContainer = document.getElementById('page-numbers');
+    
+    pageNumbersContainer.innerHTML = '';
+
+    if (rowsPerPage === 'all') {
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+    } else {
+        const maxPage = Math.ceil(totalRows / rowsPerPage);
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === maxPage;
+
+        let lastRendered = 0;
+        for (let i = 1; i <= maxPage; i++) {
+            if (i === 1 || i === maxPage || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                if (lastRendered && i - lastRendered > 1) {
+                    const span = document.createElement('span');
+                    span.innerText = '...';
+                    span.className = 'px-2 py-1 text-on-surface-variant font-medium';
+                    pageNumbersContainer.appendChild(span);
+                }
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                btn.onclick = () => goToPage(i);
+                btn.className = `px-3 py-1 border rounded-md text-sm transition-colors font-medium ${i === currentPage ? 'bg-primary text-white border-primary shadow-sm' : 'border-outline-variant hover:bg-surface-container-high text-on-surface bg-white'}`;
+                pageNumbersContainer.appendChild(btn);
+                lastRendered = i;
+            }
+        }
+    }
+}
 
 // --- CHART.JS VISUALIZATION LOGIC ---
 function initCharts(data) {
-    // 1. Initialize Donut Chart
     const donutCtx = document.getElementById('platformDonutChart').getContext('2d');
     
     const platformLabels = Object.keys(data.platform_orders);
@@ -114,7 +217,6 @@ function initCharts(data) {
         }
     });
 
-    // 2. Initialize Trend Chart
     const trendCtx = document.getElementById('salesTrendChart').getContext('2d');
     let gradient = trendCtx.createLinearGradient(0, 0, 0, 300);
     gradient.addColorStop(0, 'rgba(0, 74, 198, 0.2)'); 
@@ -296,7 +398,6 @@ function updateCharts(data) {
     if (!donutChartInstance || !trendChartInstance) return;
     window.latestChartPayload = data;
 
-    // Refresh Donut
     let targetDonutObj = data.platform_orders;
     if (currentDonutMetric === 'gmv') targetDonutObj = data.platform_gmv;
     else if (currentDonutMetric === 'sales') targetDonutObj = data.platform_sales;
@@ -319,7 +420,6 @@ function updateCharts(data) {
     donutChartInstance.data.datasets[0].backgroundColor = mappedColors;
     donutChartInstance.update();
 
-    // Refresh Trend
     let targetTrendData = data.sales_trend;
     let prevTargetTrendData = data.prev_sales_trend;
     if (currentMetric === 'gmv') { targetTrendData = data.gmv_trend; prevTargetTrendData = data.prev_gmv_trend; }
@@ -350,7 +450,6 @@ async function fetchDashboardData() {
     if (startDate) params.append('start_date', startDate);
     if (endDate) params.append('end_date', endDate);
     
-    // The line window.history.pushState(...) has been removed for privacy/security
     params.append('ajax', '1');
 
     try {
@@ -372,14 +471,12 @@ async function fetchDashboardData() {
             updateCharts(data.chart_data);
         }
 
-        const tbody = document.getElementById('data-table-body');
-        tbody.innerHTML = '';
-        if (data.table_data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="10" class="py-8 text-center text-on-surface-variant">No operational data found for the selected filter.</td></tr>`;
-        } else {
+        allTableRows = [];
+        if (data.table_data.length > 0) {
             data.table_data.forEach(row => {
-                tbody.innerHTML += `
-                <tr class="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-surface-container-high hover:bg-surface-bright transition-colors";
+                tr.innerHTML = `
                     <td class="py-4 px-6">${row['Restaurant Name']}</td>
                     <td class="py-4 px-6 text-on-surface-variant">${row['Report Period']}</td>
                     <td class="py-4 px-6">${row['Location']}</td>
@@ -390,9 +487,13 @@ async function fetchDashboardData() {
                     <td class="py-4 px-6 text-right">${row['GMV']}</td>
                     <td class="py-4 px-6 text-right text-primary-container">${row['Sales from Ads']}</td>
                     <td class="py-4 px-6 text-right text-error">${row['Discount given']}</td>
-                </tr>`;
+                `;
+                allTableRows.push(tr);
             });
         }
+        
+        currentPage = 1;
+        applyTablePagination();
         
         const outletList = document.getElementById('outlet-list');
         if (outletList) {
@@ -674,6 +775,5 @@ function exportToCSV() {
     if (startDate) params.append('start_date', startDate);
     if (endDate) params.append('end_date', endDate);
     
-    // Redirect browser to the export route to trigger the native download
     window.location.href = '/export?' + params.toString();
 }

@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -303,25 +305,8 @@
     <section class="grid grid-cols-2 gap-6 mb-8">
         <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
             <h3 class="font-title-md text-title-md text-on-surface mb-6">Orders by Platform</h3>
-            <div class="flex-1 flex items-center justify-center relative">
-                <svg class="w-48 h-48 transform -rotate-90" viewbox="0 0 100 100">
-                    <circle cx="50" cy="50" fill="transparent" r="40" stroke="#e0e3e5" stroke-width="16"></circle>
-                    <circle cx="50" cy="50" fill="transparent" r="40" stroke="#004ac6" stroke-dasharray="251.2" stroke-dashoffset="100.48" stroke-width="16"></circle>
-                </svg>
-                <div class="absolute inset-0 flex flex-col items-center justify-center">
-                    <span class="font-headline-lg text-headline-lg text-on-surface">4.8k</span>
-                    <span class="font-label-sm text-label-sm text-on-surface-variant">Total Orders</span>
-                </div>
-            </div>
-            <div class="flex justify-center gap-6 mt-4">
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 rounded-full bg-primary"></div>
-                    <span class="font-body-md text-body-md text-on-surface">Swiggy (60%)</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 rounded-full bg-surface-variant"></div>
-                    <span class="font-body-md text-body-md text-on-surface">Zomato (40%)</span>
-                </div>
+            <div class="flex-1 w-full relative flex items-center justify-center p-2">
+                <canvas id="platformDonutChart"></canvas>
             </div>
         </div>
         <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
@@ -332,31 +317,8 @@
                     <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Sales</span>
                 </div>
             </div>
-            <div class="flex-1 w-full relative flex items-end border-l border-b border-surface-container-high pb-6 pl-4">
-                <svg class="w-full h-full absolute bottom-6 left-4 right-0" preserveaspectratio="none" viewbox="0 0 400 200">
-                    <defs>
-                        <lineargradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
-                            <stop offset="0%" stop-color="#004ac6" stop-opacity="0.1"></stop>
-                            <stop offset="100%" stop-color="#004ac6" stop-opacity="0"></stop>
-                        </lineargradient>
-                    </defs>
-                    <path d="M0 150 L50 120 L100 160 L150 90 L200 110 L250 60 L300 80 L350 30 L400 50 L400 200 L0 200 Z" fill="url(#areaGradient)"></path>
-                    <path d="M0 150 L50 120 L100 160 L150 90 L200 110 L250 60 L300 80 L350 30 L400 50" fill="none" stroke="#004ac6" stroke-linejoin="round" stroke-width="2"></path>
-                </svg>
-                <div class="absolute left-0 top-0 bottom-6 flex flex-col justify-between items-end text-label-sm text-on-surface-variant pr-2">
-                    <span>100k</span>
-                    <span>50k</span>
-                    <span>0</span>
-                </div>
-                <div class="absolute bottom-0 left-4 right-0 flex justify-between text-label-sm text-on-surface-variant pt-2">
-                    <span>Mon</span>
-                    <span>Tue</span>
-                    <span>Wed</span>
-                    <span>Thu</span>
-                    <span>Fri</span>
-                    <span>Sat</span>
-                    <span>Sun</span>
-                </div>
+            <div class="flex-1 w-full relative p-2">
+                <canvas id="salesTrendChart"></canvas>
             </div>
         </div>
     </section>
@@ -407,6 +369,10 @@
 </main>
 
 <script>
+    window.INITIAL_CHART_DATA = {{ chart_data | tojson | safe }};
+</script>
+
+<script>
   // Dynamic Avatar Initials
   document.addEventListener("DOMContentLoaded", function () {
     const brandName = "{{ selected_brand }}".trim();
@@ -417,7 +383,83 @@
       if (initials.length > 2) initials = initials.substring(0, 2);
       avatarBadge.innerText = initials || "RP";
     }
+
+    // Initialize Chart.js
+    if (window.INITIAL_CHART_DATA) {
+        initCharts(window.INITIAL_CHART_DATA);
+    }
   });
+
+  // Chart.js Rendering Logic
+  function initCharts(data) {
+      // Donut Chart
+      const donutCtx = document.getElementById('platformDonutChart').getContext('2d');
+      const platformLabels = Object.keys(data.platform_donut);
+      const platformValues = Object.values(data.platform_donut);
+      const totalOrders = platformValues.reduce((sum, val) => sum + val, 0);
+      const labelsWithPct = platformLabels.map((platform, i) => {
+          const val = platformValues[i];
+          const pct = totalOrders > 0 ? Math.round((val / totalOrders) * 100) : 0;
+          return `${platform} (${pct}%)`;
+      });
+      const PLATFORM_COLORS = { 'Swiggy': '#FC8019', 'Zomato': '#E23744' };
+      const mappedColors = platformLabels.map(p => PLATFORM_COLORS[p] || '#004ac6');
+
+      new Chart(donutCtx, {
+          type: 'doughnut',
+          data: {
+              labels: labelsWithPct,
+              datasets: [{
+                  data: platformValues,
+                  backgroundColor: mappedColors,
+                  borderWidth: 0,
+                  hoverOffset: 4
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '75%',
+              plugins: {
+                  legend: { position: 'bottom', labels: { font: { family: "'Hanken Grotesk', sans-serif" } } }
+              }
+          }
+      });
+
+      // Area Trend Chart
+      const trendCtx = document.getElementById('salesTrendChart').getContext('2d');
+      let gradient = trendCtx.createLinearGradient(0, 0, 0, 300);
+      gradient.addColorStop(0, 'rgba(0, 74, 198, 0.2)');
+      gradient.addColorStop(1, 'rgba(0, 74, 198, 0)');
+
+      new Chart(trendCtx, {
+          type: 'line',
+          data: {
+              labels: data.trend_labels,
+              datasets: [{
+                  label: 'Daily Sales (₹)',
+                  data: data.trend_values,
+                  borderColor: '#004ac6',
+                  backgroundColor: gradient,
+                  borderWidth: 2,
+                  fill: true,
+                  tension: 0.3,
+                  pointRadius: 3,
+                  pointBackgroundColor: '#ffffff',
+                  pointBorderColor: '#004ac6'
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                  x: { grid: { display: false }, ticks: { font: { family: "'Hanken Grotesk', sans-serif" } } },
+                  y: { border: { display: false }, ticks: { font: { family: "'Hanken Grotesk', sans-serif" }, callback: v => '₹' + (v/1000) + 'k' } }
+              }
+          }
+      });
+  }
 
   // Toggle custom dropdown visibility
   function toggleCustomDropdown(menuId, event) {

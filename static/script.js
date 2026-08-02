@@ -350,7 +350,7 @@ async function fetchDashboardData() {
     if (startDate) params.append('start_date', startDate);
     if (endDate) params.append('end_date', endDate);
     
-    window.history.pushState(null, '', '/?' + params.toString());
+    // The line window.history.pushState(...) has been removed for privacy/security
     params.append('ajax', '1');
 
     try {
@@ -658,3 +658,22 @@ document.addEventListener('click', function(event) {
     document.getElementById('month-dropdown')?.classList.add('hidden');
     document.getElementById('year-dropdown')?.classList.add('hidden');
 });
+
+// --- EXPORT TO CSV LOGIC ---
+function exportToCSV() {
+    const brand = document.getElementById('brand-input').value;
+    const outlet = document.getElementById('outlet-input').value;
+    const platform = document.getElementById('platform-input').value;
+    const startDate = document.getElementById('start-date-input').value;
+    const endDate = document.getElementById('end-date-input').value;
+
+    const params = new URLSearchParams();
+    if (brand) params.append('brand', brand);
+    if (outlet) params.append('outlet', outlet);
+    if (platform) params.append('platform', platform);
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    
+    // Redirect browser to the export route to trigger the native download
+    window.location.href = '/export?' + params.toString();
+}

@@ -303,8 +303,13 @@ def export_csv(
             end_dt = pd.to_datetime(end_date, errors="coerce")
         filtered_df = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
 
+    # Clean up internal columns
     if "_temp_date" in filtered_df.columns:
         filtered_df = filtered_df.drop(columns=["_temp_date"])
+        
+    # Drop the helper column from the final export
+    if "Unique Drop Down" in filtered_df.columns:
+        filtered_df = filtered_df.drop(columns=["Unique Drop Down"])
 
     csv_data = filtered_df.to_csv(index=False)
     

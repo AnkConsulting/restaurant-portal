@@ -115,7 +115,6 @@
 
 <header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
     <div class="flex items-center gap-4">
-        <!-- TOP LEFT LOGO -->
         <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
         <h1 class="font-headline-lg text-headline-lg text-primary tracking-tight md:block">Restaurant Daily Analytics Portal</h1>
     </div>
@@ -158,7 +157,6 @@
                 {% endif %}
             </span>
         </div>
-        <!-- TOP RIGHT LOGO -->
         <img alt="User Logo" class="w-10 h-10 object-contain rounded-full border border-surface-container-high bg-white p-0.5" src="/static/ank-logo.png"/>
     </div>
 </header>
@@ -367,7 +365,8 @@
             <h2 class="font-title-md text-title-md text-on-surface">FILTERED DAILY OPERATIONAL REPORT</h2>
             <div class="flex items-center gap-2">
                 <label for="rows-per-page" class="text-sm font-medium text-on-surface-variant">Rows per page:</label>
-                <select id="rows-per-page" onchange="changeRowsPerPage(this.value)" class="text-sm border border-outline-variant rounded-md px-2 py-1.5 focus:ring-primary focus:border-primary bg-white text-on-surface outline-none cursor-pointer">
+                <!-- FIXED DROPDOWN ARROW PADDING HERE -->
+                <select id="rows-per-page" onchange="changeRowsPerPage(this.value)" class="text-sm border border-outline-variant rounded-md pl-2 pr-8 py-1.5 focus:ring-primary focus:border-primary bg-white text-on-surface outline-none cursor-pointer">
                     <option value="20">20</option>
                     <option value="50">50</option>
                     <option value="100">100</option>

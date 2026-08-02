@@ -78,8 +78,14 @@ async def render_dashboard(
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
 
     all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
-    selected_brand = brand if brand in all_brands else (all_brands[0] if all_brands else "")
-    context_df = df[df["Restaurant Name"] == selected_brand]
+    
+    # Default to empty string for "All Brands" on fresh login
+    selected_brand = brand if brand in all_brands else ""
+    
+    if selected_brand:
+        context_df = df[df["Restaurant Name"] == selected_brand]
+    else:
+        context_df = df
 
     outlets = sorted(context_df["Location"].dropna().unique().tolist())
     if outlet and outlet in outlets:
@@ -234,7 +240,7 @@ async def render_dashboard(
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, error: Optional[str] = None):
     if request.session.get("logged_in"):
-        return RedirectResponse(url="/login", status_code=303)
+        return RedirectResponse(url="/", status_code=303)
     return templates.TemplateResponse(request, "login.html", {"error": error})
 
 @app.post("/login")

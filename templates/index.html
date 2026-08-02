@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
-<!-- FORCED DESKTOP VIEWPORT: Tells mobile/tablet to render a 1280px wide canvas -->
+<!-- FORCED DESKTOP VIEWPORT -->
 <meta content="width=1280" name="viewport"/>
 <title>Restaurant Daily Analytics Portal</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -104,7 +104,6 @@
             .card-radius { @apply rounded-[16px]; }
             .btn-radius { @apply rounded-lg; }
             
-            /* Custom scrollbar for dropdowns */
             .custom-scrollbar::-webkit-scrollbar { width: 6px; }
             .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
             .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c3c6d7; border-radius: 20px; }
@@ -112,7 +111,6 @@
     </style>
 </head>
 <body class="bg-background text-on-background font-body-md min-h-screen">
-<!-- Fixed Top Header -->
 <header class="fixed top-0 w-full z-50 bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
 <div class="flex items-center gap-4">
 <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="https://lh3.googleusercontent.com/aida/AP1WRLuz4IG3uVeIARhKHBi7swr1vh6-iHc7HBKIckZ1upgROrNSEa-FFTeHTPdHfikgdcIx2oeA1gzAez9Ve14ic5MlmmBhOYZNWv2NAc6jUCKiuNDjZlDB5PBwHCwABuOU4obtMht047b9RnjdxBQ2ibPz592zgksT4GfjSJ1fp1z3BiaXaUCI_SlCXXxGOX0Ecd-3klVOSL44_LF7oXNKHvA2lol0C3c6IWrxBlTXMQtUVuOQKAMMc6-xAL-u"/>
@@ -122,10 +120,8 @@
 <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant">
 <span class="material-symbols-outlined">settings</span>
 </button>
-<!-- Settings Flyout Panel -->
 <div class="absolute right-0 mt-2 w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
 <h4 class="font-title-md text-title-md text-on-surface mb-4">Theme Settings</h4>
-<!-- Logo Upload Zone -->
 <div class="mb-6">
 <label class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2 block">Upload Restaurant Logo</label>
 <div class="border-2 border-dashed border-outline-variant rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors cursor-pointer bg-surface-container-lowest">
@@ -133,7 +129,6 @@
 <span class="text-body-md text-on-surface-variant text-sm">Drag & drop or click</span>
 </div>
 </div>
-<!-- Toggle Switch -->
 <div class="flex items-center justify-between">
 <span class="text-body-md text-on-surface">Use Default Platform Theme</span>
 <label class="relative inline-flex items-center cursor-pointer">
@@ -141,13 +136,8 @@
 <div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
 </label>
 </div>
-
-<!-- Logout Option Snippet -->
     <div class="mt-4 pt-4 border-t border-outline-variant">
-      <a 
-        href="/logout"
-        class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-error-container/10 rounded-lg transition-colors duration-200 group no-underline"
-      >
+      <a href="/logout" class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-error-container/10 rounded-lg transition-colors duration-200 group no-underline">
         <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
         <span class="font-title-small">Logout</span>
       </a>
@@ -164,19 +154,12 @@
     {% endif %}
 </span>
 </div>
-<div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-title-md text-title-md">
-    <!-- JS injected -->
-</div>
+<div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-title-md text-title-md"></div>
 </div>
 </header>
-<!-- Main Content Area -->
 <main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto transition-opacity duration-300">
-<!-- Horizontal Control Bar -->
 <form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
-    
-    <!-- Dynamic Docker-Style Date Picker Component -->
     <div class="relative w-full md:w-auto z-[60]" id="date-dropdown-container">
-        <!-- Hidden inputs for backend form submission -->
         <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
         <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
         <input type="hidden" id="max-available-date" value="{{ max_available_date }}">
@@ -184,60 +167,42 @@
         <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none group min-w-[300px]">
             <div class="flex items-center gap-3">
               <span class="material-symbols-outlined text-gray-500 text-[20px]">calendar_today</span>
-              <span id="date-picker-label" class="text-sm font-medium text-gray-700">
-                <!-- Javascript formats and injects text here -->
-              </span>
+              <span id="date-picker-label" class="text-sm font-medium text-gray-700"></span>
             </div>
             <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors">expand_more</span>
         </button>
       
-        <!-- Calendar Popover Content -->
         <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
             <div class="p-4">
-              
-              <!-- Calendar Header (Month/Year Dropdowns & Arrows) -->
               <div class="flex items-center justify-between mb-4 relative">
                 <button type="button" onclick="navigateCalendar(-1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
                   <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_left</span>
                 </button>
-                
                 <div class="flex gap-2 font-bold text-gray-900 text-sm items-center">
-                  <!-- Month Dropdown Trigger -->
                   <div class="relative">
                       <button type="button" onclick="toggleMonthDropdown(event)" id="current-month-btn" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
                           <span id="month-text">July</span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
                       </button>
-                      <div id="month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-32 max-h-48 overflow-y-auto custom-scrollbar">
-                          <!-- JS injected months -->
-                      </div>
+                      <div id="month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-32 max-h-48 overflow-y-auto custom-scrollbar"></div>
                   </div>
-                  <!-- Year Dropdown Trigger -->
                   <div class="relative">
                       <button type="button" onclick="toggleYearDropdown(event)" id="current-year-btn" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
                           <span id="year-text">2026</span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
                       </button>
-                      <div id="year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-24 max-h-48 overflow-y-auto custom-scrollbar">
-                          <!-- JS injected years -->
-                      </div>
+                      <div id="year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-24 max-h-48 overflow-y-auto custom-scrollbar"></div>
                   </div>
                 </div>
-                
                 <button type="button" onclick="navigateCalendar(1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
                   <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_right</span>
                 </button>
               </div>
 
-              <!-- Weekdays -->
               <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
                 <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
               </div>
 
-              <!-- Days Grid (Injected by JS) -->
-              <div class="grid grid-cols-7 gap-1 text-center text-sm" id="calendar-days-grid">
-                <!-- JavaScript automatically populates this grid -->
-              </div>
+              <div class="grid grid-cols-7 gap-1 text-center text-sm" id="calendar-days-grid"></div>
 
-              <!-- Action Footer -->
               <div class="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
                 <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2">Cancel</button>
                 <button type="button" onclick="applyDateSelection()" class="bg-[#2563eb] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100">
@@ -249,17 +214,13 @@
     </div>
 
     <div class="flex items-center gap-4 flex-1 justify-end z-[50]">
-        
         {% if is_admin %}
-        <!-- Searchable Admin Brand Dropdown -->
         <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
             <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
-            
             <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                 <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
                 <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
             </div>
-
             <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
                 <div class="p-2 border-b border-surface-container-high bg-surface-bright">
                     <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
@@ -273,19 +234,15 @@
             </div>
         </div>
         {% else %}
-        <!-- Stakeholder Fallback (Hidden from view) -->
         <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
         {% endif %}
 
-        <!-- Searchable Outlet Dropdown -->
         <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
             <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
-            
             <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                 <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
                 <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
             </div>
-
             <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
                 <div class="p-2 border-b border-surface-container-high bg-surface-bright">
                     <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
@@ -299,15 +256,12 @@
             </div>
         </div>
 
-        <!-- Searchable Platform Dropdown -->
         <div class="relative min-w-[220px] w-full md:w-auto" id="platform-dropdown-container">
             <input type="hidden" name="platform" id="platform-input" value="{{ selected_platform }}">
-            
             <div onclick="toggleCustomDropdown('platform-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                 <span id="platform-trigger-text" class="truncate">{{ selected_platform if selected_platform else 'All Platforms' }}</span>
                 <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
             </div>
-
             <div id="platform-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
                 <div class="p-2 border-b border-surface-container-high bg-surface-bright">
                     <input type="text" id="platform-search" onkeyup="filterCustomDropdown('platform-search', 'platform-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search platforms...">
@@ -320,87 +274,57 @@
                 </ul>
             </div>
         </div>
-
     </div>
 </form>
 
-<!-- KPI Row -->
 <section class="grid grid-cols-5 gap-6 mb-8">
-<!-- GMV -->
 <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
 <div class="flex justify-between items-start mb-2">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Total Daily GMV</span>
 <span class="material-symbols-outlined text-primary shrink-0" style="font-variation-settings: 'FILL' 0;">payments</span>
 </div>
 <div id="kpi-gmv" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
-<div class="h-8 w-full bg-gradient-to-r from-primary/10 to-transparent rounded">
-<svg class="w-full h-full text-primary" preserveaspectratio="none" viewbox="0 0 100 20">
-<path d="M0 15 L20 10 L40 18 L60 5 L80 12 L100 2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
-</svg>
 </div>
-</div>
-<!-- Delivered Orders -->
 <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
 <div class="flex justify-between items-start mb-2">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Delivered Orders</span>
 <span class="material-symbols-outlined text-secondary shrink-0" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
 </div>
 <div id="kpi-orders" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_orders }}">{{ total_orders }}</div>
-<div class="font-body-md text-body-md text-secondary flex items-center truncate">
-<span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
-                    <span class="truncate">+5.2% vs last week</span>
-                </div>
 </div>
-<!-- AOV -->
 <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
 <div class="flex justify-between items-start mb-2">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">AOV</span>
 <span class="material-symbols-outlined text-tertiary shrink-0" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
 </div>
 <div id="kpi-aov" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
-<div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
-                    Steady
-                </div>
 </div>
-<!-- Sales from Ads -->
 <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
 <div class="flex justify-between items-start mb-2">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Sales from Ads</span>
 <span class="material-symbols-outlined text-primary-container shrink-0" style="font-variation-settings: 'FILL' 0;">campaign</span>
 </div>
 <div id="kpi-ads" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
-<div class="font-body-md text-body-md text-secondary flex items-center truncate">
-<span class="material-symbols-outlined text-sm mr-1 shrink-0">trending_up</span>
-                    <span class="truncate">+12% ROAS</span>
-                </div>
 </div>
-<!-- Discount Given -->
 <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
 <div class="flex justify-between items-start mb-2">
 <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Discount Given</span>
 <span class="material-symbols-outlined text-error shrink-0" style="font-variation-settings: 'FILL' 0;">sell</span>
 </div>
 <div id="kpi-discount" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ discount_given }}">{{ discount_given }}</div>
-<div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
-                    <span class="truncate">7.7% of GMV</span>
-                </div>
 </div>
 </section>
 
-<!-- Charts Row (Chart.js Integration) -->
 <section class="grid grid-cols-2 gap-6 mb-8">
-<!-- Donut Chart -->
 <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
 <h3 class="font-title-md text-title-md text-on-surface mb-6">Orders by Platform</h3>
 <div class="flex-1 w-full relative flex items-center justify-center p-2">
     <canvas id="platformDonutChart"></canvas>
 </div>
 </div>
-<!-- Area Chart with Metric Selector Toolbar -->
 <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
 <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
     <h3 id="trend-chart-title" class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
-    <!-- Metric Selector Buttons -->
     <div class="flex bg-surface-container-high p-1 rounded-lg text-xs font-semibold gap-1">
         <button type="button" onclick="switchTrendMetric('sales', this)" class="trend-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all">Sales</button>
         <button type="button" onclick="switchTrendMetric('gmv', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">GMV</button>
@@ -415,7 +339,6 @@
 </div>
 </section>
 
-<!-- Data Table -->
 <section class="elevation-1 card-radius overflow-hidden">
 <div class="px-6 py-4 border-b border-surface-container-high bg-white">
 <h2 class="font-title-md text-title-md text-on-surface">FILTERED DAILY OPERATIONAL REPORT</h2>
@@ -437,7 +360,6 @@
 </tr>
 </thead>
 <tbody id="data-table-body" class="font-body-md text-body-md text-on-surface">
-
 {% for row in table_data %}
 <tr class="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
 <td class="py-4 px-6">{{ row['Restaurant Name'] }}</td>
@@ -456,19 +378,14 @@
 <td colspan="10" class="py-8 text-center text-on-surface-variant">No operational data found for the selected filter.</td>
 </tr>
 {% endfor %}
-
 </tbody>
 </table>
 </div>
 </section>
 </main>
 
-<!-- Safely Pass Python Chart Data to JS -->
 <script>
     window.INITIAL_CHART_DATA = {{ chart_data | tojson | safe }};
 </script>
-
-<!-- External Script Import -->
 <script src="/static/script.js"></script>
-
 </body></html>

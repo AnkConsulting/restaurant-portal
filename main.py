@@ -30,17 +30,21 @@ def load_data():
         if "Unique Dropdown Key" in df.columns:
             df = df.drop(columns=["Unique Dropdown Key"])
             
-        # 3. Filter out inactive restaurants automatically
+        # 3. Clean Res ID to prevent type/float mismatching (e.g. 17588.0 vs 17588)
+        if "Res ID" in df.columns:
+            df["Res ID"] = df["Res ID"].dropna().astype(str).str.split('.').str[0].str.strip()
+
+        # 4. Filter out inactive restaurants automatically
         try:
             inactive_df = pd.read_csv(INACTIVE_CSV_URL)
             inactive_df.columns = inactive_df.columns.str.strip()
             
-            inactive_swiggy = inactive_df["Swiggy Res ID"].dropna().astype(str).str.strip().tolist()
-            inactive_zomato = inactive_df["Zomato Res ID"].dropna().astype(str).str.strip().tolist()
+            inactive_swiggy = inactive_df["Swiggy Res ID"].dropna().astype(str).str.split('.').str[0].str.strip().tolist()
+            inactive_zomato = inactive_df["Zomato Res ID"].dropna().astype(str).str.split('.').str[0].str.strip().tolist()
             inactive_ids = set(inactive_swiggy + inactive_zomato)
             
             if "Res ID" in df.columns:
-                df = df[~df["Res ID"].astype(str).str.strip().isin(inactive_ids)]
+                df = df[~df["Res ID"].isin(inactive_ids)]
         except Exception as e:
             print(f"Could not load inactive restaurants sheet: {e}")
             
@@ -359,7 +363,10 @@ def handle_login(request: Request, passkey: str = Form(...)):
         brand_df.columns = brand_df.columns.str.strip()
         matched_rows = brand_df[brand_df['Passkeys'].astype(str).str.strip() == passkey.strip()]
         if not matched_rows.empty:
-            allowed_ids = matched_rows['Swiggy Res ID'].dropna().astype(str).tolist() + matched_rows['Zomato Res ID'].dropna().astype(str).tolist()
+            swiggy_ids = matched_rows['Swiggy Res ID'].dropna().astype(str).str.split('.').str[0].str.strip().tolist()
+            zomato_ids = matched_rows['Zomato Res ID'].dropna().astype(str).str.split('.').str[0].str.strip().tolist()
+            allowed_ids = swiggy_ids + zomato_ids
+            
             request.session["logged_in"] = True
             request.session["is_admin"] = False
             request.session["authorized_res_ids"] = allowed_ids

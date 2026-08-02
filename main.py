@@ -25,9 +25,9 @@ def load_data():
         # 1. Clean all column headers to remove hidden trailing/leading spaces
         df.columns = df.columns.str.strip()
         
-        # 2. Aggressively drop the helper column immediately
-        if "Unique Drop Down" in df.columns:
-            df = df.drop(columns=["Unique Drop Down"])
+        # 2. Aggressively drop the exact helper column immediately
+        if "Unique Dropdown Key" in df.columns:
+            df = df.drop(columns=["Unique Dropdown Key"])
             
     except Exception:
         return pd.DataFrame(

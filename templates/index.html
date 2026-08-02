@@ -288,3 +288,192 @@
                 <span class="truncate">+12% ROAS</span>
             </div>
         </div>
+        <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+            <div class="flex justify-between items-start mb-2">
+                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Discount Given</span>
+                <span class="material-symbols-outlined text-error shrink-0" style="font-variation-settings: 'FILL' 0;">sell</span>
+            </div>
+            <div class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ discount_given }}">{{ discount_given }}</div>
+            <div class="font-body-md text-body-md text-on-surface-variant flex items-center truncate">
+                <span class="truncate">7.7% of GMV</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="grid grid-cols-2 gap-6 mb-8">
+        <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
+            <h3 class="font-title-md text-title-md text-on-surface mb-6">Orders by Platform</h3>
+            <div class="flex-1 flex items-center justify-center relative">
+                <svg class="w-48 h-48 transform -rotate-90" viewbox="0 0 100 100">
+                    <circle cx="50" cy="50" fill="transparent" r="40" stroke="#e0e3e5" stroke-width="16"></circle>
+                    <circle cx="50" cy="50" fill="transparent" r="40" stroke="#004ac6" stroke-dasharray="251.2" stroke-dashoffset="100.48" stroke-width="16"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span class="font-headline-lg text-headline-lg text-on-surface">4.8k</span>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant">Total Orders</span>
+                </div>
+            </div>
+            <div class="flex justify-center gap-6 mt-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-primary"></div>
+                    <span class="font-body-md text-body-md text-on-surface">Swiggy (60%)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-surface-variant"></div>
+                    <span class="font-body-md text-body-md text-on-surface">Zomato (40%)</span>
+                </div>
+            </div>
+        </div>
+        <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-primary"></span>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Sales</span>
+                </div>
+            </div>
+            <div class="flex-1 w-full relative flex items-end border-l border-b border-surface-container-high pb-6 pl-4">
+                <svg class="w-full h-full absolute bottom-6 left-4 right-0" preserveaspectratio="none" viewbox="0 0 400 200">
+                    <defs>
+                        <lineargradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stop-color="#004ac6" stop-opacity="0.1"></stop>
+                            <stop offset="100%" stop-color="#004ac6" stop-opacity="0"></stop>
+                        </lineargradient>
+                    </defs>
+                    <path d="M0 150 L50 120 L100 160 L150 90 L200 110 L250 60 L300 80 L350 30 L400 50 L400 200 L0 200 Z" fill="url(#areaGradient)"></path>
+                    <path d="M0 150 L50 120 L100 160 L150 90 L200 110 L250 60 L300 80 L350 30 L400 50" fill="none" stroke="#004ac6" stroke-linejoin="round" stroke-width="2"></path>
+                </svg>
+                <div class="absolute left-0 top-0 bottom-6 flex flex-col justify-between items-end text-label-sm text-on-surface-variant pr-2">
+                    <span>100k</span>
+                    <span>50k</span>
+                    <span>0</span>
+                </div>
+                <div class="absolute bottom-0 left-4 right-0 flex justify-between text-label-sm text-on-surface-variant pt-2">
+                    <span>Mon</span>
+                    <span>Tue</span>
+                    <span>Wed</span>
+                    <span>Thu</span>
+                    <span>Fri</span>
+                    <span>Sat</span>
+                    <span>Sun</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="elevation-1 card-radius overflow-hidden">
+        <div class="px-6 py-4 border-b border-surface-container-high bg-white">
+            <h2 class="font-title-md text-title-md text-on-surface">FILTERED DAILY OPERATIONAL REPORT</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#F1F5F9] font-label-sm text-label-sm text-on-surface-variant uppercase border-b border-surface-container-high">
+                        <th class="py-4 px-6 font-medium">Restaurant Name</th>
+                        <th class="py-4 px-6 font-medium">Report Period</th>
+                        <th class="py-4 px-6 font-medium">Location</th>
+                        <th class="py-4 px-6 font-medium">Res ID</th>
+                        <th class="py-4 px-6 font-medium">Platform</th>
+                        <th class="py-4 px-6 font-medium text-right">Delivered Orders</th>
+                        <th class="py-4 px-6 font-medium text-right">Sales</th>
+                        <th class="py-4 px-6 font-medium text-right">GMV</th>
+                        <th class="py-4 px-6 font-medium text-right">Sales from Ads</th>
+                        <th class="py-4 px-6 font-medium text-right">Discount Given</th>
+                    </tr>
+                </thead>
+                <tbody class="font-body-md text-body-md text-on-surface">
+                    {% for row in table_data %}
+                    <tr class="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
+                        <td class="py-4 px-6">{{ row['Restaurant Name'] }}</td>
+                        <td class="py-4 px-6 text-on-surface-variant">{{ row['Report Period'] }}</td>
+                        <td class="py-4 px-6">{{ row['Location'] }}</td>
+                        <td class="py-4 px-6 font-label-sm text-outline">{{ row['Res ID'] }}</td>
+                        <td class="py-4 px-6">{{ row['Platform'] }}</td>
+                        <td class="py-4 px-6 text-right font-semibold">{{ "{:,}".format(row['Delivered orders']|int) }}</td>
+                        <td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['Sales']) }}</td>
+                        <td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['GMV']) }}</td>
+                        <td class="py-4 px-6 text-right text-primary-container">₹{{ "{:,.2f}".format(row['Sales from Ads']) }}</td>
+                        <td class="py-4 px-6 text-right text-error">₹{{ "{:,.2f}".format(row['Discount given']) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="10" class="py-8 text-center text-on-surface-variant">No operational data found for the selected filter.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<script>
+  // Dynamic Avatar Initials
+  document.addEventListener("DOMContentLoaded", function () {
+    const brandName = "{{ selected_brand }}".trim();
+    const avatarBadge = document.getElementById("avatar-initials");
+    if (avatarBadge && brandName) {
+      const words = brandName.split(/\s+/);
+      let initials = words.map(w => w[0]).join("").toUpperCase();
+      if (initials.length > 2) initials = initials.substring(0, 2);
+      avatarBadge.innerText = initials || "RP";
+    }
+  });
+
+  // Toggle custom dropdown visibility
+  function toggleCustomDropdown(menuId, event) {
+      event.stopPropagation();
+      document.querySelectorAll('.dropdown-menu-custom').forEach(menu => {
+          if (menu.id !== menuId) menu.classList.add('hidden');
+      });
+      const menu = document.getElementById(menuId);
+      menu.classList.toggle('hidden');
+      if (!menu.classList.contains('hidden')) {
+          const searchInput = menu.querySelector('input[type="text"]');
+          if (searchInput) searchInput.focus();
+      }
+  }
+
+  // Filter items in custom dropdowns
+  function filterCustomDropdown(inputId, listId) {
+      const filter = document.getElementById(inputId).value.toLowerCase();
+      const lis = document.getElementById(listId).getElementsByTagName('li');
+      for (let i = 1; i < lis.length; i++) {
+          let txtValue = lis[i].textContent || lis[i].innerText;
+          if (txtValue.toLowerCase().indexOf(filter) > -1) {
+              lis[i].style.display = "";
+          } else {
+              lis[i].style.display = "none";
+          }
+      }
+  }
+
+  // Submit custom dropdown choice
+  function submitCustomDropdown(inputId, selectedValue) {
+      const hiddenInput = document.getElementById(inputId);
+      hiddenInput.value = selectedValue;
+      if (inputId === 'brand-input') {
+          const outletInput = document.getElementById('outlet-input');
+          if (outletInput) outletInput.value = "";
+      }
+      document.getElementById('filter-form').submit();
+  }
+
+  // Close custom dropdowns on outside click
+  document.addEventListener('click', function(event) {
+      const brandContainer = document.getElementById('brand-dropdown-container');
+      const outletContainer = document.getElementById('outlet-dropdown-container');
+      const platformContainer = document.getElementById('platform-dropdown-container');
+      
+      if (brandContainer && !brandContainer.contains(event.target)) {
+          document.getElementById('brand-menu')?.classList.add('hidden');
+      }
+      if (outletContainer && !outletContainer.contains(event.target)) {
+          document.getElementById('outlet-menu')?.classList.add('hidden');
+      }
+      if (platformContainer && !platformContainer.contains(event.target)) {
+          document.getElementById('platform-menu')?.classList.add('hidden');
+      }
+  });
+</script>
+</body>
+</html>

@@ -24,9 +24,8 @@ const PLATFORM_COLORS = {
 const DEFAULT_COLOR = '#004ac6';
 
 // --- STRICT WEEKEND ARRAY GENERATOR ---
-// This guarantees Chart.js receives exact arrays before rendering,
-// bypassing any internal callback/mutation quirks.
-function getWeekendStyles(labels) {
+// Updated to take default colors and radius so it can be applied to any dataset line
+function getWeekendStyles(labels, defaultBg, defaultBorder, defaultRadius) {
     const bgColors = [];
     const borderColors = [];
     const radii = [];
@@ -66,12 +65,12 @@ function getWeekendStyles(labels) {
         if (isWeekend) {
             bgColors.push('#FF5722');      // Bright Orange Background
             borderColors.push('#FF5722');  // Bright Orange Border
-            radii.push(6.5);               // Emphasized large dot
-            borderWidths.push(2);
+            radii.push(defaultRadius);     // Match the default line dot size exactly
+            borderWidths.push(1.5);
         } else {
-            bgColors.push('#ffffff');      // Standard White Background
-            borderColors.push('#004ac6');  // Standard Blue Border
-            radii.push(3);                 // Standard dot
+            bgColors.push(defaultBg);      // Standard Background (White)
+            borderColors.push(defaultBorder); // Standard Line Color
+            radii.push(defaultRadius);     // Match the default line dot size exactly
             borderWidths.push(1.5);
         }
     });
@@ -280,8 +279,9 @@ function initCharts(data) {
 
     window.latestChartPayload = data;
 
-    // Build the styles perfectly mapped to the labels beforehand
-    const weekendStyles = getWeekendStyles(data.trend_labels);
+    // Build the styles perfectly mapped to the labels beforehand for BOTH lines
+    const currentStyles = getWeekendStyles(data.trend_labels, '#ffffff', '#004ac6', 3);
+    const prevStyles = getWeekendStyles(data.prev_trend_labels, '#ffffff', '#94a3b8', 2);
 
     trendChartInstance = new Chart(trendCtx, {
         type: 'line',
@@ -296,10 +296,10 @@ function initCharts(data) {
                     borderWidth: 2.5,
                     fill: true,
                     tension: 0.3,
-                    pointBackgroundColor: weekendStyles.bgColors,
-                    pointBorderColor: weekendStyles.borderColors,
-                    pointRadius: weekendStyles.radii,
-                    pointBorderWidth: weekendStyles.borderWidths,
+                    pointBackgroundColor: currentStyles.bgColors,
+                    pointBorderColor: currentStyles.borderColors,
+                    pointRadius: currentStyles.radii,
+                    pointBorderWidth: currentStyles.borderWidths,
                     pointHoverRadius: 9
                 },
                 {
@@ -310,9 +310,10 @@ function initCharts(data) {
                     borderWidth: 2,
                     fill: false,
                     tension: 0.3,
-                    pointRadius: 2,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#94a3b8'
+                    pointBackgroundColor: prevStyles.bgColors,
+                    pointBorderColor: prevStyles.borderColors,
+                    pointRadius: prevStyles.radii,
+                    pointBorderWidth: prevStyles.borderWidths
                 }
             ]
         },
@@ -450,15 +451,21 @@ function switchTrendMetric(metricType, btnEl) {
     const titleEl = document.getElementById('trend-chart-title');
     if (titleEl) titleEl.innerText = titleText;
 
-    const weekendStyles = getWeekendStyles(data.trend_labels);
+    const currentStyles = getWeekendStyles(data.trend_labels, '#ffffff', '#004ac6', 3);
+    const prevStyles = getWeekendStyles(data.prev_trend_labels, '#ffffff', '#94a3b8', 2);
 
     trendChartInstance.data.datasets[0].data = targetData;
-    trendChartInstance.data.datasets[0].pointBackgroundColor = weekendStyles.bgColors;
-    trendChartInstance.data.datasets[0].pointBorderColor = weekendStyles.borderColors;
-    trendChartInstance.data.datasets[0].pointRadius = weekendStyles.radii;
-    trendChartInstance.data.datasets[0].pointBorderWidth = weekendStyles.borderWidths;
+    trendChartInstance.data.datasets[0].pointBackgroundColor = currentStyles.bgColors;
+    trendChartInstance.data.datasets[0].pointBorderColor = currentStyles.borderColors;
+    trendChartInstance.data.datasets[0].pointRadius = currentStyles.radii;
+    trendChartInstance.data.datasets[0].pointBorderWidth = currentStyles.borderWidths;
     
     trendChartInstance.data.datasets[1].data = prevTargetData;
+    trendChartInstance.data.datasets[1].pointBackgroundColor = prevStyles.bgColors;
+    trendChartInstance.data.datasets[1].pointBorderColor = prevStyles.borderColors;
+    trendChartInstance.data.datasets[1].pointRadius = prevStyles.radii;
+    trendChartInstance.data.datasets[1].pointBorderWidth = prevStyles.borderWidths;
+    
     trendChartInstance.update();
 }
 
@@ -495,17 +502,23 @@ function updateCharts(data) {
     else if (currentMetric === 'ads') { targetTrendData = data.ads_trend; prevTargetTrendData = data.prev_ads_trend; }
     else if (currentMetric === 'discount') { targetTrendData = data.discount_trend; prevTargetTrendData = data.prev_discount_trend; }
 
-    const weekendStyles = getWeekendStyles(data.trend_labels);
+    const currentStyles = getWeekendStyles(data.trend_labels, '#ffffff', '#004ac6', 3);
+    const prevStyles = getWeekendStyles(data.prev_trend_labels, '#ffffff', '#94a3b8', 2);
 
     trendChartInstance.data.labels = data.trend_labels;
     
     trendChartInstance.data.datasets[0].data = targetTrendData;
-    trendChartInstance.data.datasets[0].pointBackgroundColor = weekendStyles.bgColors;
-    trendChartInstance.data.datasets[0].pointBorderColor = weekendStyles.borderColors;
-    trendChartInstance.data.datasets[0].pointRadius = weekendStyles.radii;
-    trendChartInstance.data.datasets[0].pointBorderWidth = weekendStyles.borderWidths;
+    trendChartInstance.data.datasets[0].pointBackgroundColor = currentStyles.bgColors;
+    trendChartInstance.data.datasets[0].pointBorderColor = currentStyles.borderColors;
+    trendChartInstance.data.datasets[0].pointRadius = currentStyles.radii;
+    trendChartInstance.data.datasets[0].pointBorderWidth = currentStyles.borderWidths;
     
     trendChartInstance.data.datasets[1].data = prevTargetTrendData;
+    trendChartInstance.data.datasets[1].pointBackgroundColor = prevStyles.bgColors;
+    trendChartInstance.data.datasets[1].pointBorderColor = prevStyles.borderColors;
+    trendChartInstance.data.datasets[1].pointRadius = prevStyles.radii;
+    trendChartInstance.data.datasets[1].pointBorderWidth = prevStyles.borderWidths;
+    
     trendChartInstance.update();
 }
 

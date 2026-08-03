@@ -23,42 +23,30 @@ const PLATFORM_COLORS = {
 };
 const DEFAULT_COLOR = '#004ac6';
 
-// --- BULLETPROOF WEEKEND HIGHLIGHT HELPER ---
-function getWeekendStyles(labels) {
-    const backgroundColors = [];
-    const borderColors = [];
-    const radii = [];
-
-    (labels || []).forEach(label => {
-        let dateObj = null;
-        if (label && typeof label === 'string' && label.includes('-')) {
-            const parts = label.split('-');
-            if (parts[0].length === 4) {
-                // YYYY-MM-DD
-                dateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-            } else if (parts[2].length === 4) {
-                // DD-MM-YYYY
-                dateObj = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
-            }
+// --- HELPER TO CHECK IF A LABEL IS SATURDAY OR SUNDAY ---
+function isWeekendLabel(label) {
+    if (!label) return false;
+    let dateObj = null;
+    
+    if (typeof label === 'string' && label.includes('-')) {
+        const parts = label.split('-');
+        if (parts[2] && parts[2].length === 4) {
+            // Format: DD-MM-YYYY
+            dateObj = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+        } else if (parts[0] && parts[0].length === 4) {
+            // Format: YYYY-MM-DD
+            dateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
         }
-        
-        if (!dateObj || isNaN(dateObj.getTime())) {
-            dateObj = new Date(label);
-        }
-
-        const day = dateObj.getDay(); // 0 = Sunday, 6 = Saturday
-        if (day === 0 || day === 6) {
-            backgroundColors.push('#FF5722'); // Bright Orange/Red for Saturday & Sunday
-            borderColors.push('#FF5722');
-            radii.push(6);                   // Larger dot radius
-        } else {
-            backgroundColors.push('#ffffff'); // Standard white dot
-            borderColors.push('#004ac6');     // Theme blue border
-            radii.push(3);                   // Regular dot radius
-        }
-    });
-
-    return { backgroundColors, borderColors, radii };
+    }
+    
+    if (!dateObj || isNaN(dateObj.getTime())) {
+        dateObj = new Date(label);
+    }
+    
+    if (isNaN(dateObj.getTime())) return false;
+    
+    const day = dateObj.getDay(); // 0 = Sunday, 6 = Saturday
+    return day === 0 || day === 6;
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -262,9 +250,6 @@ function initCharts(data) {
 
     window.latestChartPayload = data;
 
-    // Generate Weekend Highlight Styles
-    const weekendStyles = getWeekendStyles(data.trend_labels);
-
     trendChartInstance = new Chart(trendCtx, {
         type: 'line',
         data: {
@@ -278,10 +263,29 @@ function initCharts(data) {
                     borderWidth: 2.5,
                     fill: true,
                     tension: 0.3,
-                    pointRadius: weekendStyles.radii,
-                    pointBackgroundColor: weekendStyles.backgroundColors,
-                    pointBorderColor: weekendStyles.borderColors,
-                    pointHoverRadius: 8
+                    
+                    // DYNAMIC CALLBACKS FOR WEEKEND HIGHLIGHTING
+                    pointRadius: function(context) {
+                        const index = context.dataIndex;
+                        const label = context.chart.data.labels[index];
+                        return isWeekendLabel(label) ? 7 : 3;
+                    },
+                    pointBackgroundColor: function(context) {
+                        const index = context.dataIndex;
+                        const label = context.chart.data.labels[index];
+                        return isWeekendLabel(label) ? '#FF5722' : '#ffffff';
+                    },
+                    pointBorderColor: function(context) {
+                        const index = context.dataIndex;
+                        const label = context.chart.data.labels[index];
+                        return isWeekendLabel(label) ? '#FF5722' : '#004ac6';
+                    },
+                    pointBorderWidth: function(context) {
+                        const index = context.dataIndex;
+                        const label = context.chart.data.labels[index];
+                        return isWeekendLabel(label) ? 2 : 1.5;
+                    },
+                    pointHoverRadius: 9
                 },
                 {
                     label: 'Previous Period',
@@ -431,13 +435,7 @@ function switchTrendMetric(metricType, btnEl) {
     const titleEl = document.getElementById('trend-chart-title');
     if (titleEl) titleEl.innerText = titleText;
 
-    const weekendStyles = getWeekendStyles(data.trend_labels);
-
     trendChartInstance.data.datasets[0].data = targetData;
-    trendChartInstance.data.datasets[0].pointRadius = weekendStyles.radii;
-    trendChartInstance.data.datasets[0].pointBackgroundColor = weekendStyles.backgroundColors;
-    trendChartInstance.data.datasets[0].pointBorderColor = weekendStyles.borderColors;
-
     trendChartInstance.data.datasets[1].data = prevTargetData;
     trendChartInstance.update();
 }
@@ -475,14 +473,8 @@ function updateCharts(data) {
     else if (currentMetric === 'ads') { targetTrendData = data.ads_trend; prevTargetTrendData = data.prev_ads_trend; }
     else if (currentMetric === 'discount') { targetTrendData = data.discount_trend; prevTargetTrendData = data.prev_discount_trend; }
 
-    const weekendStyles = getWeekendStyles(data.trend_labels);
-
     trendChartInstance.data.labels = data.trend_labels;
     trendChartInstance.data.datasets[0].data = targetTrendData;
-    trendChartInstance.data.datasets[0].pointRadius = weekendStyles.radii;
-    trendChartInstance.data.datasets[0].pointBackgroundColor = weekendStyles.backgroundColors;
-    trendChartInstance.data.datasets[0].pointBorderColor = weekendStyles.borderColors;
-
     trendChartInstance.data.datasets[1].data = prevTargetTrendData;
     trendChartInstance.update();
 }

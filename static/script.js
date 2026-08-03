@@ -23,36 +23,38 @@ const PLATFORM_COLORS = {
 };
 const DEFAULT_COLOR = '#004ac6';
 
-// --- WEEKEND HIGHLIGHT STYLING HELPER ---
+// --- BULLETPROOF WEEKEND HIGHLIGHT HELPER ---
 function getWeekendStyles(labels) {
     const backgroundColors = [];
     const borderColors = [];
     const radii = [];
 
     (labels || []).forEach(label => {
-        let dateObj;
-        if (label && label.includes('-')) {
+        let dateObj = null;
+        if (label && typeof label === 'string' && label.includes('-')) {
             const parts = label.split('-');
             if (parts[0].length === 4) {
                 // YYYY-MM-DD
-                dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
-            } else {
+                dateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            } else if (parts[2].length === 4) {
                 // DD-MM-YYYY
-                dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                dateObj = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
             }
-        } else {
+        }
+        
+        if (!dateObj || isNaN(dateObj.getTime())) {
             dateObj = new Date(label);
         }
 
         const day = dateObj.getDay(); // 0 = Sunday, 6 = Saturday
         if (day === 0 || day === 6) {
-            backgroundColors.push('#FF5722'); // Accent Orange/Red for Saturday & Sunday
+            backgroundColors.push('#FF5722'); // Bright Orange/Red for Saturday & Sunday
             borderColors.push('#FF5722');
-            radii.push(6);                   // Larger dot for high visibility
+            radii.push(6);                   // Larger dot radius
         } else {
-            backgroundColors.push('#ffffff'); // Standard White center for weekdays
-            borderColors.push('#004ac6');     // Theme Blue border
-            radii.push(3);                   // Standard dot radius
+            backgroundColors.push('#ffffff'); // Standard white dot
+            borderColors.push('#004ac6');     // Theme blue border
+            radii.push(3);                   // Regular dot radius
         }
     });
 

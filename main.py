@@ -23,10 +23,10 @@ def load_data():
     try:
         df = pd.read_csv(SHEET_CSV_URL)
         
-        # 1. Clean all column headers to remove hidden trailing/leading spaces
+        # 1. Clean column headers
         df.columns = df.columns.str.strip()
         
-        # 2. Aggressively drop the exact helper column immediately
+        # 2. Drop helper column if present
         if "Unique Dropdown Key" in df.columns:
             df = df.drop(columns=["Unique Dropdown Key"])
             

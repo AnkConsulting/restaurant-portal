@@ -23,30 +23,69 @@ const PLATFORM_COLORS = {
 };
 const DEFAULT_COLOR = '#004ac6';
 
-// --- HELPER TO CHECK IF A LABEL IS SATURDAY OR SUNDAY ---
-function isWeekendLabel(label) {
-    if (!label) return false;
-    let dateObj = null;
+// --- FOOLPROOF WEEKEND HIGHLIGHT HELPER ---
+function applyWeekendStyles(chart) {
+    if (!chart || !chart.data || !chart.data.labels) return;
     
-    if (typeof label === 'string' && label.includes('-')) {
-        const parts = label.split('-');
-        if (parts[2] && parts[2].length === 4) {
-            // Format: DD-MM-YYYY
-            dateObj = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
-        } else if (parts[0] && parts[0].length === 4) {
-            // Format: YYYY-MM-DD
-            dateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    const labels = chart.data.labels;
+    const bgColors = [];
+    const borderColors = [];
+    const radii = [];
+    const borderWidths = [];
+
+    // Parse every date and build parallel arrays for the styles
+    labels.forEach(label => {
+        let isWeekend = false;
+        
+        if (label && typeof label === 'string' && label.includes('-')) {
+            const parts = label.split('-');
+            if (parts.length === 3) {
+                let d = 1, m = 0, y = 2000;
+                
+                // Handle DD-MM-YYYY
+                if (parts[2].length === 4) { 
+                    d = parseInt(parts[0], 10);
+                    m = parseInt(parts[1], 10) - 1;
+                    y = parseInt(parts[2], 10);
+                } 
+                // Handle YYYY-MM-DD
+                else if (parts[0].length === 4) { 
+                    y = parseInt(parts[0], 10);
+                    m = parseInt(parts[1], 10) - 1;
+                    d = parseInt(parts[2], 10);
+                }
+                
+                const dateObj = new Date(y, m, d);
+                if (!isNaN(dateObj.getTime())) {
+                    const day = dateObj.getDay(); // 0 is Sunday, 6 is Saturday
+                    if (day === 0 || day === 6) {
+                        isWeekend = true;
+                    }
+                }
+            }
         }
+
+        if (isWeekend) {
+            bgColors.push('#FF5722');      // Bright Orange Background
+            borderColors.push('#FF5722');  // Bright Orange Border
+            radii.push(6.5);               // Emphasized large dot
+            borderWidths.push(2);
+        } else {
+            bgColors.push('#ffffff');      // Standard White Background
+            borderColors.push('#004ac6');  // Standard Blue Border
+            radii.push(3);                 // Standard dot
+            borderWidths.push(1.5);
+        }
+    });
+
+    // Forcefully inject arrays into Current Period Dataset (dataset 0)
+    if (chart.data.datasets && chart.data.datasets[0]) {
+        chart.data.datasets[0].pointBackgroundColor = bgColors;
+        chart.data.datasets[0].pointBorderColor = borderColors;
+        chart.data.datasets[0].pointRadius = radii;
+        chart.data.datasets[0].pointBorderWidth = borderWidths;
+        chart.data.datasets[0].pointHoverRadius = 9;
     }
-    
-    if (!dateObj || isNaN(dateObj.getTime())) {
-        dateObj = new Date(label);
-    }
-    
-    if (isNaN(dateObj.getTime())) return false;
-    
-    const day = dateObj.getDay(); // 0 = Sunday, 6 = Saturday
-    return day === 0 || day === 6;
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -262,30 +301,8 @@ function initCharts(data) {
                     backgroundColor: gradient,
                     borderWidth: 2.5,
                     fill: true,
-                    tension: 0.3,
-                    
-                    // DYNAMIC CALLBACKS FOR WEEKEND HIGHLIGHTING
-                    pointRadius: function(context) {
-                        const index = context.dataIndex;
-                        const label = context.chart.data.labels[index];
-                        return isWeekendLabel(label) ? 7 : 3;
-                    },
-                    pointBackgroundColor: function(context) {
-                        const index = context.dataIndex;
-                        const label = context.chart.data.labels[index];
-                        return isWeekendLabel(label) ? '#FF5722' : '#ffffff';
-                    },
-                    pointBorderColor: function(context) {
-                        const index = context.dataIndex;
-                        const label = context.chart.data.labels[index];
-                        return isWeekendLabel(label) ? '#FF5722' : '#004ac6';
-                    },
-                    pointBorderWidth: function(context) {
-                        const index = context.dataIndex;
-                        const label = context.chart.data.labels[index];
-                        return isWeekendLabel(label) ? 2 : 1.5;
-                    },
-                    pointHoverRadius: 9
+                    tension: 0.3
+                    // We let applyWeekendStyles handle the point radius/colors
                 },
                 {
                     label: 'Previous Period',
@@ -351,6 +368,10 @@ function initCharts(data) {
             }
         }
     });
+    
+    // Process points and render 
+    applyWeekendStyles(trendChartInstance);
+    trendChartInstance.update();
 }
 
 function switchDonutMetric(metricType, btnEl) {
@@ -437,6 +458,8 @@ function switchTrendMetric(metricType, btnEl) {
 
     trendChartInstance.data.datasets[0].data = targetData;
     trendChartInstance.data.datasets[1].data = prevTargetData;
+    
+    applyWeekendStyles(trendChartInstance);
     trendChartInstance.update();
 }
 
@@ -476,6 +499,8 @@ function updateCharts(data) {
     trendChartInstance.data.labels = data.trend_labels;
     trendChartInstance.data.datasets[0].data = targetTrendData;
     trendChartInstance.data.datasets[1].data = prevTargetTrendData;
+    
+    applyWeekendStyles(trendChartInstance);
     trendChartInstance.update();
 }
 

@@ -144,7 +144,7 @@
                         <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
                         <span class="font-title-small">Logout</span>
                     </a>
-                </div>    
+                </div>  
             </div>
         </div>
         
@@ -358,8 +358,17 @@
             </div>
         </div>
         <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
-            <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
-                <h3 id="trend-chart-title" class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
+            <div class="flex flex-wrap justify-between items-start mb-4 gap-2">
+                
+                <!-- UPDATED WRAPPER WITH WEEKEND LEGEND -->
+                <div class="flex flex-col gap-1">
+                    <h3 id="trend-chart-title" class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#FF5722] shadow-sm"></span>
+                        <span class="text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">Saturday & Sunday</span>
+                    </div>
+                </div>
+
                 <div class="flex bg-surface-container-high p-1 rounded-lg text-xs font-semibold gap-1">
                     <button type="button" onclick="switchTrendMetric('sales', this)" class="trend-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all">Sales</button>
                     <button type="button" onclick="switchTrendMetric('gmv', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">GMV</button>

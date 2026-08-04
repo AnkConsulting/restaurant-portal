@@ -12,7 +12,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const dailyData = {};
     const locationData = {};
+    
+    // Volume Totals
     let totalImpressions = 0, totalMenuOpens = 0, totalOrders = 0;
+    
+    // Percentage Aggregators
+    let sumI2M = 0, countI2M = 0;
+    let sumM2C = 0, countM2C = 0;
+    let sumC2O = 0, countC2O = 0;
 
     rawData.forEach(row => {
         const date = row['Report Date'] || 'Unknown';
@@ -36,35 +43,82 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!locationData[loc]) locationData[loc] = 0;
         locationData[loc] += Number(row['GMV'] || 0);
 
+        // Absolute Volume additions
         totalImpressions += Number(row['Impressions'] || 0);
         totalMenuOpens += Number(row['Menu Opens'] || 0);
         totalOrders += Number(row['Orders'] || 0);
+
+        // Conversion Percentage additions
+        if (row['Impressions to Menu'] !== undefined) {
+            sumI2M += Number(row['Impressions to Menu'] || 0);
+            countI2M++;
+        }
+        if (row['M2C'] !== undefined) {
+            sumM2C += Number(row['M2C'] || 0);
+            countM2C++;
+        }
+        if (row['C2O'] !== undefined) {
+            sumC2O += Number(row['C2O'] || 0);
+            countC2O++;
+        }
     });
+
+    // Calculate integer averages for the conversion percentages
+    const avgI2M = countI2M ? Math.round(sumI2M / countI2M) : 0;
+    const avgM2C = countM2C ? Math.round(sumM2C / countM2C) : 0;
+    const avgC2O = countC2O ? Math.round(sumC2O / countC2O) : 0;
 
     const aggregatedList = Object.values(dailyData).sort((a, b) => a.timestamp - b.timestamp);
     const dateLabels = aggregatedList.map(item => item.date.substring(0, 5));
     
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- CHART 1: Customer Conversion Funnel ---
+    // --- CHART 1: Customer Conversion Funnel (Dual Axis) ---
     const ctxFunnel = document.getElementById('funnelChart');
     if (ctxFunnel) {
         new Chart(ctxFunnel, {
             type: 'bar',
             data: {
-                labels: ['Impressions', 'Menu Opens', 'Orders'],
-                datasets: [{
-                    data: [totalImpressions, totalMenuOpens, totalOrders],
-                    backgroundColor: ['#94a3b8', '#3b82f6', '#FC8019'],
-                    borderRadius: 4,
-                    barPercentage: 0.6
-                }]
+                labels: ['Impressions', 'I2M (%)', 'Menu Opens', 'M2C (%)', 'C2O (%)', 'Orders'],
+                datasets: [
+                    {
+                        label: 'Volume Count',
+                        data: [totalImpressions, null, totalMenuOpens, null, null, totalOrders],
+                        backgroundColor: '#94a3b8',
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        xAxisID: 'x' // Maps to the bottom axis
+                    },
+                    {
+                        label: 'Conversion Rate (%)',
+                        data: [null, avgI2M, null, avgM2C, avgC2O, null],
+                        backgroundColor: '#FC8019',
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        xAxisID: 'x1' // Maps to the top axis (0 to 100)
+                    }
+                ]
             },
             options: {
-                indexAxis: 'y',
+                indexAxis: 'y', // Makes it horizontal
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { x: { grid: { display: false } } }
+                plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, usePointStyle: true } } },
+                scales: {
+                    y: { 
+                        stacked: true, // Forces alternating datasets to align on the same vertical axis lines
+                        grid: { display: false } 
+                    },
+                    x: { 
+                        type: 'linear', position: 'bottom', 
+                        title: { display: true, text: 'Volume Count', font: { size: 11 } },
+                        ticks: { callback: v => v >= 1000 ? (v/1000) + 'k' : v }
+                    },
+                    x1: { 
+                        type: 'linear', position: 'top', max: 100,
+                        title: { display: true, text: 'Conversion Rate (%)', font: { size: 11 } },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
             }
         });
     }

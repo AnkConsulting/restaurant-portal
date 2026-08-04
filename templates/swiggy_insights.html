@@ -1,220 +1,318 @@
-from typing import Optional
-from fastapi import APIRouter, Request, Query
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
-from fastapi.templating import Jinja2Templates
-import pandas as pd
-import os
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=1280" name="viewport"/>
+    <title>Swiggy Insights - RDA Portal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
 
-router = APIRouter()
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
-
-SWIGGY_INSIGHTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2AAwYZA0r8Y59L5KAOZ0yszHcNjyVKynuPfqcTKBh6VSPsmSqg5pmCizX5qDEEno26-okgxtRvZN5/pub?gid=1328235442&single=true&output=csv"
-
-def format_indian_currency(val):
-    try:
-        val = float(val)
-    except (TypeError, ValueError):
-        val = 0.0
-    parts = f"{val:.2f}".split(".")
-    integer_part = parts[0]
-    decimal_part = parts[1]
-    last_three = integer_part[-3:]
-    other_digits = integer_part[:-3]
-    if other_digits:
-        other_digits = ",".join([other_digits[max(0, i-2):i] for i in range(len(other_digits), 0, -2)][::-1])
-        res = other_digits + "," + last_three
-    else:
-        res = last_three
-    return f"₹{res}.{decimal_part}"
-
-def format_indian_integer(val):
-    try:
-        val = int(float(val))
-    except (TypeError, ValueError):
-        val = 0
-    integer_part = str(val)
-    last_three = integer_part[-3:]
-    other_digits = integer_part[:-3]
-    if other_digits:
-        other_digits = ",".join([other_digits[max(0, i-2):i] for i in range(len(other_digits), 0, -2)][::-1])
-        res = other_digits + "," + last_three
-    else:
-        res = last_three
-    return res
-
-def load_swiggy_insights_data():
-    try:
-        df = pd.read_csv(SWIGGY_INSIGHTS_CSV_URL)
-        df.columns = df.columns.str.strip()
-        
-        if "Res ID" in df.columns:
-            df["Res ID"] = df["Res ID"].dropna().astype(str).str.split('.').str[0].str.strip()
-            
-        numeric_cols = [
-            "Orders", "GMV", "Pre discounted AOV", "Online %", "Kitchen Prep Time",
-            "Impressions", "Impressions to Menu", "Menu Opens", "M2C", "C2O",
-            "New Customer Order %", "Repeat Customer Order %", "Total Complaints",
-            "Average Rating", "Ad Sales", "Ad Spend", "Ads ROI", "Discount Given"
-        ]
-        for col in numeric_cols:
-            if col in df.columns:
-                cleaned_series = df[col].astype(str).str.replace(r'[₹, %]', '', regex=True)
-                df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
-
-        return df
-    except Exception as e:
-        print(f"Could not load Swiggy Insights master sheet: {e}")
-        return pd.DataFrame()
-
-@router.get("/swiggy-insights", response_class=HTMLResponse)
-async def swiggy_insights(
-    request: Request,
-    brand: Optional[str] = Query(None),
-    outlet: Optional[str] = Query(None),
-    start_date: Optional[str] = Query(None),
-    end_date: Optional[str] = Query(None)
-):
-    if not request.session.get("logged_in"):
-        return RedirectResponse(url="/login", status_code=303)
-
-    is_admin = request.session.get("is_admin", False)
-    authorized_res_ids = request.session.get("authorized_res_ids", [])
-
-    df = load_swiggy_insights_data()
-    
-    if "Report Date" in df.columns:
-        df["_temp_date"] = pd.to_datetime(df["Report Date"], dayfirst=True, format="mixed", errors="coerce")
-
-    if not is_admin and "Res ID" in df.columns:
-        df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
-
-    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist()) if "Restaurant Name" in df.columns else []
-    selected_brand = brand if brand in all_brands else ""
-    
-    context_df = df[df["Restaurant Name"] == selected_brand] if selected_brand and "Restaurant Name" in df.columns else df
-
-    outlets = sorted(context_df["Location"].dropna().unique().tolist()) if "Location" in context_df.columns else []
-    selected_outlet = outlet if outlet in outlets else ""
-    if selected_outlet and "Location" in context_df.columns:
-        context_df = context_df[context_df["Location"] == selected_outlet]
-
-    max_available_date = ""
-    if "_temp_date" in context_df.columns and not context_df["_temp_date"].dropna().empty:
-        max_date_obj = context_df["_temp_date"].max()
-        if pd.notnull(max_date_obj):
-            max_available_date = max_date_obj.strftime("%Y-%m-%d")
-
-    if not start_date or not end_date:
-        if max_available_date:
-            start_date = max_available_date
-            end_date = max_available_date
-
-    filtered_df = context_df.copy()
-    start_dt = pd.to_datetime(start_date, errors="coerce")
-    end_dt = pd.to_datetime(end_date, errors="coerce")
-
-    if pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in filtered_df.columns:
-        if end_date > max_available_date:
-            end_date = max_available_date
-            end_dt = pd.to_datetime(end_date, errors="coerce")
-        filtered_df = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
-
-    total_gmv = float(filtered_df["GMV"].sum()) if "GMV" in filtered_df.columns else 0.0
-    total_orders = int(filtered_df["Orders"].sum()) if "Orders" in filtered_df.columns else 0
-    avg_aov = float(filtered_df["Pre discounted AOV"].mean()) if "Pre discounted AOV" in filtered_df.columns and not filtered_df["Pre discounted AOV"].empty else 0.0
-    sales_ads = float(filtered_df["Ad Sales"].sum()) if "Ad Sales" in filtered_df.columns else 0.0
-    discount_given = float(filtered_df["Discount Given"].sum()) if "Discount Given" in filtered_df.columns else 0.0
-
-    if "_temp_date" in filtered_df.columns:
-        filtered_df = filtered_df.drop(columns=["_temp_date"])
-        
-    table_records = filtered_df.to_dict(orient="records")
-
-    return templates.TemplateResponse(
-        request=request,
-        name="swiggy_insights.html",
-        context={
-            "request": request,
-            "is_admin": is_admin,
-            "all_brands": all_brands,
-            "selected_brand": selected_brand,
-            "outlets": outlets,
-            "selected_outlet": selected_outlet,
-            "start_date": start_date or "",
-            "end_date": end_date or "",
-            "max_available_date": max_available_date,
-            "total_gmv": format_indian_currency(total_gmv),
-            "total_orders": format_indian_integer(total_orders),
-            "avg_aov": f"₹{format_indian_integer(round(avg_aov))}",
-            "sales_ads": format_indian_currency(sales_ads),
-            "discount_given": format_indian_currency(discount_given),
-            "table_data": table_records
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline-variant": "#c3c6d7",
+                        "surface-container-high": "#e6e8ea",
+                        "on-surface": "#191c1e",
+                        "surface-bright": "#f7f9fb",
+                        "error": "#ba1a1a",
+                        "primary": "#004ac6",
+                        "primary-container": "#2563eb",
+                        "background": "#f7f9fb"
+                    },
+                    fontFamily: {
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-sm": ["JetBrains Mono"],
+                        "title-md": ["Hanken Grotesk"]
+                    }
+                }
+            }
         }
-    )
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .elevation-1 { @apply bg-white border border-surface-container-high shadow-[0_4px_12px_rgba(0,0,0,0.02)]; }
+            .elevation-2 { @apply bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]; }
+            .card-radius { @apply rounded-[16px]; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen">
 
-@router.get("/swiggy-insights/export")
-def export_swiggy_insights_csv(
-    request: Request,
-    brand: Optional[str] = Query(None),
-    outlet: Optional[str] = Query(None),
-    start_date: Optional[str] = Query(None),
-    end_date: Optional[str] = Query(None)
-):
-    if not request.session.get("logged_in"):
-        return RedirectResponse(url="/login", status_code=303)
+<!-- HEADER -->
+<header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-8 py-4 mx-auto border-b border-surface-container-high">
+    <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3">
+            <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
+            <h1 class="font-headline-lg text-[22px] font-bold text-gray-800 tracking-tight hidden md:block border-r border-gray-300 pr-6">RDA Portal</h1>
+        </div>
+        
+        <!-- MODULE SWITCHER -->
+        <div class="relative font-['Hanken_Grotesk'] z-[110]" id="module-switcher-container">
+          <button onclick="toggleCustomDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
+              <span class="font-bold text-[#FC8019] text-sm">Swiggy Insights</span>
+            </div>
+            <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors text-[20px]">expand_more</span>
+          </button>
 
-    is_admin = request.session.get("is_admin", False)
-    authorized_res_ids = request.session.get("authorized_res_ids", [])
+          <div id="module-menu" class="hidden absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50" onclick="event.stopPropagation()">
+            <div class="p-4">
+              <div class="mb-4">
+                <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Core Analytics</h4>
+                <div class="space-y-1">
+                  <a href="/" class="flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-md transition-colors group no-underline">
+                    <span class="material-symbols-outlined text-[#004ac6] text-[20px]">analytics</span>
+                    <span class="text-sm font-medium">Sales & Operations</span>
+                  </a>
+                  <a href="/swiggy-insights" class="flex items-center gap-3 px-3 py-2.5 bg-orange-50 border-l-4 border-[#FC8019] rounded-r-md group no-underline">
+                    <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
+                    <span class="text-sm font-bold text-[#FC8019]">Swiggy Insights</span>
+                  </a>
+                  <a href="/zomato-insights" class="flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-md transition-colors group no-underline">
+                    <span class="material-symbols-outlined text-[#E23744] text-[20px]">storefront</span>
+                    <span class="text-sm font-medium">Zomato Insights</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
 
-    df = load_swiggy_insights_data()
-    if "Report Date" in df.columns:
-        df["_temp_date"] = pd.to_datetime(df["Report Date"], dayfirst=True, format="mixed", errors="coerce")
+    <!-- Right Side Settings & User Profile -->
+    <div class="flex items-center gap-4">
+        <div class="relative group">
+            <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-gray-500">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
+            <div class="absolute right-0 mt-2 w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
+                <h4 class="font-title-md text-[18px] font-semibold text-on-surface mb-4">Theme Settings</h4>
+                <div class="mt-4 pt-4 border-t border-outline-variant">
+                    <a href="/logout" class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-red-50 rounded-lg transition-colors duration-200 group no-underline">
+                        <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
+                        <span class="font-semibold text-sm">Logout</span>
+                    </a>
+                </div>  
+            </div>
+        </div>
+        
+        <div class="md:flex flex-col items-end">
+            <span class="font-label-sm text-[12px] tracking-wider text-gray-500 uppercase">Welcome,</span>
+            <span id="user-display-name" class="font-title-md text-[16px] font-semibold text-on-surface">
+                {% if is_admin %}
+                    ANK Consulting Admin
+                {% else %}
+                    {% if selected_brand %}
+                        {{ selected_brand }}
+                    {% elif all_brands %}
+                        {{ all_brands[0] }}
+                    {% else %}
+                        Partner
+                    {% endif %}
+                {% endif %}
+            </span>
+        </div>
+        
+        {% if is_admin %}
+            <img alt="User Logo" class="w-10 h-10 object-contain rounded-full border border-surface-container-high bg-white p-0.5" src="/static/ank-logo.png"/>
+        {% else %}
+            <div id="avatar-initials" class="w-10 h-10 rounded-full bg-[#FC8019] text-white flex items-center justify-center font-bold shadow-sm"></div>
+        {% endif %}
+    </div>
+</header>
 
-    if not is_admin and "Res ID" in df.columns:
-        df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
+<main class="pt-[88px] pb-12 px-8 max-w-[1440px] mx-auto">
+    
+    <!-- FILTER CONTROL BAR -->
+    <section class="elevation-1 card-radius p-4 mb-8 bg-white flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-4">
+            <!-- Date Filter -->
+            <div class="flex items-center gap-2 bg-surface-bright px-4 py-2.5 rounded-xl border border-surface-container-high">
+                <span class="material-symbols-outlined text-gray-500 text-[20px]">calendar_today</span>
+                <input type="date" id="report-date-picker" value="{{ start_date }}" max="{{ max_available_date }}" 
+                       class="bg-transparent border-none text-sm font-semibold text-on-surface focus:ring-0 cursor-pointer"
+                       onchange="applyFilters()">
+            </div>
 
-    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist()) if "Restaurant Name" in df.columns else []
-    selected_brand = brand if brand in all_brands else ""
-    if selected_brand and "Restaurant Name" in df.columns:
-        context_df = df[df["Restaurant Name"] == selected_brand]
-    else:
-        context_df = df
+            <!-- Brand Filter -->
+            <div class="relative">
+                <select id="brand-select" onchange="applyFilters()" class="bg-surface-bright border border-surface-container-high text-sm font-semibold text-on-surface rounded-xl px-4 py-2.5 pr-10 focus:ring-2 focus:ring-primary appearance-none cursor-pointer">
+                    <option value="">All Brands</option>
+                    {% for brand in all_brands %}
+                        <option value="{{ brand }}" {% if selected_brand == brand %}selected{% endif %}>{{ brand }}</option>
+                    {% endfor %}
+                </select>
+                <span class="material-symbols-outlined absolute right-3 top-3 text-gray-400 pointer-events-none">expand_more</span>
+            </div>
 
-    if outlet and "Location" in context_df.columns:
-        context_df = context_df[context_df["Location"] == outlet]
+            <!-- Outlet Filter -->
+            <div class="relative">
+                <select id="outlet-select" onchange="applyFilters()" class="bg-surface-bright border border-surface-container-high text-sm font-semibold text-on-surface rounded-xl px-4 py-2.5 pr-10 focus:ring-2 focus:ring-primary appearance-none cursor-pointer">
+                    <option value="">All Outlets</option>
+                    {% for outlet in outlets %}
+                        <option value="{{ outlet }}" {% if selected_outlet == outlet %}selected{% endif %}>{{ outlet }}</option>
+                    {% endfor %}
+                </select>
+                <span class="material-symbols-outlined absolute right-3 top-3 text-gray-400 pointer-events-none">expand_more</span>
+            </div>
+        </div>
 
-    max_available_date = ""
-    if "_temp_date" in context_df.columns and not context_df["_temp_date"].dropna().empty:
-        max_date_obj = context_df["_temp_date"].max()
-        if pd.notnull(max_date_obj):
-            max_available_date = max_date_obj.strftime("%Y-%m-%d")
+        <!-- Export CSV Button -->
+        <div>
+            <a id="export-btn" href="#" onclick="triggerExport(event)" class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:bg-blue-700 transition-colors no-underline">
+                <span class="material-symbols-outlined text-[18px]">download</span>
+                <span>Export CSV</span>
+            </a>
+        </div>
+    </section>
 
-    if not start_date or not end_date:
-        if max_available_date:
-            start_date = max_available_date
-            end_date = max_available_date
+    <!-- SWIGGY KPI CARDS -->
+    <section class="grid grid-cols-5 gap-6 mb-8">
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Swiggy GMV</span>
+            <div class="text-[26px] font-bold text-on-surface mt-2">{{ total_gmv }}</div>
+        </div>
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Orders</span>
+            <div class="text-[26px] font-bold text-[#FC8019] mt-2">{{ total_orders }}</div>
+        </div>
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Pre-Disc AOV</span>
+            <div class="text-[26px] font-bold text-on-surface mt-2">{{ avg_aov }}</div>
+        </div>
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Ad Sales</span>
+            <div class="text-[26px] font-bold text-blue-600 mt-2">{{ sales_ads }}</div>
+        </div>
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Discounts</span>
+            <div class="text-[26px] font-bold text-error mt-2">{{ discount_given }}</div>
+        </div>
+    </section>
 
-    filtered_df = context_df.copy()
-    start_dt = pd.to_datetime(start_date, errors="coerce")
-    end_dt = pd.to_datetime(end_date, errors="coerce")
+    <!-- DATA TABLE -->
+    <section class="elevation-1 card-radius overflow-hidden">
+        <div class="px-6 py-4 border-b border-surface-container-high bg-white flex justify-between items-center">
+            <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase">Swiggy Insights Performance Records</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse whitespace-nowrap">
+                <thead>
+                    <tr class="bg-[#F1F5F9] font-label-sm text-[12px] text-gray-600 uppercase tracking-widest border-b border-surface-container-high">
+                        <th class="py-4 px-4 font-semibold">Restaurant Name</th>
+                        <th class="py-4 px-4 font-semibold">Report Date</th>
+                        <th class="py-4 px-4 font-semibold">Location</th>
+                        <th class="py-4 px-4 font-semibold">Res ID</th>
+                        <th class="py-4 px-4 font-semibold">City</th>
+                        <th class="py-4 px-4 font-semibold text-right">Orders</th>
+                        <th class="py-4 px-4 font-semibold text-right">GMV</th>
+                        <th class="py-4 px-4 font-semibold text-right">Pre Disc AOV</th>
+                        <th class="py-4 px-4 font-semibold text-right">Online %</th>
+                        <th class="py-4 px-4 font-semibold text-right">Prep Time</th>
+                        <th class="py-4 px-4 font-semibold text-right">Impressions</th>
+                        <th class="py-4 px-4 font-semibold text-right">Menu Opens</th>
+                        <th class="py-4 px-4 font-semibold text-right">Ad Sales</th>
+                        <th class="py-4 px-4 font-semibold text-right">Ad Spend</th>
+                        <th class="py-4 px-4 font-semibold text-right">Ads ROI</th>
+                        <th class="py-4 px-4 font-semibold text-right">Discount Given</th>
+                    </tr>
+                </thead>
+                <tbody class="font-body-md text-sm text-on-surface">
+                    {% for row in table_data %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td class="py-4 px-4 font-medium">{{ row.get('Restaurant Name', '') }}</td>
+                        <td class="py-4 px-4 text-gray-500">{{ row.get('Report Date', '') }}</td>
+                        <td class="py-4 px-4">{{ row.get('Location', '') }}</td>
+                        <td class="py-4 px-4 font-mono text-xs text-gray-400">{{ row.get('Res ID', '') }}</td>
+                        <td class="py-4 px-4">{{ row.get('City', '') }}</td>
+                        <td class="py-4 px-4 text-right font-bold">{{ row.get('Orders', 0) }}</td>
+                        <td class="py-4 px-4 text-right">₹{{ row.get('GMV', 0) }}</td>
+                        <td class="py-4 px-4 text-right">₹{{ row.get('Pre discounted AOV', 0) }}</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Online %', 0) }}%</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Kitchen Prep Time', 0) }}m</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Impressions', 0) }}</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Menu Opens', 0) }}</td>
+                        <td class="py-4 px-4 text-right text-blue-600 font-medium">₹{{ row.get('Ad Sales', 0) }}</td>
+                        <td class="py-4 px-4 text-right">₹{{ row.get('Ad Spend', 0) }}</td>
+                        <td class="py-4 px-4 text-right font-bold">{{ row.get('Ads ROI', 0) }}</td>
+                        <td class="py-4 px-4 text-right text-error font-medium">₹{{ row.get('Discount Given', 0) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="16" class="py-8 text-center text-gray-500 italic">No Swiggy Insights operational data found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
 
-    if pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in filtered_df.columns:
-        if end_date > max_available_date:
-            end_date = max_available_date
-            end_dt = pd.to_datetime(end_date, errors="coerce")
-        filtered_df = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const displayNameEl = document.getElementById("user-display-name");
+        const displayName = displayNameEl ? displayNameEl.innerText.trim() : "";
+        const avatarBadge = document.getElementById("avatar-initials");
+        
+        if (avatarBadge && displayName) {
+          const words = displayName.split(/\s+/);
+          let initials = words.map(w => w[0]).join("").toUpperCase();
+          if (initials.length > 2) initials = initials.substring(0, 2);
+          avatarBadge.innerText = initials || "RP";
+        }
+    });
 
-    if "_temp_date" in filtered_df.columns:
-        filtered_df = filtered_df.drop(columns=["_temp_date"])
+    function toggleCustomDropdown(menuId, event) {
+        event.stopPropagation();
+        const menu = document.getElementById(menuId);
+        menu.classList.toggle('hidden');
+    }
 
-    csv_data = filtered_df.to_csv(index=False)
-    file_prefix = selected_brand.replace(" ", "_") if selected_brand else "All_Brands"
-    filename = f"Swiggy_Insights_Export_{file_prefix}_{start_date}_to_{end_date}.csv"
+    document.addEventListener('click', function(event) {
+        const moduleContainer = document.getElementById('module-switcher-container');
+        if (moduleContainer && !moduleContainer.contains(event.target)) {
+            document.getElementById('module-menu')?.classList.add('hidden');
+        }
+    });
 
-    return Response(
-        content=csv_data,
-        media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
-    )
+    function applyFilters() {
+        const brand = document.getElementById('brand-select').value;
+        const outlet = document.getElementById('outlet-select').value;
+        const startDate = document.getElementById('report-date-picker').value;
+
+        const params = new URLSearchParams();
+        if (brand) params.set('brand', brand);
+        if (outlet) params.set('outlet', outlet);
+        if (startDate) {
+            params.set('start_date', startDate);
+            params.set('end_date', startDate);
+        }
+
+        window.location.href = `/swiggy-insights?${params.toString()}`;
+    }
+
+    function triggerExport(event) {
+        event.preventDefault();
+        const brand = document.getElementById('brand-select').value;
+        const outlet = document.getElementById('outlet-select').value;
+        const startDate = document.getElementById('report-date-picker').value;
+
+        const params = new URLSearchParams();
+        if (brand) params.set('brand', brand);
+        if (outlet) params.set('outlet', outlet);
+        if (startDate) {
+            params.set('start_date', startDate);
+            params.set('end_date', startDate);
+        }
+
+        window.location.href = `/swiggy-insights/export?${params.toString()}`;
+    }
+</script>
+</body>
+</html>

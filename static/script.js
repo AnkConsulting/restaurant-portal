@@ -24,7 +24,6 @@ const PLATFORM_COLORS = {
 const DEFAULT_COLOR = '#004ac6';
 
 // --- STRICT WEEKEND ARRAY GENERATOR ---
-// Updated to take default colors and radius so it can be applied to any dataset line
 function getWeekendStyles(labels, defaultBg, defaultBorder, defaultRadius) {
     const bgColors = [];
     const borderColors = [];
@@ -39,13 +38,11 @@ function getWeekendStyles(labels, defaultBg, defaultBorder, defaultRadius) {
             if (parts.length === 3) {
                 let d = 1, m = 0, y = 2000;
                 
-                // Handle DD-MM-YYYY
                 if (parts[2].length === 4) { 
                     d = parseInt(parts[0], 10);
                     m = parseInt(parts[1], 10) - 1;
                     y = parseInt(parts[2], 10);
                 } 
-                // Handle YYYY-MM-DD
                 else if (parts[0].length === 4) { 
                     y = parseInt(parts[0], 10);
                     m = parseInt(parts[1], 10) - 1;
@@ -54,28 +51,58 @@ function getWeekendStyles(labels, defaultBg, defaultBorder, defaultRadius) {
                 
                 const dateObj = new Date(y, m, d);
                 if (!isNaN(dateObj.getTime())) {
-                    const day = dateObj.getDay(); // 0 is Sunday, 6 is Saturday
-                    if (day === 0 || day === 6) {
-                        isWeekend = true;
-                    }
+                    const day = dateObj.getDay();
+                    if (day === 0 || day === 6) isWeekend = true;
                 }
             }
         }
 
         if (isWeekend) {
-            bgColors.push('#FF5722');      // Bright Orange Background
-            borderColors.push('#FF5722');  // Bright Orange Border
-            radii.push(defaultRadius);     // Match the default line dot size exactly
+            bgColors.push('#FF5722');     
+            borderColors.push('#FF5722');  
+            radii.push(defaultRadius);    
             borderWidths.push(1.5);
         } else {
-            bgColors.push(defaultBg);      // Standard Background (White)
-            borderColors.push(defaultBorder); // Standard Line Color
-            radii.push(defaultRadius);     // Match the default line dot size exactly
+            bgColors.push(defaultBg);      
+            borderColors.push(defaultBorder); 
+            radii.push(defaultRadius);     
             borderWidths.push(1.5);
         }
     });
 
     return { bgColors, borderColors, radii, borderWidths };
+}
+
+// --- KPI CHANGE INDICATOR ENGINE ---
+function initChangeIndicators() {
+    document.querySelectorAll('.kpi-change-indicator').forEach(el => {
+        const current = parseFloat(el.getAttribute('data-current'));
+        const prev = parseFloat(el.getAttribute('data-prev'));
+        const isInverse = el.getAttribute('data-inverse') === 'true';
+        updateChangeIndicatorElement(el, current, prev, isInverse);
+    });
+}
+
+function updateChangeIndicatorElement(el, current, prev, isInverse) {
+    if (!el) return;
+    if (isNaN(prev) || isNaN(current) || (prev === 0 && current === 0)) {
+        el.innerHTML = `<span class="text-gray-400 font-medium">No change</span>`;
+        return;
+    }
+    if (prev === 0) {
+        el.innerHTML = `<span class="text-[#006a61] font-bold">100%+ (New)</span>`;
+        return;
+    }
+    
+    const pct = ((current - prev) / prev) * 100;
+    const formattedPct = Math.abs(pct).toFixed(1) + '%';
+    
+    let isPositive = pct >= 0;
+    let colorClass = isPositive ? (isInverse ? 'text-error' : 'text-[#006a61]') : (isInverse ? 'text-[#006a61]' : 'text-error');
+    let icon = isPositive ? 'arrow_upward' : 'arrow_downward';
+    
+    el.innerHTML = `<span class="material-symbols-outlined text-[14px] ${colorClass} font-bold mr-0.5">${icon}</span>
+                    <span class="${colorClass} font-bold text-[12px]">${formattedPct} vs prev</span>`;
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -115,12 +142,12 @@ document.addEventListener("DOMContentLoaded", function () {
     
     renderMonthYearDropdowns();
     renderCalendar();
+    initChangeIndicators();
 
     if (window.INITIAL_CHART_DATA) {
         initCharts(window.INITIAL_CHART_DATA);
     }
 
-    // Initialize Table Pagination
     const initialRows = document.querySelectorAll('#data-table-body tr');
     if (initialRows.length === 1 && initialRows[0].innerText.includes("No operational data found")) {
         allTableRows = [];
@@ -164,7 +191,7 @@ function applyTablePagination() {
     const totalRows = allTableRows.length;
     
     if (totalRows === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="py-8 text-center text-on-surface-variant">No operational data found for the selected filter.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="py-8 text-center text-gray-500 italic">No operational data found for the selected filter.</td></tr>`;
         document.getElementById('pagination-info').innerText = "Showing 0 entries";
         document.getElementById('pagination-controls').style.display = 'none';
         return;
@@ -206,13 +233,13 @@ function applyTablePagination() {
                 if (lastRendered && i - lastRendered > 1) {
                     const span = document.createElement('span');
                     span.innerText = '...';
-                    span.className = 'px-2 py-1 text-on-surface-variant font-medium';
+                    span.className = 'px-2 py-1 text-gray-500 font-medium';
                     pageNumbersContainer.appendChild(span);
                 }
                 const btn = document.createElement('button');
                 btn.innerText = i;
                 btn.onclick = () => goToPage(i);
-                btn.className = `px-3 py-1 border rounded-md text-sm transition-colors font-medium ${i === currentPage ? 'bg-primary text-white border-primary shadow-sm' : 'border-outline-variant hover:bg-surface-container-high text-on-surface bg-white'}`;
+                btn.className = `px-3 py-1 border rounded-md text-sm transition-colors font-medium ${i === currentPage ? 'bg-primary text-white border-primary shadow-sm' : 'border-outline-variant hover:bg-gray-50 text-on-surface bg-white'}`;
                 pageNumbersContainer.appendChild(btn);
                 lastRendered = i;
             }
@@ -220,7 +247,7 @@ function applyTablePagination() {
     }
 }
 
-// --- CHART.JS VISUALIZATION LOGIC ---
+// --- CHART.JS VISUALIZATION LOGIC (WITH PREVIOUS PERIOD) ---
 function initCharts(data) {
     const donutCtx = document.getElementById('platformDonutChart').getContext('2d');
     
@@ -279,8 +306,10 @@ function initCharts(data) {
 
     window.latestChartPayload = data;
 
-    // Build the styles perfectly mapped to the labels beforehand for BOTH lines
     const currentStyles = getWeekendStyles(data.trend_labels, '#ffffff', '#004ac6', 3);
+    
+    // Create the previous period trend labels to match the length of current
+    // If not provided, it just plots sequentially
     const prevStyles = getWeekendStyles(data.prev_trend_labels, '#ffffff', '#94a3b8', 2);
 
     trendChartInstance = new Chart(trendCtx, {
@@ -329,14 +358,6 @@ function initCharts(data) {
                 },
                 tooltip: {
                     callbacks: {
-                        title: function(tooltipItems) {
-                            const index = tooltipItems[0].dataIndex;
-                            const datasetIndex = tooltipItems[0].datasetIndex;
-                            if (datasetIndex === 1 && window.latestChartPayload.prev_trend_labels) {
-                                return window.latestChartPayload.prev_trend_labels[index] || tooltipItems[0].label;
-                            }
-                            return tooltipItems[0].label;
-                        },
                         label: function(context) {
                             let val = context.raw;
                             let label = context.dataset.label || '';
@@ -373,7 +394,7 @@ function switchDonutMetric(metricType, btnEl) {
     currentDonutMetric = metricType;
     
     document.querySelectorAll('.donut-btn').forEach(btn => {
-        btn.className = "donut-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all";
+        btn.className = "donut-btn px-2.5 py-1 rounded text-gray-500 hover:text-gray-800 transition-all";
     });
     btnEl.className = "donut-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all";
 
@@ -419,7 +440,7 @@ function switchTrendMetric(metricType, btnEl) {
     currentMetric = metricType;
     
     document.querySelectorAll('.trend-btn').forEach(btn => {
-        btn.className = "trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all";
+        btn.className = "trend-btn px-2.5 py-1 rounded text-gray-500 hover:text-gray-800 transition-all";
     });
     btnEl.className = "trend-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all";
 
@@ -460,6 +481,7 @@ function switchTrendMetric(metricType, btnEl) {
     trendChartInstance.data.datasets[0].pointRadius = currentStyles.radii;
     trendChartInstance.data.datasets[0].pointBorderWidth = currentStyles.borderWidths;
     
+    // Update Previous Period line
     trendChartInstance.data.datasets[1].data = prevTargetData;
     trendChartInstance.data.datasets[1].pointBackgroundColor = prevStyles.bgColors;
     trendChartInstance.data.datasets[1].pointBorderColor = prevStyles.borderColors;
@@ -550,11 +572,19 @@ async function fetchDashboardData() {
             maxInput.value = data.max_available_date;
         }
 
+        // Apply Main KPIs
         document.getElementById('kpi-gmv').innerText = data.total_gmv;
         document.getElementById('kpi-orders').innerText = data.total_orders;
         document.getElementById('kpi-aov').innerText = data.avg_aov;
         document.getElementById('kpi-ads').innerText = data.sales_ads;
         document.getElementById('kpi-discount').innerText = data.discount_given;
+
+        // Apply Change Indicators
+        updateChangeIndicatorElement(document.getElementById('kpi-gmv-change'), data.raw_total_gmv, data.raw_prev_total_gmv, false);
+        updateChangeIndicatorElement(document.getElementById('kpi-orders-change'), data.raw_total_orders, data.raw_prev_total_orders, false);
+        updateChangeIndicatorElement(document.getElementById('kpi-aov-change'), data.raw_avg_aov, data.raw_prev_avg_aov, false);
+        updateChangeIndicatorElement(document.getElementById('kpi-ads-change'), data.raw_sales_ads, data.raw_prev_sales_ads, false);
+        updateChangeIndicatorElement(document.getElementById('kpi-discount-change'), data.raw_discount_given, data.raw_prev_discount_given, true);
 
         if (data.chart_data) {
             updateCharts(data.chart_data);
@@ -564,18 +594,18 @@ async function fetchDashboardData() {
         if (data.table_data.length > 0) {
             data.table_data.forEach(row => {
                 const tr = document.createElement('tr');
-                tr.className = "border-b border-surface-container-high hover:bg-surface-bright transition-colors";
+                tr.className = "border-b border-gray-100 hover:bg-gray-50 transition-colors";
                 tr.innerHTML = `
-                    <td class="py-4 px-6">${row['Restaurant Name']}</td>
-                    <td class="py-4 px-6 text-on-surface-variant">${row['Report Period']}</td>
+                    <td class="py-4 px-6 font-medium">${row['Restaurant Name']}</td>
+                    <td class="py-4 px-6 text-gray-500">${row['Report Period']}</td>
                     <td class="py-4 px-6">${row['Location']}</td>
-                    <td class="py-4 px-6 font-label-sm text-outline">${row['Res ID']}</td>
+                    <td class="py-4 px-6 font-mono text-xs text-gray-400">${row['Res ID']}</td>
                     <td class="py-4 px-6">${row['Platform']}</td>
-                    <td class="py-4 px-6 text-right font-semibold">${row['Delivered orders']}</td>
+                    <td class="py-4 px-6 text-right font-bold">${row['Delivered orders']}</td>
                     <td class="py-4 px-6 text-right">${row['Sales']}</td>
                     <td class="py-4 px-6 text-right">${row['GMV']}</td>
-                    <td class="py-4 px-6 text-right text-primary-container">${row['Sales from Ads']}</td>
-                    <td class="py-4 px-6 text-right text-error">${row['Discount given']}</td>
+                    <td class="py-4 px-6 text-right text-primary-container font-medium">${row['Sales from Ads']}</td>
+                    <td class="py-4 px-6 text-right text-error font-medium">${row['Discount given']}</td>
                 `;
                 allTableRows.push(tr);
             });
@@ -839,17 +869,18 @@ document.addEventListener('click', function(event) {
     const outletContainer = document.getElementById('outlet-dropdown-container');
     const platformContainer = document.getElementById('platform-dropdown-container');
     const dateContainer = document.getElementById('date-dropdown-container');
+    const moduleContainer = document.getElementById('module-switcher-container');
     
     if (brandContainer && !brandContainer.contains(event.target)) document.getElementById('brand-menu')?.classList.add('hidden');
     if (outletContainer && !outletContainer.contains(event.target)) document.getElementById('outlet-menu')?.classList.add('hidden');
     if (platformContainer && !platformContainer.contains(event.target)) document.getElementById('platform-menu')?.classList.add('hidden');
     if (dateContainer && !dateContainer.contains(event.target)) document.getElementById('calendar-menu')?.classList.add('hidden');
+    if (moduleContainer && !moduleContainer.contains(event.target)) document.getElementById('module-menu')?.classList.add('hidden');
 
     document.getElementById('month-dropdown')?.classList.add('hidden');
     document.getElementById('year-dropdown')?.classList.add('hidden');
 });
 
-// --- EXPORT TO CSV LOGIC ---
 function exportToCSV() {
     const brand = document.getElementById('brand-input').value;
     const outlet = document.getElementById('outlet-input').value;

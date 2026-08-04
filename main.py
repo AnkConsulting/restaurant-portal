@@ -383,19 +383,96 @@ async def render_dashboard(
         },
     )
 
+
 @app.get("/swiggy-insights", response_class=HTMLResponse)
-async def swiggy_insights(request: Request):
+async def swiggy_insights(
+    request: Request,
+    brand: Optional[str] = Query(None),
+    outlet: Optional[str] = Query(None),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None)
+):
     if not request.session.get("logged_in"):
         return RedirectResponse(url="/login", status_code=303)
-    return HTMLResponse("""
-        <html class='bg-[#f7f9fb] font-sans'>
-            <body class='p-10 flex flex-col items-center justify-center min-h-screen text-center'>
-                <h1 class='text-4xl font-bold text-[#FC8019] mb-4'>Swiggy Insights</h1>
-                <p class='text-gray-600 mb-8'>This advanced funnel module is currently under construction (Phase 4).</p>
-                <a href='/' class='bg-[#004ac6] text-white px-6 py-2 rounded-lg no-underline font-medium hover:bg-blue-700 transition'>Return to Dashboard</a>
-            </body>
-        </html>
-    """)
+
+    is_admin = request.session.get("is_admin", False)
+    authorized_res_ids = request.session.get("authorized_res_ids", [])
+
+    df = load_data()
+    
+    if "Platform" in df.columns:
+        df = df[df["Platform"].astype(str).str.strip().str.lower() == "swiggy"]
+
+    if "Report Period" in df.columns:
+        df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
+
+    if not is_admin:
+        df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
+
+    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
+    selected_brand = brand if brand in all_brands else ""
+    
+    context_df = df[df["Restaurant Name"] == selected_brand] if selected_brand else df
+
+    outlets = sorted(context_df["Location"].dropna().unique().tolist())
+    selected_outlet = outlet if outlet in outlets else ""
+    if selected_outlet:
+        context_df = context_df[context_df["Location"] == selected_outlet]
+
+    max_available_date = ""
+    if "_temp_date" in context_df.columns and not context_df["_temp_date"].dropna().empty:
+        max_date_obj = context_df["_temp_date"].max()
+        if pd.notnull(max_date_obj):
+            max_available_date = max_date_obj.strftime("%Y-%m-%d")
+
+    if not start_date or not end_date:
+        if max_available_date:
+            start_date = max_available_date
+            end_date = max_available_date
+
+    filtered_df = context_df.copy()
+    start_dt = pd.to_datetime(start_date, errors="coerce")
+    end_dt = pd.to_datetime(end_date, errors="coerce")
+
+    if pd.notnull(start_dt) and pd.notnull(end_dt):
+        if end_date > max_available_date:
+            end_date = max_available_date
+            end_dt = pd.to_datetime(end_date, errors="coerce")
+        filtered_df = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
+
+    total_gmv = float(filtered_df["GMV"].sum()) if "GMV" in filtered_df.columns else 0.0
+    total_orders = int(filtered_df["Delivered orders"].sum()) if "Delivered orders" in filtered_df.columns else 0
+    avg_aov = float(total_gmv / total_orders) if total_orders > 0 else 0.0
+    sales_ads = float(filtered_df["Sales from Ads"].sum()) if "Sales from Ads" in filtered_df.columns else 0.0
+    discount_given = float(filtered_df["Discount given"].sum()) if "Discount given" in filtered_df.columns else 0.0
+
+    if "_temp_date" in filtered_df.columns:
+        filtered_df = filtered_df.drop(columns=["_temp_date"])
+        
+    table_records = filtered_df.to_dict(orient="records")
+
+    return templates.TemplateResponse(
+        request=request,
+        name="swiggy_insights.html",
+        context={
+            "request": request,
+            "is_admin": is_admin,
+            "all_brands": all_brands,
+            "selected_brand": selected_brand,
+            "outlets": outlets,
+            "selected_outlet": selected_outlet,
+            "start_date": start_date or "",
+            "end_date": end_date or "",
+            "max_available_date": max_available_date,
+            "total_gmv": format_indian_currency(total_gmv),
+            "total_orders": format_indian_integer(total_orders),
+            "avg_aov": f"₹{format_indian_integer(round(avg_aov))}",
+            "sales_ads": format_indian_currency(sales_ads),
+            "discount_given": format_indian_currency(discount_given),
+            "table_data": table_records
+        }
+    )
+
 
 @app.get("/zomato-insights", response_class=HTMLResponse)
 async def zomato_insights(request: Request):
@@ -410,6 +487,7 @@ async def zomato_insights(request: Request):
             </body>
         </html>
     """)
+
 
 @app.get("/export")
 def export_csv(
@@ -481,11 +559,13 @@ def export_csv(
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
+
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, error: Optional[str] = None):
     if request.session.get("logged_in"):
         return RedirectResponse(url="/", status_code=303)
     return templates.TemplateResponse(request, "login.html", {"error": error})
+
 
 @app.post("/login")
 def handle_login(request: Request, passkey: str = Form(...)):
@@ -511,6 +591,7 @@ def handle_login(request: Request, passkey: str = Form(...)):
     except Exception as e:
         print(f"Login error: {e}")
     return templates.TemplateResponse(request, "login.html", {"error": "Invalid Passkey."})
+
 
 @app.get("/logout")
 def logout(request: Request):

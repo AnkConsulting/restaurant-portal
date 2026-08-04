@@ -19,7 +19,7 @@
                         "on-surface": "#191c1e",
                         "surface-bright": "#f7f9fb",
                         "error": "#ba1a1a",
-                        "primary": "#FC8019",
+                        "primary": "#004ac6",
                         "primary-container": "#2563eb",
                         "background": "#f7f9fb"
                     },
@@ -36,23 +36,115 @@
     <style type="text/tailwindcss">
         @layer utilities {
             .elevation-1 { @apply bg-white border border-surface-container-high shadow-[0_4px_12px_rgba(0,0,0,0.02)]; }
+            .elevation-2 { @apply bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]; }
             .card-radius { @apply rounded-[16px]; }
         }
     </style>
 </head>
 <body class="bg-background text-on-surface font-body-md min-h-screen">
 
-<!-- HEADER -->
+<!-- HEADER WITH MODULE SWITCHER & PROFILE -->
 <header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-8 py-4 mx-auto border-b border-surface-container-high">
     <div class="flex items-center gap-6">
+        <!-- Logo & Title -->
         <div class="flex items-center gap-3">
             <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
-            <h1 class="font-headline-lg text-[22px] font-bold text-gray-800 tracking-tight border-r border-gray-300 pr-6">Swiggy Insights</h1>
+            <h1 class="font-headline-lg text-[22px] font-bold text-gray-800 tracking-tight hidden md:block border-r border-gray-300 pr-6">RDA Portal</h1>
         </div>
-        <a href="/" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all no-underline">
-            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-            Back to Sales & Operations
-        </a>
+        
+        <!-- MODULE SWITCHER -->
+        <div class="relative font-['Hanken_Grotesk'] z-[110]" id="module-switcher-container">
+          <button onclick="toggleCustomDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
+              <span class="font-bold text-[#FC8019] text-sm">Swiggy Insights</span>
+            </div>
+            <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors text-[20px]">expand_more</span>
+          </button>
+
+          <div id="module-menu" class="hidden absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50" onclick="event.stopPropagation()">
+            <div class="p-4">
+              <!-- Category 1: CORE ANALYTICS -->
+              <div class="mb-4">
+                <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Core Analytics</h4>
+                <div class="space-y-1">
+                  <a href="/" class="flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-md transition-colors group no-underline">
+                    <span class="material-symbols-outlined text-[#004ac6] text-[20px]">analytics</span>
+                    <span class="text-sm font-medium">Sales & Operations</span>
+                  </a>
+                  <a href="/swiggy-insights" class="flex items-center gap-3 px-3 py-2.5 bg-orange-50 border-l-4 border-[#FC8019] rounded-r-md group no-underline">
+                    <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
+                    <span class="text-sm font-bold text-[#FC8019]">Swiggy Insights</span>
+                  </a>
+                  <a href="/zomato-insights" class="flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-md transition-colors group no-underline">
+                    <span class="material-symbols-outlined text-[#E23744] text-[20px]">storefront</span>
+                    <span class="text-sm font-medium">Zomato Insights</span>
+                  </a>
+                </div>
+              </div>
+              <!-- Category 2: FINANCE & RECON -->
+              <div>
+                <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Finance & Recon</h4>
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between px-3 py-2.5 opacity-40 cursor-not-allowed">
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-gray-400 text-[20px]">payments</span>
+                      <span class="text-sm font-medium text-gray-600">Payout Reconciliation</span>
+                    </div>
+                    <span class="text-[8px] font-bold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase tracking-tighter">Soon</span>
+                  </div>
+                  <div class="flex items-center px-3 py-2.5 opacity-40 cursor-not-allowed">
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-gray-400 text-[20px]">calculate</span>
+                      <span class="text-sm font-medium text-gray-600">Pro-Rata Adjustments</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <!-- Right Side Settings & User Profile -->
+    <div class="flex items-center gap-4">
+        <div class="relative group">
+            <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-gray-500">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
+            <div class="absolute right-0 mt-2 w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
+                <h4 class="font-title-md text-[18px] font-semibold text-on-surface mb-4">Theme Settings</h4>
+                <div class="mt-4 pt-4 border-t border-outline-variant">
+                    <a href="/logout" class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-red-50 rounded-lg transition-colors duration-200 group no-underline">
+                        <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
+                        <span class="font-semibold text-sm">Logout</span>
+                    </a>
+                </div>  
+            </div>
+        </div>
+        
+        <div class="md:flex flex-col items-end">
+            <span class="font-label-sm text-[12px] tracking-wider text-gray-500 uppercase">Welcome,</span>
+            <span id="user-display-name" class="font-title-md text-[16px] font-semibold text-on-surface">
+                {% if is_admin %}
+                    ANK Consulting Admin
+                {% else %}
+                    {% if selected_brand %}
+                        {{ selected_brand }}
+                    {% elif all_brands %}
+                        {{ all_brands[0] }}
+                    {% else %}
+                        Partner
+                    {% endif %}
+                {% endif %}
+            </span>
+        </div>
+        
+        {% if is_admin %}
+            <img alt="User Logo" class="w-10 h-10 object-contain rounded-full border border-surface-container-high bg-white p-0.5" src="/static/ank-logo.png"/>
+        {% else %}
+            <div id="avatar-initials" class="w-10 h-10 rounded-full bg-[#FC8019] text-white flex items-center justify-center font-bold shadow-sm"></div>
+        {% endif %}
     </div>
 </header>
 
@@ -124,5 +216,34 @@
         </div>
     </section>
 </main>
+
+<script>
+    // Initialize Avatar Initials
+    document.addEventListener("DOMContentLoaded", function () {
+        const displayNameEl = document.getElementById("user-display-name");
+        const displayName = displayNameEl ? displayNameEl.innerText.trim() : "";
+        const avatarBadge = document.getElementById("avatar-initials");
+        
+        if (avatarBadge && displayName) {
+          const words = displayName.split(/\s+/);
+          let initials = words.map(w => w[0]).join("").toUpperCase();
+          if (initials.length > 2) initials = initials.substring(0, 2);
+          avatarBadge.innerText = initials || "RP";
+        }
+    });
+
+    function toggleCustomDropdown(menuId, event) {
+        event.stopPropagation();
+        const menu = document.getElementById(menuId);
+        menu.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function(event) {
+        const moduleContainer = document.getElementById('module-switcher-container');
+        if (moduleContainer && !moduleContainer.contains(event.target)) {
+            document.getElementById('module-menu')?.classList.add('hidden');
+        }
+    });
+</script>
 </body>
 </html>

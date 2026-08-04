@@ -2,7 +2,6 @@
 <html class="light" lang="en">
 <head>
     <meta charset="utf-8"/>
-    <!-- FORCED DESKTOP VIEWPORT -->
     <meta content="width=1280" name="viewport"/>
     <title>Restaurant Daily Analytics Portal</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -17,81 +16,23 @@
                 extend: {
                     "colors": {
                         "outline-variant": "#c3c6d7",
-                        "inverse-surface": "#2d3133",
                         "surface-container-high": "#e6e8ea",
-                        "on-primary": "#ffffff",
-                        "tertiary-fixed-dim": "#b9c7e0",
-                        "tertiary-container": "#606e84",
-                        "on-tertiary": "#ffffff",
-                        "on-error": "#ffffff",
-                        "on-primary-fixed-variant": "#003ea8",
-                        "on-secondary-fixed-variant": "#005049",
-                        "surface-container-lowest": "#ffffff",
                         "on-surface": "#191c1e",
-                        "on-secondary-container": "#006f66",
-                        "surface-tint": "#0053db",
                         "surface-bright": "#f7f9fb",
                         "error": "#ba1a1a",
-                        "surface-dim": "#d8dadc",
-                        "tertiary-fixed": "#d5e3fd",
-                        "on-tertiary-container": "#eaf0ff",
-                        "error-container": "#ffdad6",
                         "surface-variant": "#e0e3e5",
-                        "on-secondary": "#ffffff",
-                        "on-background": "#191c1e",
                         "primary": "#004ac6",
-                        "on-primary-container": "#eeefff",
-                        "surface": "#f7f9fb",
-                        "surface-container": "#eceef0",
-                        "secondary-fixed": "#89f5e7",
-                        "on-tertiary-fixed-variant": "#3a485c",
-                        "surface-container-low": "#f2f4f6",
-                        "surface-container-highest": "#e0e3e5",
-                        "inverse-on-surface": "#eff1f3",
-                        "on-primary-fixed": "#00174b",
-                        "secondary-container": "#86f2e4",
-                        "secondary": "#006a61",
                         "primary-container": "#2563eb",
-                        "outline": "#737686",
-                        "tertiary": "#48566b",
-                        "on-surface-variant": "#434655",
-                        "on-tertiary-fixed": "#0d1c2f",
-                        "on-error-container": "#93000a",
-                        "on-secondary-fixed": "#00201d",
-                        "secondary-fixed-dim": "#6bd8cb",
-                        "primary-fixed": "#dbe1ff",
-                        "primary-fixed-dim": "#b4c5ff",
-                        "background": "#f7f9fb",
-                        "inverse-primary": "#b4c5ff"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "spacing": {
-                        "gutter": "24px",
-                        "max-width": "1440px",
-                        "margin-desktop": "32px",
-                        "base": "8px",
-                        "margin-mobile": "16px"
+                        "background": "#f7f9fb"
                     },
                     "fontFamily": {
                         "headline-lg": ["Hanken Grotesk"],
-                        "headline-lg-mobile": ["Hanken Grotesk"],
-                        "display-lg": ["Hanken Grotesk"],
                         "body-md": ["Hanken Grotesk"],
                         "label-sm": ["JetBrains Mono"],
                         "title-md": ["Hanken Grotesk"]
                     },
-                    "fontSize": {
-                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
-                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
-                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
-                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
-                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
-                        "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }]
+                    "spacing": {
+                        "margin-desktop": "32px"
                     }
                 }
             }
@@ -99,59 +40,110 @@
     </script>
     <style type="text/tailwindcss">
         @layer utilities {
-            .elevation-0 { @apply bg-surface-bright shadow-none; }
             .elevation-1 { @apply bg-white border border-surface-container-high shadow-[0_4px_12px_rgba(0,0,0,0.02)]; }
             .elevation-2 { @apply bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]; }
             .card-radius { @apply rounded-[16px]; }
-            .btn-radius { @apply rounded-lg; }
-            
             .custom-scrollbar::-webkit-scrollbar { width: 6px; }
             .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
             .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c3c6d7; border-radius: 20px; }
         }
     </style>
 </head>
-<body class="bg-background text-on-background font-body-md min-h-screen">
+<body class="bg-background text-on-surface font-body-md min-h-screen">
 
+<!-- HEADER WITH STITCH MODULE SWITCHER -->
 <header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
-    <div class="flex items-center gap-4">
-        <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
-        <h1 class="font-headline-lg text-headline-lg text-primary tracking-tight md:block">Restaurant Daily Analytics Portal</h1>
+    <div class="flex items-center gap-6">
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-3">
+            <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
+            <h1 class="font-headline-lg text-[22px] font-bold text-gray-800 tracking-tight hidden md:block border-r border-gray-300 pr-6">RDA Portal</h1>
+        </div>
+        
+        <!-- MODULE SWITCHER (Functional) -->
+        <div class="relative font-['Hanken_Grotesk'] z-[110]" id="module-switcher-container">
+          <!-- Selector Button -->
+          <button onclick="toggleCustomDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#004ac6] text-[20px]">grid_view</span>
+              <span class="font-bold text-[#004ac6] text-sm">Sales & Operations</span>
+            </div>
+            <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors text-[20px]">expand_more</span>
+          </button>
+
+          <!-- Dropdown Panel (Hidden by default, toggled via JS) -->
+          <div id="module-menu" class="hidden dropdown-menu-custom absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50" onclick="event.stopPropagation()">
+            <div class="p-4">
+              
+              <!-- Category 1: CORE ANALYTICS -->
+              <div class="mb-4">
+                <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Core Analytics</h4>
+                <div class="space-y-1">
+                  <!-- Active Option (Current Page) -->
+                  <a href="/" class="flex items-center gap-3 px-3 py-2.5 bg-blue-50 border-l-4 border-[#004ac6] rounded-r-md group no-underline">
+                    <span class="material-symbols-outlined text-[#004ac6] text-[20px]">analytics</span>
+                    <span class="text-sm font-bold text-[#004ac6]">Sales & Operations</span>
+                  </a>
+                  <!-- Swiggy Link -->
+                  <a href="/swiggy-insights" class="flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-md transition-colors group no-underline">
+                    <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
+                    <span class="text-sm font-medium">Swiggy Insights</span>
+                  </a>
+                  <!-- Zomato Link -->
+                  <a href="/zomato-insights" class="flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-md transition-colors group no-underline">
+                    <span class="material-symbols-outlined text-[#E23744] text-[20px]">storefront</span>
+                    <span class="text-sm font-medium">Zomato Insights</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Category 2: FINANCE & RECON -->
+              <div>
+                <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Finance & Recon</h4>
+                <div class="space-y-1">
+                  <!-- Disabled Option with Badge -->
+                  <div class="flex items-center justify-between px-3 py-2.5 opacity-40 cursor-not-allowed">
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-gray-400 text-[20px]">payments</span>
+                      <span class="text-sm font-medium text-gray-600">Payout Reconciliation</span>
+                    </div>
+                    <span class="text-[8px] font-bold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase tracking-tighter">Soon</span>
+                  </div>
+                  <!-- Disabled Option -->
+                  <div class="flex items-center px-3 py-2.5 opacity-40 cursor-not-allowed">
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-gray-400 text-[20px]">calculate</span>
+                      <span class="text-sm font-medium text-gray-600">Pro-Rata Adjustments</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
     </div>
+
+    <!-- Right Side Settings & User Profile -->
     <div class="flex items-center gap-4">
         <div class="relative group">
-            <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant">
+            <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-gray-500">
                 <span class="material-symbols-outlined">settings</span>
             </button>
             <div class="absolute right-0 mt-2 w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
-                <h4 class="font-title-md text-title-md text-on-surface mb-4">Theme Settings</h4>
-                <div class="mb-6">
-                    <label class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-2 block">Upload Restaurant Logo</label>
-                    <div class="border-2 border-dashed border-outline-variant rounded-lg p-4 flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors cursor-pointer bg-surface-container-lowest">
-                        <span class="material-symbols-outlined text-primary">cloud_upload</span>
-                        <span class="text-body-md text-on-surface-variant text-sm">Drag & drop or click</span>
-                    </div>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-body-md text-on-surface">Use Default Platform Theme</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input checked="" class="sr-only peer" type="checkbox" value=""/>
-                        <div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    </label>
-                </div>
+                <h4 class="font-title-md text-[18px] font-semibold text-on-surface mb-4">Theme Settings</h4>
                 <div class="mt-4 pt-4 border-t border-outline-variant">
-                    <a href="/logout" class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-error-container/10 rounded-lg transition-colors duration-200 group no-underline">
+                    <a href="/logout" class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-red-50 rounded-lg transition-colors duration-200 group no-underline">
                         <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
-                        <span class="font-title-small">Logout</span>
+                        <span class="font-semibold text-sm">Logout</span>
                     </a>
                 </div>  
             </div>
         </div>
         
-        <!-- RESTORED DYNAMIC WELCOME TEXT -->
         <div class="md:flex flex-col items-end">
-            <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Welcome,</span>
-            <span id="user-display-name" class="font-title-md text-title-md text-on-surface">
+            <span class="font-label-sm text-[12px] tracking-wider text-gray-500 uppercase">Welcome,</span>
+            <span id="user-display-name" class="font-title-md text-[16px] font-semibold text-on-surface">
                 {% if is_admin %}
                     ANK Consulting Admin
                 {% else %}
@@ -166,17 +158,16 @@
             </span>
         </div>
         
-        <!-- DYNAMIC LOGO / INITIALS CHECK -->
         {% if is_admin %}
             <img alt="User Logo" class="w-10 h-10 object-contain rounded-full border border-surface-container-high bg-white p-0.5" src="/static/ank-logo.png"/>
         {% else %}
-            <div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-title-md text-title-md font-bold shadow-sm"></div>
+            <div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-sm"></div>
         {% endif %}
-        
     </div>
 </header>
 
-<main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-max-width mx-auto transition-opacity duration-300">
+<main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-[1440px] mx-auto transition-opacity duration-300">
+    <!-- FILTERS -->
     <form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
         
         <div class="relative w-full md:w-auto z-40" id="date-dropdown-container">
@@ -237,18 +228,18 @@
             {% if is_admin %}
             <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
                 <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
-                <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
-                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
                 </div>
                 <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
+                        <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
                     </div>
-                    <ul id="brand-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
-                        <li onclick="submitCustomDropdown('brand-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Brands</li>
+                    <ul id="brand-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
+                        <li onclick="submitCustomDropdown('brand-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Brands</li>
                         {% for b in all_brands %}
-                        <li onclick="submitCustomDropdown('brand-input', '{{ b }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ b }}</li>
+                        <li onclick="submitCustomDropdown('brand-input', '{{ b }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">{{ b }}</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -259,18 +250,18 @@
 
             <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
                 <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
-                <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 text-sm text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
-                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
                 </div>
                 <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
+                        <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
                     </div>
-                    <ul id="outlet-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
-                        <li onclick="submitCustomDropdown('outlet-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Outlets</li>
+                    <ul id="outlet-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
+                        <li onclick="submitCustomDropdown('outlet-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Outlets</li>
                         {% for loc in outlets %}
-                        <li onclick="submitCustomDropdown('outlet-input', '{{ loc }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ loc }}</li>
+                        <li onclick="submitCustomDropdown('outlet-input', '{{ loc }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">{{ loc }}</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -278,79 +269,122 @@
 
             <div class="relative min-w-[220px] w-full md:w-auto" id="platform-dropdown-container">
                 <input type="hidden" name="platform" id="platform-input" value="{{ selected_platform }}">
-                <div onclick="toggleCustomDropdown('platform-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-body-md text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <div onclick="toggleCustomDropdown('platform-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 text-sm hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="platform-trigger-text" class="truncate">{{ selected_platform if selected_platform else 'All Platforms' }}</span>
-                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-on-surface-variant">expand_more</span>
+                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
                 </div>
                 <div id="platform-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="platform-search" onkeyup="filterCustomDropdown('platform-search', 'platform-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm font-body-md border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search platforms...">
+                        <input type="text" id="platform-search" onkeyup="filterCustomDropdown('platform-search', 'platform-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary bg-white" placeholder="Search platforms...">
                     </div>
-                    <ul id="platform-list" class="max-h-60 overflow-y-auto custom-scrollbar font-body-md text-body-md">
-                        <li onclick="submitCustomDropdown('platform-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Platforms</li>
+                    <ul id="platform-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
+                        <li onclick="submitCustomDropdown('platform-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Platforms</li>
                         {% for p in platforms %}
-                        <li onclick="submitCustomDropdown('platform-input', '{{ p }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">{{ p }}</li>
+                        <li onclick="submitCustomDropdown('platform-input', '{{ p }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">{{ p }}</li>
                         {% endfor %}
                     </ul>
                 </div>
             </div>
 
-            <button type="button" onclick="exportToCSV()" class="h-[46px] px-5 flex items-center justify-center gap-2 bg-[#F1F5F9] border border-outline-variant rounded-lg font-title-small font-semibold text-on-surface hover:bg-surface-variant hover:border-primary transition-all whitespace-nowrap shadow-sm group">
+            <button type="button" onclick="exportToCSV()" class="h-[46px] px-5 flex items-center justify-center gap-2 bg-[#F1F5F9] border border-outline-variant rounded-lg font-semibold text-sm hover:bg-gray-200 hover:border-primary transition-all shadow-sm group">
                 <span class="material-symbols-outlined text-[20px] text-primary group-hover:scale-110 transition-transform">download</span>
                 Export CSV
             </button>
-
         </div>
     </form>
 
+    <!-- CORE KPIS WITH COMPARISON ARROWS -->
     <section class="grid grid-cols-5 gap-6 mb-8">
-        <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between min-w-0">
             <div class="flex justify-between items-start mb-2">
-                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Total Daily GMV</span>
+                <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest truncate pr-2">Total Daily GMV</span>
                 <span class="material-symbols-outlined text-primary shrink-0" style="font-variation-settings: 'FILL' 0;">payments</span>
             </div>
-            <div id="kpi-gmv" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
+            <div id="kpi-gmv" class="text-[26px] font-bold text-on-surface truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
+            <div id="kpi-gmv-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_total_gmv }}" data-prev="{{ raw_prev_total_gmv }}" data-inverse="false"></div>
         </div>
-        <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+        
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between min-w-0">
             <div class="flex justify-between items-start mb-2">
-                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Delivered Orders</span>
-                <span class="material-symbols-outlined text-secondary shrink-0" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
+                <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest truncate pr-2">Delivered Orders</span>
+                <span class="material-symbols-outlined text-[#006a61] shrink-0" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
             </div>
-            <div id="kpi-orders" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ total_orders }}">{{ total_orders }}</div>
+            <div id="kpi-orders" class="text-[26px] font-bold text-on-surface truncate" title="{{ total_orders }}">{{ total_orders }}</div>
+            <div id="kpi-orders-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_total_orders }}" data-prev="{{ raw_prev_total_orders }}" data-inverse="false"></div>
         </div>
-        <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between min-w-0">
             <div class="flex justify-between items-start mb-2">
-                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">AOV</span>
-                <span class="material-symbols-outlined text-tertiary shrink-0" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
+                <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest truncate pr-2">AOV</span>
+                <span class="material-symbols-outlined text-[#48566b] shrink-0" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
             </div>
-            <div id="kpi-aov" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
+            <div id="kpi-aov" class="text-[26px] font-bold text-on-surface truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
+            <div id="kpi-aov-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_avg_aov }}" data-prev="{{ raw_prev_avg_aov }}" data-inverse="false"></div>
         </div>
-        <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between min-w-0">
             <div class="flex justify-between items-start mb-2">
-                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Sales from Ads</span>
+                <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest truncate pr-2">Sales from Ads</span>
                 <span class="material-symbols-outlined text-primary-container shrink-0" style="font-variation-settings: 'FILL' 0;">campaign</span>
             </div>
-            <div id="kpi-ads" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
+            <div id="kpi-ads" class="text-[26px] font-bold text-on-surface truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
+            <div id="kpi-ads-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_sales_ads }}" data-prev="{{ raw_prev_sales_ads }}" data-inverse="false"></div>
         </div>
-        <div class="elevation-1 card-radius p-4 flex flex-col justify-between min-w-0">
+
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between min-w-0">
             <div class="flex justify-between items-start mb-2">
-                <span class="font-label-sm text-label-sm text-on-surface-variant uppercase truncate pr-2">Discount Given</span>
+                <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest truncate pr-2">Discount Given</span>
                 <span class="material-symbols-outlined text-error shrink-0" style="font-variation-settings: 'FILL' 0;">sell</span>
             </div>
-            <div id="kpi-discount" class="font-headline-lg text-[26px] leading-tight text-on-surface mb-4 truncate" title="{{ discount_given }}">{{ discount_given }}</div>
+            <div id="kpi-discount" class="text-[26px] font-bold text-on-surface truncate" title="{{ discount_given }}">{{ discount_given }}</div>
+            <div id="kpi-discount-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_discount_given }}" data-prev="{{ raw_prev_discount_given }}" data-inverse="true"></div>
         </div>
     </section>
 
+    <!-- EFFICIENCY & PLATFORM INSIGHTS -->
+    <h3 class="font-title-md text-[18px] font-bold text-on-surface mb-4 mt-10">Efficiency & Platform Insights</h3>
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        
+        <!-- Ad ROI -->
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-center bg-white border-l-4 border-l-primary">
+            <div class="text-[12px] font-bold text-gray-500 uppercase tracking-widest mb-1">Ad ROI (GMV per ₹1 spent)</div>
+            <div id="kpi-ad-roi" class="text-3xl font-extrabold text-primary">{{ ad_roi }}</div>
+        </div>
+        
+        <!-- Discount Impact -->
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-center bg-white border-l-4 border-l-error">
+            <div class="text-[12px] font-bold text-gray-500 uppercase tracking-widest mb-1">Discount Impact (% of GMV)</div>
+            <div id="kpi-discount-impact" class="text-3xl font-extrabold text-error">{{ discount_impact }}</div>
+        </div>
+
+        <!-- Platform AOV Comparison -->
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-center bg-white">
+            <div class="text-[12px] font-bold text-gray-500 uppercase tracking-widest mb-3">Platform AOV Split</div>
+            <div id="platform-aov-container" class="space-y-2">
+                {% for plat, aov in platform_aov.items() %}
+                <div class="flex justify-between items-center text-sm border-b border-gray-100 pb-1 last:border-0">
+                    <span class="font-semibold text-gray-700">{{ plat }}</span>
+                    <span class="font-bold text-on-surface">₹{{ "%.2f"|format(aov) }}</span>
+                </div>
+                {% endfor %}
+                {% if not platform_aov %}
+                <span class="text-sm text-gray-400">No data available</span>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- CHARTS -->
     <section class="grid grid-cols-2 gap-6 mb-8">
         <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
             <div class="flex flex-wrap justify-between items-center mb-6 gap-2">
-                <h3 id="donut-chart-title" class="font-title-md text-title-md text-on-surface">Orders by Platform</h3>
+                <h3 id="donut-chart-title" class="font-title-md text-[18px] font-bold text-on-surface">Orders by Platform</h3>
                 <div class="flex bg-surface-container-high p-1 rounded-lg text-xs font-semibold gap-1">
-                    <button type="button" onclick="switchDonutMetric('sales', this)" class="donut-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Sales</button>
-                    <button type="button" onclick="switchDonutMetric('gmv', this)" class="donut-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">GMV</button>
+                    <button type="button" onclick="switchDonutMetric('sales', this)" class="donut-btn px-2.5 py-1 rounded text-gray-500 hover:text-gray-800 transition-all">Sales</button>
+                    <button type="button" onclick="switchDonutMetric('gmv', this)" class="donut-btn px-2.5 py-1 rounded text-gray-500 hover:text-gray-800 transition-all">GMV</button>
                     <button type="button" onclick="switchDonutMetric('orders', this)" class="donut-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all">Orders</button>
-                    <button type="button" onclick="switchDonutMetric('ads', this)" class="donut-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Ads</button>
-                    <button type="button" onclick="switchDonutMetric('discount', this)" class="donut-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Discount</button>
+                    <button type="button" onclick="switchDonutMetric('ads', this)" class="donut-btn px-2.5 py-1 rounded text-gray-500 hover:text-gray-800 transition-all">Ads</button>
+                    <button type="button" onclick="switchDonutMetric('discount', this)" class="donut-btn px-2.5 py-1 rounded text-gray-500 hover:text-gray-800 transition-all">Discount</button>
                 </div>
             </div>
             <div class="flex-1 w-full relative flex items-center justify-center p-2">
@@ -359,22 +393,19 @@
         </div>
         <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
             <div class="flex flex-wrap justify-between items-start mb-4 gap-2">
-                
-                <!-- UPDATED WRAPPER WITH WEEKEND LEGEND -->
                 <div class="flex flex-col gap-1">
-                    <h3 id="trend-chart-title" class="font-title-md text-title-md text-on-surface">Daily Sales Trend</h3>
+                    <h3 id="trend-chart-title" class="font-title-md text-[18px] font-bold text-on-surface">Daily Sales Trend</h3>
                     <div class="flex items-center gap-1.5 mt-0.5">
                         <span class="w-2.5 h-2.5 rounded-full bg-[#FF5722] shadow-sm"></span>
-                        <span class="text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">Saturday & Sunday</span>
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Saturday & Sunday</span>
                     </div>
                 </div>
-
                 <div class="flex bg-surface-container-high p-1 rounded-lg text-xs font-semibold gap-1">
                     <button type="button" onclick="switchTrendMetric('sales', this)" class="trend-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all">Sales</button>
-                    <button type="button" onclick="switchTrendMetric('gmv', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">GMV</button>
-                    <button type="button" onclick="switchTrendMetric('orders', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Orders</button>
-                    <button type="button" onclick="switchTrendMetric('ads', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Ads</button>
-                    <button type="button" onclick="switchTrendMetric('discount', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface transition-all">Discount</button>
+                    <button type="button" onclick="switchTrendMetric('gmv', this)" class="trend-btn px-2.5 py-1 rounded text-gray-500 hover:text-gray-800 transition-all">GMV</button>
+                    <button type="button" onclick="switchTrendMetric('orders', this)" class="trend-btn px-2.5 py-1 rounded text-gray-500 hover:text-gray-800 transition-all">Orders</button>
+                    <button type="button" onclick="switchTrendMetric('ads', this)" class="trend-btn px-2.5 py-1 rounded text-gray-500 hover:text-gray-800 transition-all">Ads</button>
+                    <button type="button" onclick="switchTrendMetric('discount', this)" class="trend-btn px-2.5 py-1 rounded text-gray-500 hover:text-gray-800 transition-all">Discount</button>
                 </div>
             </div>
             <div class="flex-1 w-full relative p-2">
@@ -383,13 +414,12 @@
         </div>
     </section>
 
-    <!-- NEW PAGINATION TABLE DESIGN -->
+    <!-- PAGINATION TABLE -->
     <section class="elevation-1 card-radius overflow-hidden">
         <div class="px-6 py-4 border-b border-surface-container-high bg-white flex justify-between items-center">
-            <h2 class="font-title-md text-title-md text-on-surface">FILTERED DAILY OPERATIONAL REPORT</h2>
+            <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase">Filtered Daily Operational Report</h2>
             <div class="flex items-center gap-2">
-                <label for="rows-per-page" class="text-sm font-medium text-on-surface-variant">Rows per page:</label>
-                <!-- FIXED DROPDOWN ARROW PADDING HERE -->
+                <label for="rows-per-page" class="text-sm font-medium text-gray-600">Rows per page:</label>
                 <select id="rows-per-page" onchange="changeRowsPerPage(this.value)" class="text-sm border border-outline-variant rounded-md pl-2 pr-8 py-1.5 focus:ring-primary focus:border-primary bg-white text-on-surface outline-none cursor-pointer">
                     <option value="20">20</option>
                     <option value="50">50</option>
@@ -401,51 +431,47 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-[#F1F5F9] font-label-sm text-label-sm text-on-surface-variant uppercase border-b border-surface-container-high">
-                        <th class="py-4 px-6 font-medium">Restaurant Name</th>
-                        <th class="py-4 px-6 font-medium">Report Period</th>
-                        <th class="py-4 px-6 font-medium">Location</th>
-                        <th class="py-4 px-6 font-medium">Res ID</th>
-                        <th class="py-4 px-6 font-medium">Platform</th>
-                        <th class="py-4 px-6 font-medium text-right">Delivered Orders</th>
-                        <th class="py-4 px-6 font-medium text-right">Sales</th>
-                        <th class="py-4 px-6 font-medium text-right">GMV</th>
-                        <th class="py-4 px-6 font-medium text-right">Sales from Ads</th>
-                        <th class="py-4 px-6 font-medium text-right">Discount Given</th>
+                    <tr class="bg-[#F1F5F9] font-label-sm text-[12px] text-gray-600 uppercase tracking-widest border-b border-surface-container-high">
+                        <th class="py-4 px-6 font-semibold">Restaurant Name</th>
+                        <th class="py-4 px-6 font-semibold">Report Period</th>
+                        <th class="py-4 px-6 font-semibold">Location</th>
+                        <th class="py-4 px-6 font-semibold">Res ID</th>
+                        <th class="py-4 px-6 font-semibold">Platform</th>
+                        <th class="py-4 px-6 font-semibold text-right">Delivered Orders</th>
+                        <th class="py-4 px-6 font-semibold text-right">Sales</th>
+                        <th class="py-4 px-6 font-semibold text-right">GMV</th>
+                        <th class="py-4 px-6 font-semibold text-right">Sales from Ads</th>
+                        <th class="py-4 px-6 font-semibold text-right">Discount Given</th>
                     </tr>
                 </thead>
-                <tbody id="data-table-body" class="font-body-md text-body-md text-on-surface">
+                <tbody id="data-table-body" class="font-body-md text-sm text-on-surface">
                     {% for row in table_data %}
-                    <tr class="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
-                        <td class="py-4 px-6">{{ row['Restaurant Name'] }}</td>
-                        <td class="py-4 px-6 text-on-surface-variant">{{ row['Report Period'] }}</td>
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td class="py-4 px-6 font-medium">{{ row['Restaurant Name'] }}</td>
+                        <td class="py-4 px-6 text-gray-500">{{ row['Report Period'] }}</td>
                         <td class="py-4 px-6">{{ row['Location'] }}</td>
-                        <td class="py-4 px-6 font-label-sm text-outline">{{ row['Res ID'] }}</td>
+                        <td class="py-4 px-6 font-mono text-xs text-gray-400">{{ row['Res ID'] }}</td>
                         <td class="py-4 px-6">{{ row['Platform'] }}</td>
-                        <td class="py-4 px-6 text-right font-semibold">{{ "{:,}".format(row['Delivered orders']|int) }}</td>
+                        <td class="py-4 px-6 text-right font-bold">{{ "{:,}".format(row['Delivered orders']|int) }}</td>
                         <td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['Sales']) }}</td>
                         <td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['GMV']) }}</td>
-                        <td class="py-4 px-6 text-right text-primary-container">₹{{ "{:,.2f}".format(row['Sales from Ads']) }}</td>
-                        <td class="py-4 px-6 text-right text-error">₹{{ "{:,.2f}".format(row['Discount given']) }}</td>
+                        <td class="py-4 px-6 text-right text-primary-container font-medium">₹{{ "{:,.2f}".format(row['Sales from Ads']) }}</td>
+                        <td class="py-4 px-6 text-right text-error font-medium">₹{{ "{:,.2f}".format(row['Discount given']) }}</td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="10" class="py-8 text-center text-on-surface-variant">No operational data found for the selected filter.</td>
+                        <td colspan="10" class="py-8 text-center text-gray-500 italic">No operational data found for the selected filter.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        
-        <!-- Pagination Controls Footer -->
         <div class="px-6 py-4 border-t border-surface-container-high bg-white flex flex-wrap justify-between items-center gap-4" id="pagination-container">
-            <div class="text-sm text-on-surface-variant font-medium" id="pagination-info">
-                Showing 0 entries
-            </div>
+            <div class="text-sm text-gray-500 font-medium" id="pagination-info">Showing 0 entries</div>
             <div class="flex items-center gap-1" id="pagination-controls">
-                <button id="prev-page-btn" onclick="prevPage()" class="px-3 py-1.5 border border-outline-variant rounded-md hover:bg-surface-container-high disabled:opacity-50 text-sm transition-colors text-on-surface font-medium">Prev</button>
+                <button id="prev-page-btn" onclick="prevPage()" class="px-3 py-1.5 border border-outline-variant rounded-md hover:bg-gray-50 disabled:opacity-50 text-sm transition-colors font-medium">Prev</button>
                 <span id="page-numbers" class="flex gap-1 mx-2"></span>
-                <button id="next-page-btn" onclick="nextPage()" class="px-3 py-1.5 border border-outline-variant rounded-md hover:bg-surface-container-high disabled:opacity-50 text-sm transition-colors text-on-surface font-medium">Next</button>
+                <button id="next-page-btn" onclick="nextPage()" class="px-3 py-1.5 border border-outline-variant rounded-md hover:bg-gray-50 disabled:opacity-50 text-sm transition-colors font-medium">Next</button>
             </div>
         </div>
     </section>

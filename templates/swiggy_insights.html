@@ -62,7 +62,7 @@
         
         <!-- MODULE SWITCHER -->
         <div class="relative font-['Hanken_Grotesk'] z-[110]" id="module-switcher-container">
-          <button onclick="toggleCustomDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
+          <button onclick="swiggyToggleDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
               <span class="font-bold text-[#FC8019] text-sm">Swiggy Insights</span>
@@ -146,7 +146,7 @@
             <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
             <input type="hidden" id="max-available-date" value="{{ max_available_date }}">
 
-            <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none group min-w-[300px]">
+            <button type="button" onclick="swiggyToggleDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none group min-w-[300px]">
                 <div class="flex items-center gap-3">
                   <span class="material-symbols-outlined text-gray-500 text-[20px]">calendar_today</span>
                   <span id="custom-cal-label" class="text-sm font-medium text-gray-700"></span>
@@ -157,24 +157,24 @@
             <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
                 <div class="p-4">
                   <div class="flex items-center justify-between mb-4 relative">
-                    <button type="button" onclick="customNavigate(-1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                    <button type="button" onclick="swiggyNavigate(-1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
                       <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_left</span>
                     </button>
                     <div class="flex gap-2 font-bold text-gray-900 text-sm items-center">
                       <div class="relative">
-                          <button type="button" onclick="toggleCalMonthMenu(event)" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                          <button type="button" onclick="swiggyToggleMonthMenu(event)" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
                               <span id="custom-month-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
                           </button>
                           <div id="custom-month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-32 max-h-48 overflow-y-auto custom-scrollbar"></div>
                       </div>
                       <div class="relative">
-                          <button type="button" onclick="toggleCalYearMenu(event)" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                          <button type="button" onclick="swiggyToggleYearMenu(event)" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
                               <span id="custom-year-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
                           </button>
                           <div id="custom-year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-24 max-h-48 overflow-y-auto custom-scrollbar"></div>
                       </div>
                     </div>
-                    <button type="button" onclick="customNavigate(1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                    <button type="button" onclick="swiggyNavigate(1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
                       <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_right</span>
                     </button>
                   </div>
@@ -186,8 +186,8 @@
                   <div class="grid grid-cols-7 gap-1 text-center text-sm" id="custom-cal-grid"></div>
 
                   <div class="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
-                    <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2">Cancel</button>
-                    <button type="button" onclick="forceApplyDate()" class="bg-[#2563eb] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100">
+                    <button type="button" onclick="swiggyToggleDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2">Cancel</button>
+                    <button type="button" onclick="swiggyApplyDate()" class="bg-[#2563eb] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100">
                       Apply Range
                     </button>
                   </div>
@@ -200,18 +200,18 @@
             {% if is_admin %}
             <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
                 <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
-                <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <div onclick="swiggyToggleDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
                     <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
                 </div>
                 <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
+                        <input type="text" id="brand-search" onkeyup="swiggyFilterDropdown('brand-search', 'brand-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
                     </div>
                     <ul id="brand-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
-                        <li onclick="selectBrand('')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Brands</li>
+                        <li onclick="swiggySelectBrand('')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Brands</li>
                         {% for b in all_brands %}
-                        <li onclick="selectBrand('{{ b }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">{{ b }}</li>
+                        <li onclick="swiggySelectBrand('{{ b }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">{{ b }}</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -222,24 +222,24 @@
 
             <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
                 <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
-                <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 text-sm text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <div onclick="swiggyToggleDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 text-sm text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
                     <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
                 </div>
                 <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
+                        <input type="text" id="outlet-search" onkeyup="swiggyFilterDropdown('outlet-search', 'outlet-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
                     </div>
                     <ul id="outlet-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
-                        <li onclick="selectOutlet('')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Outlets</li>
+                        <li onclick="swiggySelectOutlet('')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Outlets</li>
                         {% for loc in outlets %}
-                        <li onclick="selectOutlet('{{ loc }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">{{ loc }}</li>
+                        <li onclick="swiggySelectOutlet('{{ loc }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">{{ loc }}</li>
                         {% endfor %}
                     </ul>
                 </div>
             </div>
 
-            <button type="button" onclick="exportToCSV()" class="h-[46px] px-5 flex items-center justify-center gap-2 bg-[#F1F5F9] border border-outline-variant rounded-lg font-semibold text-sm hover:bg-gray-200 hover:border-primary transition-all shadow-sm group">
+            <button type="button" onclick="swiggyExportCSV()" class="h-[46px] px-5 flex items-center justify-center gap-2 bg-[#F1F5F9] border border-outline-variant rounded-lg font-semibold text-sm hover:bg-gray-200 hover:border-primary transition-all shadow-sm group">
                 <span class="material-symbols-outlined text-[20px] text-primary group-hover:scale-110 transition-transform">download</span>
                 Export CSV
             </button>
@@ -306,12 +306,12 @@
     <!-- DATA TABLE WITH PAGINATION -->
     <section class="elevation-1 card-radius overflow-hidden mb-12">
         <div class="px-6 py-4 border-b border-surface-container-high bg-white flex flex-wrap justify-between items-center gap-4">
-            <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase">Swiggy Insights Performance Records</h2>
+            <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase tracking-wide">Swiggy Insights Performance Records</h2>
             
             <!-- Rows Per Page Selector -->
             <div class="flex items-center gap-2 text-sm text-gray-600">
                 <span>Rows per page:</span>
-                <select id="rows-per-page" onchange="changeRowsPerPage()" class="bg-white border border-outline-variant rounded-md pl-3 pr-8 py-1.5 text-sm focus:outline-none focus:border-primary cursor-pointer">
+                <select id="rows-per-page" onchange="swiggyChangeRowsPerPage()" class="bg-white border border-outline-variant rounded-md pl-3 pr-8 py-1.5 text-sm focus:outline-none focus:border-primary cursor-pointer">
                     <option value="20">20</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
@@ -382,7 +382,6 @@
 
 <script>
     // --- EXPORT DATA FOR EXTERNAL CHART SCRIPT ---
-    // This safely passes the Python table_data to a global JS variable
     window.swiggyChartData = {{ table_data | tojson | safe }};
 </script>
 
@@ -391,8 +390,14 @@
 <script src="/static/swiggy_charts.js"></script>
 
 <script>
+    // ==========================================
+    // 100% ISOLATED NAMESPACE SCRIPTS
+    // Every variable/function begins with "swiggy" 
+    // to prevent SyntaxError clashes with script.js
+    // ==========================================
+
     // --- DROPDOWN TOGGLE & FILTER LOGIC ---
-    function toggleCustomDropdown(menuId, event) {
+    function swiggyToggleDropdown(menuId, event) {
         event.stopPropagation();
         const allMenus = document.querySelectorAll('.dropdown-menu-custom');
         allMenus.forEach(menu => { if (menu.id !== menuId) menu.classList.add('hidden'); });
@@ -406,7 +411,7 @@
         }
     }
 
-    function filterCustomDropdown(inputId, listId) {
+    function swiggyFilterDropdown(inputId, listId) {
         const input = document.getElementById(inputId);
         const filter = input.value.toLowerCase();
         const ul = document.getElementById(listId);
@@ -440,33 +445,33 @@
           avatarBadge.innerText = initials || "RP";
         }
 
-        initCalendar();
-        initPagination();
+        swiggyInitCalendar();
+        swiggyInitPagination();
     });
 
     // --- PAGINATION STATE & LOGIC ---
-    let currentPage = 1;
-    let rowsPerPage = 20;
+    let swiggyCurrentPage = 1;
+    let swiggyRowsPerPage = 20;
 
-    function initPagination() {
+    function swiggyInitPagination() {
         const select = document.getElementById('rows-per-page');
-        if (select) rowsPerPage = select.value === 'all' ? Infinity : parseInt(select.value);
-        renderTablePage();
+        if (select) swiggyRowsPerPage = select.value === 'all' ? Infinity : parseInt(select.value);
+        swiggyRenderTablePage();
     }
 
-    function changeRowsPerPage() {
+    function swiggyChangeRowsPerPage() {
         const select = document.getElementById('rows-per-page');
-        rowsPerPage = select.value === 'all' ? Infinity : parseInt(select.value);
-        currentPage = 1;
-        renderTablePage();
+        swiggyRowsPerPage = select.value === 'all' ? Infinity : parseInt(select.value);
+        swiggyCurrentPage = 1;
+        swiggyRenderTablePage();
     }
 
-    function changePage(page) {
-        currentPage = page;
-        renderTablePage();
+    function swiggyChangePage(page) {
+        swiggyCurrentPage = page;
+        swiggyRenderTablePage();
     }
 
-    function renderTablePage() {
+    function swiggyRenderTablePage() {
         const tbody = document.getElementById('table-body');
         if (!tbody) return;
         const rows = Array.from(tbody.querySelectorAll('.data-row'));
@@ -478,11 +483,11 @@
             return;
         }
 
-        const effectiveRowsPerPage = rowsPerPage === Infinity ? totalRows : rowsPerPage;
+        const effectiveRowsPerPage = swiggyRowsPerPage === Infinity ? totalRows : swiggyRowsPerPage;
         const totalPages = Math.ceil(totalRows / effectiveRowsPerPage);
-        if (currentPage > totalPages) currentPage = totalPages || 1;
+        if (swiggyCurrentPage > totalPages) swiggyCurrentPage = totalPages || 1;
 
-        const startIdx = (currentPage - 1) * effectiveRowsPerPage;
+        const startIdx = (swiggyCurrentPage - 1) * effectiveRowsPerPage;
         const endIdx = Math.min(startIdx + effectiveRowsPerPage, totalRows);
 
         rows.forEach((row, index) => {
@@ -494,23 +499,23 @@
         const controls = document.getElementById('pagination-controls');
         let html = '';
         
-        html += `<button type="button" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="px-3 py-1.5 border border-outline-variant rounded-md text-sm font-medium ${currentPage === 1 ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100'}">Previous</button>`;
+        html += `<button type="button" onclick="swiggyChangePage(${swiggyCurrentPage - 1})" ${swiggyCurrentPage === 1 ? 'disabled' : ''} class="px-3 py-1.5 border border-outline-variant rounded-md text-sm font-medium ${swiggyCurrentPage === 1 ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100'}">Previous</button>`;
         
-        let startPage = Math.max(1, currentPage - 2);
+        let startPage = Math.max(1, swiggyCurrentPage - 2);
         let endPage = Math.min(totalPages, startPage + 4);
         if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
         for (let i = startPage; i <= endPage; i++) {
-            html += `<button type="button" onclick="changePage(${i})" class="px-3 py-1.5 border rounded-md text-sm font-medium ${i === currentPage ? 'bg-primary text-white border-primary shadow-sm' : 'border-outline-variant hover:bg-gray-100'}">${i}</button>`;
+            html += `<button type="button" onclick="swiggyChangePage(${i})" class="px-3 py-1.5 border rounded-md text-sm font-medium ${i === swiggyCurrentPage ? 'bg-primary text-white border-primary shadow-sm' : 'border-outline-variant hover:bg-gray-100'}">${i}</button>`;
         }
 
-        html += `<button type="button" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''} class="px-3 py-1.5 border border-outline-variant rounded-md text-sm font-medium ${currentPage === totalPages || totalPages === 0 ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100'}">Next</button>`;
+        html += `<button type="button" onclick="swiggyChangePage(${swiggyCurrentPage + 1})" ${swiggyCurrentPage === totalPages || totalPages === 0 ? 'disabled' : ''} class="px-3 py-1.5 border border-outline-variant rounded-md text-sm font-medium ${swiggyCurrentPage === totalPages || totalPages === 0 ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100'}">Next</button>`;
         
         controls.innerHTML = html;
     }
 
     // --- DROPDOWN URL RELOAD LOGIC ---
-    function exportToCSV() {
+    function swiggyExportCSV() {
         const brand = document.getElementById('brand-input') ? document.getElementById('brand-input').value : '';
         const outlet = document.getElementById('outlet-input').value;
         const startDate = document.getElementById('start-date-input').value;
@@ -523,7 +528,7 @@
         window.location.href = `/swiggy-insights/export?${params.toString()}`;
     }
 
-    function selectBrand(brandValue) {
+    function swiggySelectBrand(brandValue) {
         const url = new URL(window.location.href);
         if (brandValue) url.searchParams.set('brand', brandValue);
         else url.searchParams.delete('brand');
@@ -531,7 +536,7 @@
         window.location.href = url.toString();
     }
 
-    function selectOutlet(outletValue) {
+    function swiggySelectOutlet(outletValue) {
         const url = new URL(window.location.href);
         if (outletValue) url.searchParams.set('outlet', outletValue);
         else url.searchParams.delete('outlet');
@@ -539,53 +544,53 @@
     }
 
     // --- ISOLATED CALENDAR RENDERER ---
-    let calCurrentMonth = new Date().getMonth();
-    let calCurrentYear = new Date().getFullYear();
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    let swiggyMonth = new Date().getMonth();
+    let swiggyYear = new Date().getFullYear();
+    const swiggyMonthsList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     
-    function parseLocalIso(dateStr) {
+    function swiggyParseIso(dateStr) {
         if (!dateStr) return null;
         const parts = dateStr.split('-');
         if (parts.length === 3) return new Date(parts[0], parts[1] - 1, parts[2]);
         return null;
     }
 
-    let calSelStart = parseLocalIso(document.getElementById('start-date-input').value);
-    let calSelEnd = parseLocalIso(document.getElementById('end-date-input').value);
+    let swiggySelStart = swiggyParseIso(document.getElementById('start-date-input').value);
+    let swiggySelEnd = swiggyParseIso(document.getElementById('end-date-input').value);
 
-    function initCalendar() {
-        if (calSelStart) {
-            calCurrentMonth = calSelStart.getMonth();
-            calCurrentYear = calSelStart.getFullYear();
+    function swiggyInitCalendar() {
+        if (swiggySelStart) {
+            swiggyMonth = swiggySelStart.getMonth();
+            swiggyYear = swiggySelStart.getFullYear();
         }
-        renderCalendarGrid();
-        updateCalendarLabel();
+        swiggyRenderGrid();
+        swiggyUpdateLabel();
     }
 
-    function renderCalendarGrid() {
+    function swiggyRenderGrid() {
         const monthText = document.getElementById('custom-month-text');
         const yearText = document.getElementById('custom-year-text');
         const grid = document.getElementById('custom-cal-grid');
         if (!monthText || !yearText || !grid) return;
 
-        monthText.innerText = months[calCurrentMonth];
-        yearText.innerText = calCurrentYear;
+        monthText.innerText = swiggyMonthsList[swiggyMonth];
+        yearText.innerText = swiggyYear;
         grid.innerHTML = "";
 
-        const firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
-        const daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+        const firstDay = new Date(swiggyYear, swiggyMonth, 1).getDay();
+        const daysInMonth = new Date(swiggyYear, swiggyMonth + 1, 0).getDate();
 
         for (let i = 0; i < firstDay; i++) { grid.innerHTML += `<div></div>`; }
 
         for (let day = 1; day <= daysInMonth; day++) {
-            let d = new Date(calCurrentYear, calCurrentMonth, day);
+            let d = new Date(swiggyYear, swiggyMonth, day);
             let isSelected = false;
             let isBetween = false;
 
-            if (calSelStart && calSelEnd) {
-                if (d >= calSelStart && d <= calSelEnd) isBetween = true;
-                if (d.getTime() === calSelStart.getTime() || d.getTime() === calSelEnd.getTime()) isSelected = true;
-            } else if (calSelStart && d.getTime() === calSelStart.getTime()) {
+            if (swiggySelStart && swiggySelEnd) {
+                if (d >= swiggySelStart && d <= swiggySelEnd) isBetween = true;
+                if (d.getTime() === swiggySelStart.getTime() || d.getTime() === swiggySelEnd.getTime()) isSelected = true;
+            } else if (swiggySelStart && d.getTime() === swiggySelStart.getTime()) {
                 isSelected = true;
             }
 
@@ -594,90 +599,90 @@
             else if (isBetween) classes += "bg-blue-100 text-[#2563eb] font-medium";
             else classes += "text-gray-700 hover:bg-gray-100";
 
-            grid.innerHTML += `<div class="${classes}" onclick="selectCalDate(${calCurrentYear}, ${calCurrentMonth}, ${day})">${day}</div>`;
+            grid.innerHTML += `<div class="${classes}" onclick="swiggySelectDate(${swiggyYear}, ${swiggyMonth}, ${day})">${day}</div>`;
         }
     }
 
-    function selectCalDate(y, m, d) {
+    function swiggySelectDate(y, m, d) {
         let clicked = new Date(y, m, d);
-        if (!calSelStart || (calSelStart && calSelEnd)) {
-            calSelStart = clicked;
-            calSelEnd = null;
-        } else if (clicked < calSelStart) {
-            calSelStart = clicked;
-            calSelEnd = null;
+        if (!swiggySelStart || (swiggySelStart && swiggySelEnd)) {
+            swiggySelStart = clicked;
+            swiggySelEnd = null;
+        } else if (clicked < swiggySelStart) {
+            swiggySelStart = clicked;
+            swiggySelEnd = null;
         } else {
-            calSelEnd = clicked;
+            swiggySelEnd = clicked;
         }
-        renderCalendarGrid();
-        updateCalendarLabel();
+        swiggyRenderGrid();
+        swiggyUpdateLabel();
     }
 
-    function customNavigate(mStep) {
-        calCurrentMonth += mStep;
-        if (calCurrentMonth > 11) { calCurrentMonth = 0; calCurrentYear++; }
-        if (calCurrentMonth < 0) { calCurrentMonth = 11; calCurrentYear--; }
-        renderCalendarGrid();
+    function swiggyNavigate(mStep) {
+        swiggyMonth += mStep;
+        if (swiggyMonth > 11) { swiggyMonth = 0; swiggyYear++; }
+        if (swiggyMonth < 0) { swiggyMonth = 11; swiggyYear--; }
+        swiggyRenderGrid();
     }
 
-    function toggleCalMonthMenu(e) {
+    function swiggyToggleMonthMenu(e) {
         e.stopPropagation();
         const mDrop = document.getElementById('custom-month-dropdown');
         document.getElementById('custom-year-dropdown').classList.add('hidden');
         mDrop.classList.toggle('hidden');
         if(!mDrop.classList.contains('hidden')){
-            mDrop.innerHTML = months.map((m, i) => `<div class="px-3 py-1.5 hover:bg-gray-100 cursor-pointer text-sm text-center" onclick="setCalMonth(${i}, event)">${m}</div>`).join('');
+            mDrop.innerHTML = swiggyMonthsList.map((m, i) => `<div class="px-3 py-1.5 hover:bg-gray-100 cursor-pointer text-sm text-center" onclick="swiggySetMonth(${i}, event)">${m}</div>`).join('');
         }
     }
 
-    function setCalMonth(m, e) {
+    function swiggySetMonth(m, e) {
         e.stopPropagation();
-        calCurrentMonth = m;
+        swiggyMonth = m;
         document.getElementById('custom-month-dropdown').classList.add('hidden');
-        renderCalendarGrid();
+        swiggyRenderGrid();
     }
 
-    function toggleCalYearMenu(e) {
+    function swiggyToggleYearMenu(e) {
         e.stopPropagation();
         const yDrop = document.getElementById('custom-year-dropdown');
         document.getElementById('custom-month-dropdown').classList.add('hidden');
         yDrop.classList.toggle('hidden');
         if(!yDrop.classList.contains('hidden')){
             let html = '';
-            for(let y = calCurrentYear - 5; y <= calCurrentYear + 2; y++){
-                html += `<div class="px-3 py-1.5 hover:bg-gray-100 cursor-pointer text-sm text-center" onclick="setCalYear(${y}, event)">${y}</div>`;
+            for(let y = swiggyYear - 5; y <= swiggyYear + 2; y++){
+                html += `<div class="px-3 py-1.5 hover:bg-gray-100 cursor-pointer text-sm text-center" onclick="swiggySetYear(${y}, event)">${y}</div>`;
             }
             yDrop.innerHTML = html;
         }
     }
 
-    function setCalYear(y, e) {
+    function swiggySetYear(y, e) {
         e.stopPropagation();
-        calCurrentYear = y;
+        swiggyYear = y;
         document.getElementById('custom-year-dropdown').classList.add('hidden');
-        renderCalendarGrid();
+        swiggyRenderGrid();
     }
 
-    function updateCalendarLabel() {
+    function swiggyUpdateLabel() {
         const label = document.getElementById('custom-cal-label');
         if (!label) return;
-        const fmt = (d) => `${String(d.getDate()).padStart(2, '0')}/${months[d.getMonth()]}/${d.getFullYear()}`;
-        if (calSelStart && calSelEnd) {
-            label.innerText = `${fmt(calSelStart)} to ${fmt(calSelEnd)}`;
-        } else if (calSelStart) {
-            label.innerText = `${fmt(calSelStart)}`;
+        const fmt = (d) => `${String(d.getDate()).padStart(2, '0')}/${swiggyMonthsList[d.getMonth()]}/${d.getFullYear()}`;
+        if (swiggySelStart && swiggySelEnd) {
+            label.innerText = `${fmt(swiggySelStart)} to ${fmt(swiggySelEnd)}`;
+        } else if (swiggySelStart) {
+            label.innerText = `${fmt(swiggySelStart)}`;
         } else {
             label.innerText = "Select Date Range";
         }
     }
 
-    function forceApplyDate() {
+    function swiggyApplyDate() {
         const url = new URL(window.location.href);
         const fmtIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         
-        if (calSelStart) url.searchParams.set('start_date', fmtIso(calSelStart));
-        if (calSelEnd) url.searchParams.set('end_date', fmtIso(calSelEnd));
-        else if (calSelStart) url.searchParams.set('end_date', fmtIso(calSelStart));
+        if (swiggySelStart) url.searchParams.set('start_date', fmtIso(swiggySelStart));
+        if (swiggySelEnd) url.searchParams.set('end_date', fmtIso(swiggySelEnd));
+        else if (swiggySelStart) url.searchParams.set('end_date', fmtIso(swiggySelStart));
 
         window.location.href = url.toString();
     }

@@ -46,7 +46,6 @@
 <!-- HEADER WITH MODULE SWITCHER & PROFILE -->
 <header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-8 py-4 mx-auto border-b border-surface-container-high">
     <div class="flex items-center gap-6">
-        <!-- Logo & Title -->
         <div class="flex items-center gap-3">
             <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
             <h1 class="font-headline-lg text-[22px] font-bold text-gray-800 tracking-tight hidden md:block border-r border-gray-300 pr-6">RDA Portal</h1>
@@ -64,7 +63,6 @@
 
           <div id="module-menu" class="hidden absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50" onclick="event.stopPropagation()">
             <div class="p-4">
-              <!-- Category 1: CORE ANALYTICS -->
               <div class="mb-4">
                 <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Core Analytics</h4>
                 <div class="space-y-1">
@@ -80,25 +78,6 @@
                     <span class="material-symbols-outlined text-[#E23744] text-[20px]">storefront</span>
                     <span class="text-sm font-medium">Zomato Insights</span>
                   </a>
-                </div>
-              </div>
-              <!-- Category 2: FINANCE & RECON -->
-              <div>
-                <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Finance & Recon</h4>
-                <div class="space-y-1">
-                  <div class="flex items-center justify-between px-3 py-2.5 opacity-40 cursor-not-allowed">
-                    <div class="flex items-center gap-3">
-                      <span class="material-symbols-outlined text-gray-400 text-[20px]">payments</span>
-                      <span class="text-sm font-medium text-gray-600">Payout Reconciliation</span>
-                    </div>
-                    <span class="text-[8px] font-bold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase tracking-tighter">Soon</span>
-                  </div>
-                  <div class="flex items-center px-3 py-2.5 opacity-40 cursor-not-allowed">
-                    <div class="flex items-center gap-3">
-                      <span class="material-symbols-outlined text-gray-400 text-[20px]">calculate</span>
-                      <span class="text-sm font-medium text-gray-600">Pro-Rata Adjustments</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -160,7 +139,7 @@
             <div class="text-[26px] font-bold text-[#FC8019] mt-2">{{ total_orders }}</div>
         </div>
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">AOV</span>
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Pre-Disc AOV</span>
             <div class="text-[26px] font-bold text-on-surface mt-2">{{ avg_aov }}</div>
         </div>
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
@@ -176,39 +155,53 @@
     <!-- DATA TABLE -->
     <section class="elevation-1 card-radius overflow-hidden">
         <div class="px-6 py-4 border-b border-surface-container-high bg-white flex justify-between items-center">
-            <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase">Swiggy Performance Records</h2>
+            <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase">Swiggy Insights Performance Records</h2>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
                     <tr class="bg-[#F1F5F9] font-label-sm text-[12px] text-gray-600 uppercase tracking-widest border-b border-surface-container-high">
-                        <th class="py-4 px-6 font-semibold">Restaurant Name</th>
-                        <th class="py-4 px-6 font-semibold">Report Period</th>
-                        <th class="py-4 px-6 font-semibold">Location</th>
-                        <th class="py-4 px-6 font-semibold">Res ID</th>
-                        <th class="py-4 px-6 font-semibold text-right">Delivered Orders</th>
-                        <th class="py-4 px-6 font-semibold text-right">Sales</th>
-                        <th class="py-4 px-6 font-semibold text-right">GMV</th>
-                        <th class="py-4 px-6 font-semibold text-right">Sales from Ads</th>
-                        <th class="py-4 px-6 font-semibold text-right">Discount Given</th>
+                        <th class="py-4 px-4 font-semibold">Restaurant Name</th>
+                        <th class="py-4 px-4 font-semibold">Report Date</th>
+                        <th class="py-4 px-4 font-semibold">Location</th>
+                        <th class="py-4 px-4 font-semibold">Res ID</th>
+                        <th class="py-4 px-4 font-semibold">City</th>
+                        <th class="py-4 px-4 font-semibold text-right">Orders</th>
+                        <th class="py-4 px-4 font-semibold text-right">GMV</th>
+                        <th class="py-4 px-4 font-semibold text-right">Pre Disc AOV</th>
+                        <th class="py-4 px-4 font-semibold text-right">Online %</th>
+                        <th class="py-4 px-4 font-semibold text-right">Prep Time</th>
+                        <th class="py-4 px-4 font-semibold text-right">Impressions</th>
+                        <th class="py-4 px-4 font-semibold text-right">Menu Opens</th>
+                        <th class="py-4 px-4 font-semibold text-right">Ad Sales</th>
+                        <th class="py-4 px-4 font-semibold text-right">Ad Spend</th>
+                        <th class="py-4 px-4 font-semibold text-right">Ads ROI</th>
+                        <th class="py-4 px-4 font-semibold text-right">Discount Given</th>
                     </tr>
                 </thead>
                 <tbody class="font-body-md text-sm text-on-surface">
                     {% for row in table_data %}
                     <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td class="py-4 px-6 font-medium">{{ row['Restaurant Name'] }}</td>
-                        <td class="py-4 px-6 text-gray-500">{{ row['Report Period'] }}</td>
-                        <td class="py-4 px-6">{{ row['Location'] }}</td>
-                        <td class="py-4 px-6 font-mono text-xs text-gray-400">{{ row['Res ID'] }}</td>
-                        <td class="py-4 px-6 text-right font-bold">{{ "{:,}".format(row['Delivered orders']|int) }}</td>
-                        <td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['Sales']) }}</td>
-                        <td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['GMV']) }}</td>
-                        <td class="py-4 px-6 text-right text-blue-600 font-medium">₹{{ "{:,.2f}".format(row['Sales from Ads']) }}</td>
-                        <td class="py-4 px-6 text-right text-error font-medium">₹{{ "{:,.2f}".format(row['Discount given']) }}</td>
+                        <td class="py-4 px-4 font-medium">{{ row.get('Restaurant Name', '') }}</td>
+                        <td class="py-4 px-4 text-gray-500">{{ row.get('Report Date', '') }}</td>
+                        <td class="py-4 px-4">{{ row.get('Location', '') }}</td>
+                        <td class="py-4 px-4 font-mono text-xs text-gray-400">{{ row.get('Res ID', '') }}</td>
+                        <td class="py-4 px-4">{{ row.get('City', '') }}</td>
+                        <td class="py-4 px-4 text-right font-bold">{{ row.get('Orders', 0) }}</td>
+                        <td class="py-4 px-4 text-right">₹{{ row.get('GMV', 0) }}</td>
+                        <td class="py-4 px-4 text-right">₹{{ row.get('Pre discounted AOV', 0) }}</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Online %', 0) }}%</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Kitchen Prep Time', 0) }}m</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Impressions', 0) }}</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Menu Opens', 0) }}</td>
+                        <td class="py-4 px-4 text-right text-blue-600 font-medium">₹{{ row.get('Ad Sales', 0) }}</td>
+                        <td class="py-4 px-4 text-right">₹{{ row.get('Ad Spend', 0) }}</td>
+                        <td class="py-4 px-4 text-right font-bold">{{ row.get('Ads ROI', 0) }}</td>
+                        <td class="py-4 px-4 text-right text-error font-medium">₹{{ row.get('Discount Given', 0) }}</td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="9" class="py-8 text-center text-gray-500 italic">No Swiggy operational data found.</td>
+                        <td colspan="16" class="py-8 text-center text-gray-500 italic">No Swiggy Insights operational data found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -218,7 +211,6 @@
 </main>
 
 <script>
-    // Initialize Avatar Initials
     document.addEventListener("DOMContentLoaded", function () {
         const displayNameEl = document.getElementById("user-display-name");
         const displayName = displayNameEl ? displayNameEl.innerText.trim() : "";

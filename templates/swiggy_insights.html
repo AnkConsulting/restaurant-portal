@@ -298,8 +298,8 @@
         </div>
 
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
-            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">6. Outlet Leaderboard</h3>
-            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="leaderboardChart"></canvas></div>
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">6. Customer Mix (New vs Repeat)</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="customerMixChart"></canvas></div>
         </div>
     </section>
 
@@ -387,8 +387,8 @@
 
 <!-- EXTERNAL SCRIPTS -->
 <script src="/static/script.js"></script>
-<!-- ?v=2 completely bypasses browser cache, ensuring your new labels instantly load -->
-<script src="/static/swiggy_charts.js?v=2"></script>
+<!-- Force absolute reload of the external JS with a cache buster -->
+<script src="/static/swiggy_charts.js?v=4"></script>
 
 <script>
     // ==========================================

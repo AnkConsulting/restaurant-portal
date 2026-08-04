@@ -11,7 +11,6 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     const dailyData = {};
-    const locationData = {};
     
     // Volume Totals
     let totalImpressions = 0, totalMenuOpens = 0, totalOrders = 0;
@@ -27,7 +26,8 @@ document.addEventListener("DOMContentLoaded", function () {
             dailyData[date] = { 
                 date: date, timestamp: parseDateString(date), 
                 gmv: 0, orders: 0, adSpend: 0, adSales: 0, 
-                prepTimeSum: 0, onlinePctSum: 0, count: 0, discount: 0
+                prepTimeSum: 0, onlinePctSum: 0, count: 0, discount: 0,
+                newCustSum: 0, repeatCustSum: 0 // Added for Chart 6
             };
         }
         dailyData[date].gmv += Number(row['GMV'] || 0);
@@ -37,11 +37,12 @@ document.addEventListener("DOMContentLoaded", function () {
         dailyData[date].discount += Number(row['Discount Given'] || 0);
         dailyData[date].prepTimeSum += Number(row['Kitchen Prep Time'] || 0);
         dailyData[date].onlinePctSum += parseFloat(String(row['Online %']).replace('%', '') || 0);
+        
+        // Accumulate New vs Repeat Customer %
+        dailyData[date].newCustSum += parseFloat(String(row['New Customer Order %'] || 0).replace('%', ''));
+        dailyData[date].repeatCustSum += parseFloat(String(row['Repeat Customer Order %'] || 0).replace('%', ''));
+        
         dailyData[date].count += 1;
-
-        const loc = row['Location'] || 'Unknown';
-        if (!locationData[loc]) locationData[loc] = 0;
-        locationData[loc] += Number(row['GMV'] || 0);
 
         // Absolute Volume additions
         totalImpressions += Number(row['Impressions'] || 0);
@@ -59,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (c2o > 0) { sumC2O += c2o; countC2O++; }
     });
 
-    // Calculate averages
+    // Calculate funnel averages
     let avgI2M = countI2M ? (sumI2M / countI2M) : 0;
     let avgM2C = countM2C ? (sumM2C / countM2C) : 0;
     let avgC2O = countC2O ? (sumC2O / countC2O) : 0;
@@ -305,31 +306,50 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- CHART 6: Outlet Leaderboard ---
-    const ctxLeaderboard = document.getElementById('leaderboardChart');
-    if (ctxLeaderboard) {
-        const sortedLocations = Object.entries(locationData)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 10);
-
-        new Chart(ctxLeaderboard, {
+    // --- CHART 6: Customer Mix (New vs Repeat) ---
+    const ctxCustomer = document.getElementById('customerMixChart');
+    if (ctxCustomer) {
+        new Chart(ctxCustomer, {
             type: 'bar',
             data: {
-                labels: sortedLocations.map(i => i[0]),
-                datasets: [{
-                    label: 'GMV (₹)',
-                    data: sortedLocations.map(i => i[1]),
-                    backgroundColor: '#FC8019',
-                    borderRadius: 4
-                }]
+                labels: dateLabels,
+                datasets: [
+                    {
+                        label: 'Repeat Customers (%)',
+                        data: aggregatedList.map(i => (i.repeatCustSum / i.count).toFixed(1)),
+                        backgroundColor: '#10b981', // Green for healthy retention
+                        borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 }
+                    },
+                    {
+                        label: 'New Customers (%)',
+                        data: aggregatedList.map(i => (i.newCustSum / i.count).toFixed(1)),
+                        backgroundColor: '#3b82f6', // Blue for new acquisition
+                        borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 }
+                    }
+                ]
             },
             options: {
-                indexAxis: 'y',
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw + '%';
+                            }
+                        }
+                    }
+                },
                 scales: {
-                    x: { grid: { display: true }, ticks: { callback: v => '₹' + (v/1000) + 'k' } },
-                    y: { grid: { display: false } }
+                    x: { 
+                        stacked: true, 
+                        grid: { display: false } 
+                    },
+                    y: { 
+                        stacked: true, 
+                        max: 100, // Forces the chart to cap at 100%
+                        ticks: { callback: v => v + '%' } 
+                    }
                 }
             }
         });

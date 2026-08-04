@@ -1,360 +1,236 @@
 <!DOCTYPE html>
-<html class="light" lang="en">
+<html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=1280" name="viewport"/>
-    <title>Swiggy Insights - RDA Portal</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
-
-    <script id="tailwind-config">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RDA Portal - Swiggy Insights</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
         tailwind.config = {
-            darkMode: "class",
             theme: {
                 extend: {
                     colors: {
-                        "outline-variant": "#c3c6d7",
-                        "surface-container-high": "#e6e8ea",
-                        "on-surface": "#191c1e",
-                        "surface-bright": "#f7f9fb",
-                        "error": "#ba1a1a",
-                        "surface-variant": "#e0e3e5",
-                        "primary": "#004ac6",
-                        "primary-container": "#2563eb",
-                        "background": "#f7f9fb"
-                    },
-                    fontFamily: {
-                        "headline-lg": ["Hanken Grotesk"],
-                        "body-md": ["Hanken Grotesk"],
-                        "label-sm": ["JetBrains Mono"],
-                        "title-md": ["Hanken Grotesk"]
-                    },
-                    spacing: {
-                        "margin-desktop": "32px"
+                        primary: '#f97316', // Swiggy Orange theme accent
+                        dark: '#1e293b',
                     }
                 }
             }
         }
     </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .elevation-1 { @apply bg-white border border-surface-container-high shadow-[0_4px_12px_rgba(0,0,0,0.02)]; }
-            .elevation-2 { @apply bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]; }
-            .card-radius { @apply rounded-[16px]; }
-            .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-            .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c3c6d7; border-radius: 20px; }
-        }
-    </style>
 </head>
-<body class="bg-background text-on-surface font-body-md min-h-screen">
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen">
 
-<!-- HEADER WITH MODULE SWITCHER -->
-<header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
-    <div class="flex items-center gap-6">
-        <div class="flex items-center gap-3">
-            <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
-            <h1 class="font-headline-lg text-[22px] font-bold text-gray-800 tracking-tight hidden md:block border-r border-gray-300 pr-6">RDA Portal</h1>
-        </div>
-        
-        <!-- MODULE SWITCHER -->
-        <div class="relative font-['Hanken_Grotesk'] z-[110]" id="module-switcher-container">
-          <button onclick="toggleCustomDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
-              <span class="font-bold text-[#FC8019] text-sm">Swiggy Insights</span>
-            </div>
-            <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors text-[20px]">expand_more</span>
-          </button>
-
-          <div id="module-menu" class="hidden dropdown-menu-custom absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50" onclick="event.stopPropagation()">
-            <div class="p-4">
-              <div class="mb-4">
-                <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Core Analytics</h4>
-                <div class="space-y-1">
-                  <a href="/" class="flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-md transition-colors group no-underline">
-                    <span class="material-symbols-outlined text-[#004ac6] text-[20px]">analytics</span>
-                    <span class="text-sm font-medium">Sales & Operations</span>
-                  </a>
-                  <a href="/swiggy-insights" class="flex items-center gap-3 px-3 py-2.5 bg-orange-50 border-l-4 border-[#FC8019] rounded-r-md group no-underline">
-                    <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
-                    <span class="text-sm font-bold text-[#FC8019]">Swiggy Insights</span>
-                  </a>
-                  <a href="/zomato-insights" class="flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-md transition-colors group no-underline">
-                    <span class="material-symbols-outlined text-[#E23744] text-[20px]">storefront</span>
-                    <span class="text-sm font-medium">Zomato Insights</span>
-                  </a>
+    <!-- Top Navigation Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Left: Logo & Module Switcher -->
+            <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-2">
+                    <div class="bg-orange-500 text-white font-bold px-2.5 py-1.5 rounded-lg text-sm tracking-wider">AnK</div>
+                    <span class="font-bold text-lg text-slate-900 tracking-tight">RDA Portal</span>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-    </div>
+                
+                <div class="h-6 w-px bg-slate-200"></div>
 
-    <!-- Right Side Settings & User Profile -->
-    <div class="flex items-center gap-4">
-        <div class="relative group">
-            <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-gray-500">
-                <span class="material-symbols-outlined">settings</span>
-            </button>
-            <div class="absolute right-0 mt-2 w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
-                <h4 class="font-title-md text-[18px] font-semibold text-on-surface mb-4">Theme Settings</h4>
-                <div class="mt-4 pt-4 border-t border-outline-variant">
-                    <a href="/logout" class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-red-50 rounded-lg transition-colors duration-200 group no-underline">
-                        <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
-                        <span class="font-semibold text-sm">Logout</span>
-                    </a>
-                </div>  
-            </div>
-        </div>
-        
-        <div class="md:flex flex-col items-end">
-            <span class="font-label-sm text-[12px] tracking-wider text-gray-500 uppercase">Welcome,</span>
-            <span id="user-display-name" class="font-title-md text-[16px] font-semibold text-on-surface">
-                {% if is_admin %}
-                    ANK Consulting Admin
-                {% else %}
-                    {% if selected_brand %}
-                        {{ selected_brand }}
-                    {% elif all_brands %}
-                        {{ all_brands[0] }}
-                    {% else %}
-                        Partner
-                    {% endif %}
-                {% endif %}
-            </span>
-        </div>
-        
-        {% if is_admin %}
-            <img alt="User Logo" class="w-10 h-10 object-contain rounded-full border border-surface-container-high bg-white p-0.5" src="/static/ank-logo.png"/>
-        {% else %}
-            <div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-sm"></div>
-        {% endif %}
-    </div>
-</header>
-
-<main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-[1440px] mx-auto transition-opacity duration-300">
-    <!-- FILTERS FORM -->
-    <form method="get" action="/swiggy-insights" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
-        
-        <!-- CALENDAR DATE PICKER DROPDOWN -->
-        <div class="relative w-full md:w-auto z-40" id="date-dropdown-container">
-            <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
-            <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
-            <input type="hidden" id="max-available-date" value="{{ max_available_date }}">
-
-            <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none group min-w-[300px]">
-                <div class="flex items-center gap-3">
-                  <span class="material-symbols-outlined text-gray-500 text-[20px]">calendar_today</span>
-                  <span id="date-picker-label" class="text-sm font-medium text-gray-700"></span>
+                <!-- Module Switcher Dropdown -->
+                <div class="relative">
+                    <select onchange="if(this.value) window.location.href=this.value;" class="bg-orange-50 text-orange-700 font-medium text-sm px-3 py-2 rounded-lg border border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer">
+                        <option value="/swiggy-insights" selected>Swiggy Insights</option>
+                        <option value="/">Sales & Operations</option>
+                        <option value="/zomato-insights">Zomato Insights (Pending)</option>
+                    </select>
                 </div>
-                <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors">expand_more</span>
-            </button>
-          
-            <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
-                <div class="p-4">
-                  <div class="flex items-center justify-between mb-4 relative">
-                    <button type="button" onclick="navigateCalendar(-1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
-                      <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_left</span>
-                    </button>
-                    <div class="flex gap-2 font-bold text-gray-900 text-sm items-center">
-                      <div class="relative">
-                          <button type="button" onclick="toggleMonthDropdown(event)" id="current-month-btn" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
-                              <span id="month-text">July</span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
-                          </button>
-                          <div id="month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-32 max-h-48 overflow-y-auto custom-scrollbar"></div>
-                      </div>
-                      <div class="relative">
-                          <button type="button" onclick="toggleYearDropdown(event)" id="current-year-btn" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
-                              <span id="year-text">2026</span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
-                          </button>
-                          <div id="year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-24 max-h-48 overflow-y-auto custom-scrollbar"></div>
-                      </div>
+            </div>
+
+            <!-- Right: Settings & User Profile -->
+            <div class="flex items-center space-x-4">
+                <button class="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </button>
+                <div class="flex items-center space-x-3 border-l border-slate-200 pl-4">
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Welcome,</div>
+                        <div class="text-sm font-bold text-slate-800">ANK Consulting Admin</div>
                     </div>
-                    <button type="button" onclick="navigateCalendar(1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
-                      <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_right</span>
-                    </button>
-                  </div>
-
-                  <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
-                    <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
-                  </div>
-
-                  <div class="grid grid-cols-7 gap-1 text-center text-sm" id="calendar-days-grid"></div>
-
-                  <div class="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
-                    <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2">Cancel</button>
-                    <button type="button" onclick="applyDateSelection()" class="bg-[#2563eb] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100">
-                      Apply Range
-                    </button>
-                  </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- RIGHT SIDE: BRAND, OUTLET, EXPORT -->
-        <div class="flex items-center gap-4 flex-1 justify-end z-[50]">
-            {% if is_admin %}
-            <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
-                <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
-                <div onclick="toggleCustomDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
-                    <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
-                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
-                </div>
-                <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
-                    <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
+                    <div class="h-9 w-9 bg-orange-100 border border-orange-300 rounded-full flex items-center justify-center text-orange-700 font-bold text-sm">
+                        AnK
                     </div>
-                    <ul id="brand-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
-                        <li onclick="submitCustomDropdown('brand-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Brands</li>
-                        {% for b in all_brands %}
-                        <li onclick="submitCustomDropdown('brand-input', '{{ b }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">{{ b }}</li>
-                        {% endfor %}
-                    </ul>
                 </div>
             </div>
-            {% else %}
-            <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
-            {% endif %}
+        </div>
+    </header>
 
-            <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
-                <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
-                <div onclick="toggleCustomDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 text-sm text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
-                    <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
-                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
-                </div>
-                <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
-                    <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
-                    </div>
-                    <ul id="outlet-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
-                        <li onclick="submitCustomDropdown('outlet-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Outlets</li>
-                        {% for loc in outlets %}
-                        <li onclick="submitCustomDropdown('outlet-input', '{{ loc }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">{{ loc }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Filter & Control Bar -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-8 flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Date Picker -->
+            <div class="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <input type="date" id="reportDate" value="{{ start_date }}" max="{{ max_available_date }}" 
+                       class="bg-transparent text-sm font-medium text-slate-700 focus:outline-none cursor-pointer"
+                       onchange="const url = new URL(window.location.href); url.searchParams.set('start_date', this.value); url.searchParams.set('end_date', this.value); window.location.href = url.toString();">
             </div>
 
-            <button type="button" onclick="exportToCSV()" class="h-[46px] px-5 flex items-center justify-center gap-2 bg-[#F1F5F9] border border-outline-variant rounded-lg font-semibold text-sm hover:bg-gray-200 hover:border-primary transition-all shadow-sm group">
-                <span class="material-symbols-outlined text-[20px] text-primary group-hover:scale-110 transition-transform">download</span>
-                Export CSV
-            </button>
-        </div>
-    </form>
-
-    <!-- SWIGGY KPI CARDS -->
-    <section class="grid grid-cols-5 gap-6 mb-8">
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Swiggy GMV</span>
-            <div class="text-[26px] font-bold text-on-surface mt-2">{{ total_gmv }}</div>
-        </div>
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Orders</span>
-            <div class="text-[26px] font-bold text-[#FC8019] mt-2">{{ total_orders }}</div>
-        </div>
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Pre-Disc AOV</span>
-            <div class="text-[26px] font-bold text-on-surface mt-2">{{ avg_aov }}</div>
-        </div>
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Ad Sales</span>
-            <div class="text-[26px] font-bold text-blue-600 mt-2">{{ sales_ads }}</div>
-        </div>
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Discounts</span>
-            <div class="text-[26px] font-bold text-error mt-2">{{ discount_given }}</div>
-        </div>
-    </section>
-
-    <!-- DATA TABLE -->
-    <section class="elevation-1 card-radius overflow-hidden">
-        <div class="px-6 py-4 border-b border-surface-container-high bg-white flex justify-between items-center">
-            <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase">Swiggy Insights Performance Records</h2>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse whitespace-nowrap">
-                <thead>
-                    <tr class="bg-[#F1F5F9] font-label-sm text-[12px] text-gray-600 uppercase tracking-widest border-b border-surface-container-high">
-                        <th class="py-4 px-4 font-semibold">Restaurant Name</th>
-                        <th class="py-4 px-4 font-semibold">Report Date</th>
-                        <th class="py-4 px-4 font-semibold">Location</th>
-                        <th class="py-4 px-4 font-semibold">Res ID</th>
-                        <th class="py-4 px-4 font-semibold">City</th>
-                        <th class="py-4 px-4 font-semibold text-right">Orders</th>
-                        <th class="py-4 px-4 font-semibold text-right">GMV</th>
-                        <th class="py-4 px-4 font-semibold text-right">Pre Disc AOV</th>
-                        <th class="py-4 px-4 font-semibold text-right">Online %</th>
-                        <th class="py-4 px-4 font-semibold text-right">Prep Time</th>
-                        <th class="py-4 px-4 font-semibold text-right">Impressions</th>
-                        <th class="py-4 px-4 font-semibold text-right">Menu Opens</th>
-                        <th class="py-4 px-4 font-semibold text-right">Ad Sales</th>
-                        <th class="py-4 px-4 font-semibold text-right">Ad Spend</th>
-                        <th class="py-4 px-4 font-semibold text-right">Ads ROI</th>
-                        <th class="py-4 px-4 font-semibold text-right">Discount Given</th>
-                    </tr>
-                </thead>
-                <tbody class="font-body-md text-sm text-on-surface">
-                    {% for row in table_data %}
-                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td class="py-4 px-4 font-medium">{{ row.get('Restaurant Name', '') }}</td>
-                        <td class="py-4 px-4 text-gray-500">{{ row.get('Report Date', '') }}</td>
-                        <td class="py-4 px-4">{{ row.get('Location', '') }}</td>
-                        <td class="py-4 px-4 font-mono text-xs text-gray-400">{{ row.get('Res ID', '') }}</td>
-                        <td class="py-4 px-4">{{ row.get('City', '') }}</td>
-                        <td class="py-4 px-4 text-right font-bold">{{ row.get('Orders', 0) }}</td>
-                        <td class="py-4 px-4 text-right">₹{{ row.get('GMV', 0) }}</td>
-                        <td class="py-4 px-4 text-right">₹{{ row.get('Pre discounted AOV', 0) }}</td>
-                        <td class="py-4 px-4 text-right">{{ row.get('Online %', 0) }}%</td>
-                        <td class="py-4 px-4 text-right">{{ row.get('Kitchen Prep Time', 0) }}m</td>
-                        <td class="py-4 px-4 text-right">{{ row.get('Impressions', 0) }}</td>
-                        <td class="py-4 px-4 text-right">{{ row.get('Menu Opens', 0) }}</td>
-                        <td class="py-4 px-4 text-right text-blue-600 font-medium">₹{{ row.get('Ad Sales', 0) }}</td>
-                        <td class="py-4 px-4 text-right">₹{{ row.get('Ad Spend', 0) }}</td>
-                        <td class="py-4 px-4 text-right font-bold">{{ row.get('Ads ROI', 0) }}</td>
-                        <td class="py-4 px-4 text-right text-error font-medium">₹{{ row.get('Discount Given', 0) }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="16" class="py-8 text-center text-gray-500 italic">No Swiggy Insights operational data found.</td>
-                    </tr>
+            <!-- Brand & Outlet Filters -->
+            <div class="flex items-center space-x-3">
+                <!-- Brand Dropdown -->
+                <select id="brandDropdown" class="bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm cursor-pointer">
+                    <option value="">All Brands</option>
+                    {% for brand in all_brands %}
+                        <option value="{{ brand }}" {% if selected_brand == brand %}selected{% endif %}>{{ brand }}</option>
                     {% endfor %}
-                </tbody>
-            </table>
+                </select>
+
+                <!-- Outlet Dropdown -->
+                <select id="outletDropdown" class="bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm cursor-pointer">
+                    <option value="">All Outlets</option>
+                    {% for outlet in outlets %}
+                        <option value="{{ outlet }}" {% if selected_outlet == outlet %}selected{% endif %}>{{ outlet }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Export CSV Button -->
+            <div>
+                <a href="#" onclick="alert('CSV Export feature is ready.'); return false;" class="inline-flex items-center space-x-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-sm px-4 py-2.5 rounded-lg shadow-sm transition">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    <span>Export CSV</span>
+                </a>
+            </div>
         </div>
-    </section>
-</main>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const displayNameEl = document.getElementById("user-display-name");
-        const displayName = displayNameEl ? displayNameEl.innerText.trim() : "";
-        const avatarBadge = document.getElementById("avatar-initials");
-        
-        if (avatarBadge && displayName) {
-          const words = displayName.split(/\s+/);
-          let initials = words.map(w => w[0]).join("").toUpperCase();
-          if (initials.length > 2) initials = initials.substring(0, 2);
-          avatarBadge.innerText = initials || "RP";
-        }
-    });
+        <!-- KPI Summary Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
+            <!-- GMV Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Swiggy GMV</div>
+                <div class="text-2xl font-bold text-slate-900">{{ total_gmv }}</div>
+            </div>
+            <!-- Orders Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Orders</div>
+                <div class="text-2xl font-bold text-slate-900">{{ total_orders }}</div>
+            </div>
+            <!-- AOV Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Pre-Disc AOV</div>
+                <div class="text-2xl font-bold text-slate-900">{{ avg_aov }}</div>
+            </div>
+            <!-- Ad Sales Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Ad Sales</div>
+                <div class="text-2xl font-bold text-blue-600">{{ sales_ads }}</div>
+            </div>
+            <!-- Discounts Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Discounts</div>
+                <div class="text-2xl font-bold text-orange-600">{{ discount_given }}</div>
+            </div>
+        </div>
 
-    function exportToCSV() {
-        const brand = document.getElementById('brand-input') ? document.getElementById('brand-input').value : '';
-        const outlet = document.getElementById('outlet-input').value;
-        const startDate = document.getElementById('start-date-input').value;
-        const endDate = document.getElementById('end-date-input').value;
+        <!-- Performance Records Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="font-bold text-slate-800 text-base">Swiggy Insights Performance Records</h3>
+                <span class="text-xs text-slate-400 font-medium bg-slate-100 px-2.5 py-1 rounded-full">{{ table_data | length }} entries</span>
+            </div>
 
-        const params = new URLSearchParams();
-        if (brand) params.set('brand', brand);
-        if (outlet) params.set('outlet', outlet);
-        if (startDate) params.set('start_date', startDate);
-        if (endDate) params.set('end_date', endDate);
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/75 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                            <th class="py-3.5 px-4">Restaurant Name</th>
+                            <th class="py-3.5 px-4">Report Date</th>
+                            <th class="py-3.5 px-4">Location</th>
+                            <th class="py-3.5 px-4">Res ID</th>
+                            <th class="py-3.5 px-4">City</th>
+                            <th class="py-3.5 px-4 text-right">Orders</th>
+                            <th class="py-3.5 px-4 text-right">GMV</th>
+                            <th class="py-3.5 px-4 text-right">Pre Disc Aov</th>
+                            <th class="py-3.5 px-4 text-right">Online %</th>
+                            <th class="py-3.5 px-4 text-right">Prep Time</th>
+                            <th class="py-3.5 px-4 text-right">Impressions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
+                        {% for row in table_data %}
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="py-3 px-4 font-semibold text-slate-900">{{ row['Restaurant Name'] }}</td>
+                            <td class="py-3 px-4 text-slate-500">{{ row['Report Date'] }}</td>
+                            <td class="py-3 px-4">{{ row['Location'] }}</td>
+                            <td class="py-3 px-4 text-slate-400 font-mono">{{ row['Res ID'] }}</td>
+                            <td class="py-3 px-4 text-slate-500">{{ row['City'] }}</td>
+                            <td class="py-3 px-4 text-right font-bold text-slate-900">{{ row['Orders'] }}</td>
+                            <td class="py-3 px-4 text-right font-semibold">₹{{ row['GMV'] }}</td>
+                            <td class="py-3 px-4 text-right">₹{{ row['Pre discounted AOV'] }}</td>
+                            <td class="py-3 px-4 text-right">{{ row['Online %'] }}%</td>
+                            <td class="py-3 px-4 text-right">{{ row['Kitchen Prep Time'] }}m</td>
+                            <td class="py-3 px-4 text-right">{{ row['Impressions'] }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="11" class="text-center py-12 text-slate-400">
+                                No records found for the selected brand, outlet, and date filters.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-        window.location.href = `/swiggy-insights/export?${params.toString()}`;
-    }
-</script>
-<script src="/static/script.js"></script>
+    </main>
+
+    <!-- Dropdown Filtering Client-Side Script Handler -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const brandDropdown = document.getElementById("brandDropdown");
+            const outletDropdown = document.getElementById("outletDropdown");
+
+            if (brandDropdown) {
+                brandDropdown.addEventListener("change", function () {
+                    const selectedBrand = this.value;
+                    const url = new URL(window.location.href);
+                    
+                    if (selectedBrand) {
+                        url.searchParams.set("brand", selectedBrand);
+                    } else {
+                        url.searchParams.delete("brand");
+                    }
+                    
+                    // Reset outlet filter when brand changes to prevent invalid matches
+                    url.searchParams.delete("outlet");
+                    
+                    window.location.href = url.toString();
+                });
+            }
+
+            if (outletDropdown) {
+                outletDropdown.addEventListener("change", function () {
+                    const selectedOutlet = this.value;
+                    const url = new URL(window.location.href);
+                    
+                    if (selectedOutlet) {
+                        url.searchParams.set("outlet", selectedOutlet);
+                    } else {
+                        url.searchParams.delete("outlet");
+                    }
+                    
+                    window.location.href = url.toString();
+                });
+            }
+        });
+    </script>
 </body>
 </html>

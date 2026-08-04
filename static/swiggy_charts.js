@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let totalImpressions = 0, totalMenuOpens = 0, totalOrders = 0;
 
     rawData.forEach(row => {
-        // Daily Aggregation
         const date = row['Report Date'] || 'Unknown';
         if (!dailyData[date]) {
             dailyData[date] = { 
@@ -33,22 +32,18 @@ document.addEventListener("DOMContentLoaded", function () {
         dailyData[date].onlinePctSum += parseFloat(String(row['Online %']).replace('%', '') || 0);
         dailyData[date].count += 1;
 
-        // Location Aggregation (Leaderboard)
         const loc = row['Location'] || 'Unknown';
         if (!locationData[loc]) locationData[loc] = 0;
         locationData[loc] += Number(row['GMV'] || 0);
 
-        // Totals (Funnel)
         totalImpressions += Number(row['Impressions'] || 0);
         totalMenuOpens += Number(row['Menu Opens'] || 0);
         totalOrders += Number(row['Orders'] || 0);
     });
 
-    // Chronological arrays for daily charts
     const aggregatedList = Object.values(dailyData).sort((a, b) => a.timestamp - b.timestamp);
-    const dateLabels = aggregatedList.map(item => item.date.substring(0, 5)); // DD-MM
+    const dateLabels = aggregatedList.map(item => item.date.substring(0, 5));
     
-    // Default Font Family
     Chart.defaults.font.family = 'Hanken Grotesk';
 
     // --- CHART 1: Customer Conversion Funnel ---
@@ -66,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }]
             },
             options: {
-                indexAxis: 'y', // Makes it horizontal
+                indexAxis: 'y',
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: { x: { grid: { display: false } } }
@@ -89,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         borderColor: '#FC8019', backgroundColor: '#FC8019',
                         borderWidth: 2, tension: 0.4, pointRadius: 3,
                         yAxisID: 'y',
-                        order: 1 // Pulls the line to the front layer
+                        order: 1
                     },
                     {
                         label: 'Orders',
@@ -97,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         type: 'bar',
                         backgroundColor: '#cbd5e1', borderRadius: 4,
                         yAxisID: 'y1',
-                        order: 2 // Pushes the bars to the back layer
+                        order: 2
                     }
                 ]
             },
@@ -113,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- CHART 3: Advertising ROI ---
+    // --- CHART 3: Advertising ROI (Dual Axis) ---
     const ctxAds = document.getElementById('adsChart');
     if (ctxAds) {
         new Chart(ctxAds, {
@@ -121,8 +116,20 @@ document.addEventListener("DOMContentLoaded", function () {
             data: {
                 labels: dateLabels,
                 datasets: [
-                    { label: 'Ad Spend (₹)', data: aggregatedList.map(i => i.adSpend), backgroundColor: '#94a3b8', borderRadius: 4 },
-                    { label: 'Ad Sales (₹)', data: aggregatedList.map(i => i.adSales), backgroundColor: '#2563eb', borderRadius: 4 }
+                    {
+                        label: 'Ad Spend (₹)',
+                        data: aggregatedList.map(i => i.adSpend),
+                        backgroundColor: '#94a3b8',
+                        borderRadius: 4,
+                        yAxisID: 'y1'
+                    },
+                    {
+                        label: 'Ad Sales (₹)',
+                        data: aggregatedList.map(i => i.adSales),
+                        backgroundColor: '#2563eb',
+                        borderRadius: 4,
+                        yAxisID: 'y'
+                    }
                 ]
             },
             options: {
@@ -130,7 +137,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 interaction: { mode: 'index', intersect: false },
                 scales: {
                     x: { grid: { display: false } },
-                    y: { ticks: { callback: v => '₹' + (v/1000) + 'k' } }
+                    y: { 
+                        type: 'linear', display: true, position: 'left',
+                        title: { display: true, text: 'Ad Sales (₹)', font: { family: 'Hanken Grotesk', size: 11 } },
+                        ticks: { callback: v => '₹' + (v/1000) + 'k' }
+                    },
+                    y1: { 
+                        type: 'linear', display: true, position: 'right',
+                        title: { display: true, text: 'Ad Spend (₹)', font: { family: 'Hanken Grotesk', size: 11 } },
+                        ticks: { callback: v => '₹' + (v/1000) + 'k' },
+                        grid: { drawOnChartArea: false }
+                    }
                 }
             }
         });
@@ -184,7 +201,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         backgroundColor: '#e2e8f0', 
                         borderRadius: 4, 
                         yAxisID: 'y',
-                        order: 2 // Pushes the bars to the back layer
+                        order: 2
                     },
                     {
                         label: 'Discount Given (₹)',
@@ -195,7 +212,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         borderWidth: 2, 
                         tension: 0.4, 
                         yAxisID: 'y',
-                        order: 1 // Pulls the line to the front layer
+                        order: 1
                     }
                 ]
             },
@@ -213,10 +230,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- CHART 6: Outlet Leaderboard ---
     const ctxLeaderboard = document.getElementById('leaderboardChart');
     if (ctxLeaderboard) {
-        // Sort locations by GMV descending
         const sortedLocations = Object.entries(locationData)
             .sort((a, b) => b[1] - a[1])
-            .slice(0, 10); // Top 10 to avoid crowding
+            .slice(0, 10);
 
         new Chart(ctxLeaderboard, {
             type: 'bar',

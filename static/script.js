@@ -73,7 +73,7 @@ function getWeekendStyles(labels, defaultBg, defaultBorder, defaultRadius) {
     return { bgColors, borderColors, radii, borderWidths };
 }
 
-// --- KPI CHANGE INDICATOR ENGINE ---
+// --- KPI CHANGE INDICATOR ENGINE (2-Decimal Precision) ---
 function initChangeIndicators() {
     document.querySelectorAll('.kpi-change-indicator').forEach(el => {
         const current = parseFloat(el.getAttribute('data-current'));
@@ -95,7 +95,7 @@ function updateChangeIndicatorElement(el, current, prev, isInverse) {
     }
     
     const pct = ((current - prev) / prev) * 100;
-    const formattedPct = Math.abs(pct).toFixed(1) + '%';
+    const formattedPct = Math.abs(pct).toFixed(2) + '%';
     
     let isPositive = pct >= 0;
     let colorClass = isPositive ? (isInverse ? 'text-error' : 'text-[#006a61]') : (isInverse ? 'text-[#006a61]' : 'text-error');
@@ -360,7 +360,6 @@ function initCharts(data) {
                             const datasetIndex = context[0].datasetIndex;
                             const payload = window.latestChartPayload;
                             
-                            // If hovering over Previous Period, show the exact matched prior date
                             if (datasetIndex === 1 && payload && payload.prev_trend_labels) {
                                 return payload.prev_trend_labels[index] || context[0].label;
                             }

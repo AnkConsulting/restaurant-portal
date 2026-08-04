@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Request, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -52,28 +53,20 @@ def load_swiggy_insights_data():
             df["Res ID"] = df["Res ID"].dropna().astype(str).str.split('.').str[0].str.strip()
             
         numeric_cols = [
-            "Delivered orders", "Delivered Orders", "Sales", "GMV", 
-            "Sales from Ads", "Discount given", "Discount Given"
+            "Orders", "GMV", "Pre discounted AOV", "Online %", "Kitchen Prep Time",
+            "Impressions", "Impressions to Menu", "Menu Opens", "M2C", "C2O",
+            "New Customer Order %", "Repeat Customer Order %", "Total Complaints",
+            "Average Rating", "Ad Sales", "Ad Spend", "Ads ROI", "Discount Given"
         ]
         for col in numeric_cols:
             if col in df.columns:
-                cleaned_series = df[col].astype(str).str.replace(r'[₹, ]', '', regex=True)
+                cleaned_series = df[col].astype(str).str.replace(r'[₹, %]', '', regex=True)
                 df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
-
-        if "Delivered Orders" in df.columns and "Delivered orders" not in df.columns:
-            df["Delivered orders"] = df["Delivered Orders"]
-        if "Discount Given" in df.columns and "Discount given" not in df.columns:
-            df["Discount given"] = df["Discount Given"]
 
         return df
     except Exception as e:
         print(f"Could not load Swiggy Insights master sheet: {e}")
-        return pd.DataFrame(
-            columns=[
-                "Restaurant Name", "Report Period", "Location", "Res ID",
-                "Delivered orders", "Sales", "GMV", "Sales from Ads", "Discount given"
-            ]
-        )
+        return pd.DataFrame()
 
 @router.get("/swiggy-insights", response_class=HTMLResponse)
 async def swiggy_insights(
@@ -93,8 +86,8 @@ async def swiggy_insights(
     
     all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist()) if "Restaurant Name" in df.columns else []
 
-    if "Report Period" in df.columns:
-        df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
+    if "Report Date" in df.columns:
+        df["_temp_date"] = pd.to_datetime(df["Report Date"], dayfirst=True, format="mixed", errors="coerce")
 
     if not is_admin and "Res ID" in df.columns:
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
@@ -131,10 +124,10 @@ async def swiggy_insights(
         filtered_df = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
 
     total_gmv = float(filtered_df["GMV"].sum()) if "GMV" in filtered_df.columns else 0.0
-    total_orders = int(filtered_df["Delivered orders"].sum()) if "Delivered orders" in filtered_df.columns else 0
-    avg_aov = float(total_gmv / total_orders) if total_orders > 0 else 0.0
-    sales_ads = float(filtered_df["Sales from Ads"].sum()) if "Sales from Ads" in filtered_df.columns else 0.0
-    discount_given = float(filtered_df["Discount given"].sum()) if "Discount given" in filtered_df.columns else 0.0
+    total_orders = int(filtered_df["Orders"].sum()) if "Orders" in filtered_df.columns else 0
+    avg_aov = float(filtered_df["Pre discounted AOV"].mean()) if "Pre discounted AOV" in filtered_df.columns and not filtered_df["Pre discounted AOV"].empty else 0.0
+    sales_ads = float(filtered_df["Ad Sales"].sum()) if "Ad Sales" in filtered_df.columns else 0.0
+    discount_given = float(filtered_df["Discount Given"].sum()) if "Discount Given" in filtered_df.columns else 0.0
 
     if "_temp_date" in filtered_df.columns:
         filtered_df = filtered_df.drop(columns=["_temp_date"])

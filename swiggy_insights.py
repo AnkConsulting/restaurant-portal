@@ -1,73 +1,3 @@
-from typing import Optional
-from fastapi import APIRouter, Request, Query
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
-from fastapi.templating import Jinja2Templates
-import pandas as pd
-import os
-
-router = APIRouter()
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
-
-SWIGGY_INSIGHTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2AAwYZA0r8Y59L5KAOZ0yszHcNjyVKynuPfqcTKBh6VSPsmSqg5pmCizX5qDEEno26-okgxtRvZN5/pub?gid=1328235442&single=true&output=csv"
-
-def format_indian_currency(val):
-    try:
-        val = float(val)
-    except (TypeError, ValueError):
-        val = 0.0
-    parts = f"{val:.2f}".split(".")
-    integer_part = parts[0]
-    decimal_part = parts[1]
-    last_three = integer_part[-3:]
-    other_digits = integer_part[:-3]
-    if other_digits:
-        other_digits = ",".join([other_digits[max(0, i-2):i] for i in range(len(other_digits), 0, -2)][::-1])
-        res = other_digits + "," + last_three
-    else:
-        res = last_three
-    return f"₹{res}.{decimal_part}"
-
-def format_indian_integer(val):
-    try:
-        val = int(float(val))
-    except (TypeError, ValueError):
-        val = 0
-    integer_part = str(val)
-    last_three = integer_part[-3:]
-    other_digits = integer_part[:-3]
-    if other_digits:
-        other_digits = ",".join([other_digits[max(0, i-2):i] for i in range(len(other_digits), 0, -2)][::-1])
-        res = other_digits + "," + last_three
-    else:
-        res = last_three
-    return res
-
-def load_swiggy_insights_data():
-    try:
-        df = pd.read_csv(SWIGGY_INSIGHTS_CSV_URL)
-        df.columns = df.columns.str.strip()
-        
-        if "Res ID" in df.columns:
-            df["Res ID"] = df["Res ID"].dropna().astype(str).str.split('.').str[0].str.strip()
-            
-        numeric_cols = [
-            "Orders", "GMV", "Pre discounted AOV", "Online %", "Kitchen Prep Time",
-            "Impressions", "Impressions to Menu", "Menu Opens", "M2C", "C2O",
-            "New Customer Order %", "Repeat Customer Order %", "Total Complaints",
-            "Average Rating", "Ad Sales", "Ad Spend", "Ads ROI", "Discount Given"
-        ]
-        for col in numeric_cols:
-            if col in df.columns:
-                cleaned_series = df[col].astype(str).str.replace(r'[₹, %]', '', regex=True)
-                df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
-
-        return df
-    except Exception as e:
-        print(f"Could not load Swiggy Insights master sheet: {e}")
-        return pd.DataFrame()
-
 @router.get("/swiggy-insights", response_class=HTMLResponse)
 async def swiggy_insights(
     request: Request,
@@ -91,35 +21,50 @@ async def swiggy_insights(
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
 
     all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist()) if "Restaurant Name" in df.columns else []
-    selected_brand = brand if brand in all_brands else ""
+    selected_brand = brand.strip() if brand and brand in all_brands else ""
     
-    context_df = df[df["Restaurant Name"] == selected_brand] if selected_brand and "Restaurant Name" in df.columns else df
+    # Filter by Brand
+    context_df = df[df["Restaurant Name"] == selected_brand] if selected_brand else df
 
     outlets = sorted(context_df["Location"].dropna().unique().tolist()) if "Location" in context_df.columns else []
-    selected_outlet = outlet if outlet in outlets else ""
+    selected_outlet = outlet.strip() if outlet and outlet in outlets else ""
+    
+    # Filter by Outlet
     if selected_outlet and "Location" in context_df.columns:
         context_df = context_df[context_df["Location"] == selected_outlet]
 
+    # --- UPDATED DATE FILTERING LOGIC ---
     max_available_date = ""
+    max_date_obj = None
     if "_temp_date" in context_df.columns and not context_df["_temp_date"].dropna().empty:
         max_date_obj = context_df["_temp_date"].max()
         if pd.notnull(max_date_obj):
             max_available_date = max_date_obj.strftime("%Y-%m-%d")
 
-    if not start_date or not end_date:
-        if max_available_date:
-            start_date = max_available_date
-            end_date = max_available_date
+    # Safely parse incoming dates from the URL, enforcing day-first for standard Indian dates
+    start_dt = pd.to_datetime(start_date, dayfirst=True, format="mixed", errors="coerce")
+    end_dt = pd.to_datetime(end_date, dayfirst=True, format="mixed", errors="coerce")
+
+    # Default to max available date if invalid, empty, or out of bounds
+    if pd.isnull(start_dt) or (max_date_obj is not None and start_dt > max_date_obj):
+        start_dt = max_date_obj
+        end_dt = max_date_obj
+
+    # Standardize string format back to YYYY-MM-DD for the HTML template to render the calendar properly
+    if pd.notnull(start_dt):
+        start_date = start_dt.strftime("%Y-%m-%d")
+    if pd.notnull(end_dt):
+        end_date = end_dt.strftime("%Y-%m-%d")
 
     filtered_df = context_df.copy()
-    start_dt = pd.to_datetime(start_date, errors="coerce")
-    end_dt = pd.to_datetime(end_date, errors="coerce")
 
+    # Apply the date filter stripping the time to avoid missed records
     if pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in filtered_df.columns:
-        if end_date > max_available_date:
-            end_date = max_available_date
-            end_dt = pd.to_datetime(end_date, errors="coerce")
-        filtered_df = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
+        filtered_df = filtered_df[
+            (filtered_df["_temp_date"].dt.normalize() >= start_dt.normalize()) & 
+            (filtered_df["_temp_date"].dt.normalize() <= end_dt.normalize())
+        ]
+    # -------------------------------------
 
     total_gmv = float(filtered_df["GMV"].sum()) if "GMV" in filtered_df.columns else 0.0
     total_orders = int(filtered_df["Orders"].sum()) if "Orders" in filtered_df.columns else 0
@@ -152,69 +97,4 @@ async def swiggy_insights(
             "discount_given": format_indian_currency(discount_given),
             "table_data": table_records
         }
-    )
-
-@router.get("/swiggy-insights/export")
-def export_swiggy_insights_csv(
-    request: Request,
-    brand: Optional[str] = Query(None),
-    outlet: Optional[str] = Query(None),
-    start_date: Optional[str] = Query(None),
-    end_date: Optional[str] = Query(None)
-):
-    if not request.session.get("logged_in"):
-        return RedirectResponse(url="/login", status_code=303)
-
-    is_admin = request.session.get("is_admin", False)
-    authorized_res_ids = request.session.get("authorized_res_ids", [])
-
-    df = load_swiggy_insights_data()
-    if "Report Date" in df.columns:
-        df["_temp_date"] = pd.to_datetime(df["Report Date"], dayfirst=True, format="mixed", errors="coerce")
-
-    if not is_admin and "Res ID" in df.columns:
-        df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
-
-    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist()) if "Restaurant Name" in df.columns else []
-    selected_brand = brand if brand in all_brands else ""
-    if selected_brand and "Restaurant Name" in df.columns:
-        context_df = df[df["Restaurant Name"] == selected_brand]
-    else:
-        context_df = df
-
-    if outlet and "Location" in context_df.columns:
-        context_df = context_df[context_df["Location"] == outlet]
-
-    max_available_date = ""
-    if "_temp_date" in context_df.columns and not context_df["_temp_date"].dropna().empty:
-        max_date_obj = context_df["_temp_date"].max()
-        if pd.notnull(max_date_obj):
-            max_available_date = max_date_obj.strftime("%Y-%m-%d")
-
-    if not start_date or not end_date:
-        if max_available_date:
-            start_date = max_available_date
-            end_date = max_available_date
-
-    filtered_df = context_df.copy()
-    start_dt = pd.to_datetime(start_date, errors="coerce")
-    end_dt = pd.to_datetime(end_date, errors="coerce")
-
-    if pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in filtered_df.columns:
-        if end_date > max_available_date:
-            end_date = max_available_date
-            end_dt = pd.to_datetime(end_date, errors="coerce")
-        filtered_df = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
-
-    if "_temp_date" in filtered_df.columns:
-        filtered_df = filtered_df.drop(columns=["_temp_date"])
-
-    csv_data = filtered_df.to_csv(index=False)
-    file_prefix = selected_brand.replace(" ", "_") if selected_brand else "All_Brands"
-    filename = f"Swiggy_Insights_Export_{file_prefix}_{start_date}_to_{end_date}.csv"
-
-    return Response(
-        content=csv_data,
-        media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )

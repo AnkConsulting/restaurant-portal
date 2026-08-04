@@ -183,6 +183,8 @@ async def render_dashboard(
     total_gmv = float(current_filtered["GMV"].sum()) if "GMV" in current_filtered.columns else 0.0
     total_orders = int(current_filtered["Delivered orders"].sum()) if "Delivered orders" in current_filtered.columns else 0
     avg_aov = float(total_gmv / total_orders) if total_orders > 0 else 0.0
+    formatted_avg_aov = f"₹{format_indian_integer(round(avg_aov))}"
+
     sales_ads = float(current_filtered["Sales from Ads"].sum()) if "Sales from Ads" in current_filtered.columns else 0.0
     discount_given = float(current_filtered["Discount given"].sum()) if "Discount given" in current_filtered.columns else 0.0
 
@@ -314,7 +316,7 @@ async def render_dashboard(
             "total_orders": format_indian_integer(total_orders),
             "raw_total_orders": total_orders,
             "raw_prev_total_orders": prev_total_orders,
-            "avg_aov": format_indian_currency(avg_aov),
+            "avg_aov": formatted_avg_aov,
             "raw_avg_aov": avg_aov,
             "raw_prev_avg_aov": prev_avg_aov,
             "sales_ads": format_indian_currency(sales_ads),
@@ -350,7 +352,7 @@ async def render_dashboard(
             
             "total_gmv": format_indian_currency(total_gmv),
             "total_orders": format_indian_integer(total_orders),
-            "avg_aov": format_indian_currency(avg_aov),
+            "avg_aov": formatted_avg_aov,
             "sales_ads": format_indian_currency(sales_ads),
             "discount_given": format_indian_currency(discount_given),
             

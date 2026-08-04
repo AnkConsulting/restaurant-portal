@@ -142,6 +142,7 @@ async def render_dashboard(
 
         current_filtered = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
         
+        # Calculate exactly 1 month prior for the WoW/MoM trend arrows
         prev_start = start_dt - pd.DateOffset(months=1)
         prev_end = end_dt - pd.DateOffset(months=1)
         prev_filtered = filtered_df[(filtered_df["_temp_date"] >= prev_start) & (filtered_df["_temp_date"] <= prev_end)]
@@ -149,12 +150,36 @@ async def render_dashboard(
         current_filtered = filtered_df
         prev_filtered = pd.DataFrame(columns=filtered_df.columns)
 
+    # 1. Current Period Metrics
     total_gmv = current_filtered["GMV"].sum() if "GMV" in current_filtered.columns else 0.0
     total_orders = int(current_filtered["Delivered orders"].sum()) if "Delivered orders" in current_filtered.columns else 0
     avg_aov = (total_gmv / total_orders) if total_orders > 0 else 0.0
     sales_ads = current_filtered["Sales from Ads"].sum() if "Sales from Ads" in current_filtered.columns else 0.0
     discount_given = current_filtered["Discount given"].sum() if "Discount given" in current_filtered.columns else 0.0
 
+    # 2. Previous Period Metrics (For Trend Arrows)
+    prev_total_gmv = prev_filtered["GMV"].sum() if "GMV" in prev_filtered.columns else 0.0
+    prev_total_orders = int(prev_filtered["Delivered orders"].sum()) if "Delivered orders" in prev_filtered.columns else 0
+    prev_avg_aov = (prev_total_gmv / prev_total_orders) if prev_total_orders > 0 else 0.0
+    prev_sales_ads = prev_filtered["Sales from Ads"].sum() if "Sales from Ads" in prev_filtered.columns else 0.0
+    prev_discount_given = prev_filtered["Discount given"].sum() if "Discount given" in prev_filtered.columns else 0.0
+
+    # 3. Efficiency Insights (Discount Impact, Ad ROI, Platform AOV)
+    discount_impact_val = (discount_given / total_gmv * 100) if total_gmv > 0 else 0.0
+    discount_impact_str = f"{discount_impact_val:.1f}%"
+
+    ad_spend = current_filtered["Ad Spend"].sum() if "Ad Spend" in current_filtered.columns else 0.0
+    ad_roi_str = f"₹{(total_gmv / ad_spend):.1f}" if ad_spend > 0 else "N/A"
+
+    platform_aov_dict = {}
+    if "Platform" in current_filtered.columns:
+        for p in platforms:
+            p_df = current_filtered[current_filtered["Platform"] == p]
+            p_gmv = p_df["GMV"].sum() if "GMV" in p_df.columns else 0.0
+            p_orders = p_df["Delivered orders"].sum() if "Delivered orders" in p_df.columns else 0
+            platform_aov_dict[p] = (p_gmv / p_orders) if p_orders > 0 else 0.0
+
+    # 4. Chart Aggregations
     platform_orders, platform_gmv, platform_sales, platform_ads, platform_discount = {}, {}, {}, {}, {}
     if "Platform" in current_filtered.columns:
         if "Delivered orders" in current_filtered.columns:
@@ -183,17 +208,6 @@ async def render_dashboard(
             orders_trend = trend_df["Delivered orders"].tolist() if "Delivered orders" in trend_df.columns else []
             ads_trend = trend_df["Sales from Ads"].tolist() if "Sales from Ads" in trend_df.columns else []
             discount_trend = trend_df["Discount given"].tolist() if "Discount given" in trend_df.columns else []
-
-    if "_temp_date" in prev_filtered.columns and not prev_filtered.empty:
-        agg_dict = {col: "sum" for col in ["Sales", "GMV", "Delivered orders", "Sales from Ads", "Discount given"] if col in prev_filtered.columns}
-        if agg_dict:
-            prev_trend_df = prev_filtered.groupby("_temp_date").agg(agg_dict).reset_index().sort_values("_temp_date")
-            prev_trend_labels = prev_trend_df["_temp_date"].dt.strftime('%d-%m-%Y').tolist()
-            prev_sales_trend = prev_trend_df["Sales"].tolist() if "Sales" in prev_trend_df.columns else []
-            prev_gmv_trend = prev_trend_df["GMV"].tolist() if "GMV" in prev_trend_df.columns else []
-            prev_orders_trend = prev_trend_df["Delivered orders"].tolist() if "Delivered orders" in prev_trend_df.columns else []
-            prev_ads_trend = prev_trend_df["Sales from Ads"].tolist() if "Sales from Ads" in prev_trend_df.columns else []
-            prev_discount_trend = prev_trend_df["Discount given"].tolist() if "Discount given" in prev_trend_df.columns else []
 
     chart_data = {
         "platform_orders": platform_orders,
@@ -239,10 +253,23 @@ async def render_dashboard(
         return JSONResponse(content={
             "max_available_date": max_available_date,
             "total_gmv": f"₹{total_gmv:,.2f}",
+            "raw_total_gmv": total_gmv,
+            "raw_prev_total_gmv": prev_total_gmv,
             "total_orders": f"{total_orders:,}",
+            "raw_total_orders": total_orders,
+            "raw_prev_total_orders": prev_total_orders,
             "avg_aov": f"₹{avg_aov:,.2f}",
+            "raw_avg_aov": avg_aov,
+            "raw_prev_avg_aov": prev_avg_aov,
             "sales_ads": f"₹{sales_ads:,.2f}",
+            "raw_sales_ads": sales_ads,
+            "raw_prev_sales_ads": prev_sales_ads,
             "discount_given": f"₹{discount_given:,.2f}",
+            "raw_discount_given": discount_given,
+            "raw_prev_discount_given": prev_discount_given,
+            "ad_roi": ad_roi_str,
+            "discount_impact": discount_impact_str,
+            "platform_aov": platform_aov_dict,
             "outlets": outlets,
             "platforms": platforms,
             "table_data": formatted_table_data,
@@ -264,15 +291,67 @@ async def render_dashboard(
             "start_date": start_date or "",
             "end_date": end_date or "",
             "max_available_date": max_available_date,
+            
+            # Formatted KPIs
             "total_gmv": f"₹{total_gmv:,.2f}",
             "total_orders": f"{total_orders:,}",
             "avg_aov": f"₹{avg_aov:,.2f}",
             "sales_ads": f"₹{sales_ads:,.2f}",
             "discount_given": f"₹{discount_given:,.2f}",
+            
+            # Raw Data for JS Trend Arrows
+            "raw_total_gmv": total_gmv,
+            "raw_prev_total_gmv": prev_total_gmv,
+            "raw_total_orders": total_orders,
+            "raw_prev_total_orders": prev_total_orders,
+            "raw_avg_aov": avg_aov,
+            "raw_prev_avg_aov": prev_avg_aov,
+            "raw_sales_ads": sales_ads,
+            "raw_prev_sales_ads": prev_sales_ads,
+            "raw_discount_given": discount_given,
+            "raw_prev_discount_given": prev_discount_given,
+
+            # Efficiency block
+            "ad_roi": ad_roi_str,
+            "discount_impact": discount_impact_str,
+            "platform_aov": platform_aov_dict,
+
             "table_data": table_records,
             "chart_data": chart_data
         },
     )
+
+# --- NEW MODULE SWITCHER ROUTES ---
+
+@app.get("/swiggy-insights", response_class=HTMLResponse)
+async def swiggy_insights(request: Request):
+    if not request.session.get("logged_in"):
+        return RedirectResponse(url="/login", status_code=303)
+    # Temporary placeholder until we build the full Swiggy Funnel page
+    return HTMLResponse("""
+        <html class='bg-[#f7f9fb] font-sans'>
+            <body class='p-10 flex flex-col items-center justify-center min-h-screen text-center'>
+                <h1 class='text-4xl font-bold text-[#FC8019] mb-4'>Swiggy Insights</h1>
+                <p class='text-gray-600 mb-8'>This advanced funnel module is currently under construction (Phase 4).</p>
+                <a href='/' class='bg-[#004ac6] text-white px-6 py-2 rounded-lg no-underline font-medium hover:bg-blue-700 transition'>Return to Dashboard</a>
+            </body>
+        </html>
+    """)
+
+@app.get("/zomato-insights", response_class=HTMLResponse)
+async def zomato_insights(request: Request):
+    if not request.session.get("logged_in"):
+        return RedirectResponse(url="/login", status_code=303)
+    # Temporary placeholder until we build the full Zomato Funnel page
+    return HTMLResponse("""
+        <html class='bg-[#f7f9fb] font-sans'>
+            <body class='p-10 flex flex-col items-center justify-center min-h-screen text-center'>
+                <h1 class='text-4xl font-bold text-[#E23744] mb-4'>Zomato Insights</h1>
+                <p class='text-gray-600 mb-8'>This advanced funnel module is currently under construction (Phase 4).</p>
+                <a href='/' class='bg-[#004ac6] text-white px-6 py-2 rounded-lg no-underline font-medium hover:bg-blue-700 transition'>Return to Dashboard</a>
+            </body>
+        </html>
+    """)
 
 @app.get("/export")
 def export_csv(

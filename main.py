@@ -19,6 +19,40 @@ BRAND_MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwF
 INACTIVE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=920943544&single=true&output=csv"
 
 
+def format_indian_currency(val):
+    try:
+        val = float(val)
+    except (TypeError, ValueError):
+        val = 0.0
+    parts = f"{val:.2f}".split(".")
+    integer_part = parts[0]
+    decimal_part = parts[1]
+    last_three = integer_part[-3:]
+    other_digits = integer_part[:-3]
+    if other_digits:
+        other_digits = ",".join([other_digits[max(0, i-2):i] for i in range(len(other_digits), 0, -2)][::-1])
+        res = other_digits + "," + last_three
+    else:
+        res = last_three
+    return f"₹{res}.{decimal_part}"
+
+
+def format_indian_integer(val):
+    try:
+        val = int(float(val))
+    except (TypeError, ValueError):
+        val = 0
+    integer_part = str(val)
+    last_three = integer_part[-3:]
+    other_digits = integer_part[:-3]
+    if other_digits:
+        other_digits = ",".join([other_digits[max(0, i-2):i] for i in range(len(other_digits), 0, -2)][::-1])
+        res = other_digits + "," + last_three
+    else:
+        res = last_three
+    return res
+
+
 def load_data():
     try:
         df = pd.read_csv(SHEET_CSV_URL)
@@ -137,7 +171,7 @@ async def render_dashboard(
 
         current_filtered = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
         
-        # Exact 1 Month Prior for MoM Previous Period Comparison
+        # MoM Comparison Window
         prev_start = start_dt - pd.DateOffset(months=1)
         prev_end = end_dt - pd.DateOffset(months=1)
         prev_filtered = filtered_df[(filtered_df["_temp_date"] >= prev_start) & (filtered_df["_temp_date"] <= prev_end)]
@@ -145,7 +179,7 @@ async def render_dashboard(
         current_filtered = filtered_df
         prev_filtered = pd.DataFrame(columns=filtered_df.columns)
 
-    # Core Metrics
+    # Core Metrics Calculations
     total_gmv = float(current_filtered["GMV"].sum()) if "GMV" in current_filtered.columns else 0.0
     total_orders = int(current_filtered["Delivered orders"].sum()) if "Delivered orders" in current_filtered.columns else 0
     avg_aov = float(total_gmv / total_orders) if total_orders > 0 else 0.0
@@ -186,7 +220,7 @@ async def render_dashboard(
         if "Discount given" in current_filtered.columns:
             platform_discount = {k: float(v) for k, v in current_filtered.groupby("Platform")["Discount given"].sum().to_dict().items()}
 
-    # --- MoM Trend Alignment Engine with Correct Prior Dates ---
+    # MoM Trend Alignment Engine
     trend_labels, prev_trend_labels = [], []
     sales_trend, gmv_trend, orders_trend, ads_trend, discount_trend = [], [], [], [], []
     prev_sales_trend, prev_gmv_trend, prev_orders_trend, prev_ads_trend, prev_discount_trend = [], [], [], [], []
@@ -210,7 +244,6 @@ async def render_dashboard(
                 ads_trend.append(float(row.get("Sales from Ads", 0)))
                 discount_trend.append(float(row.get("Discount given", 0)))
                 
-                # Look up exactly 1 month prior for the tooltip date & data alignment
                 prior_date = curr_date - pd.DateOffset(months=1)
                 prev_trend_labels.append(prior_date.strftime('%d-%m-%Y'))
                 
@@ -266,28 +299,28 @@ async def render_dashboard(
                 "Location": str(row.get('Location', '')),
                 "Res ID": str(row.get('Res ID', '')),
                 "Platform": str(row.get('Platform', '')),
-                "Delivered orders": f"{int(row.get('Delivered orders', 0)):,}",
-                "Sales": f"₹{float(row.get('Sales', 0)):,.2f}",
-                "GMV": f"₹{float(row.get('GMV', 0)):,.2f}",
-                "Sales from Ads": f"₹{float(row.get('Sales from Ads', 0)):,.2f}",
-                "Discount given": f"₹{float(row.get('Discount given', 0)):,.2f}"
+                "Delivered orders": format_indian_integer(row.get('Delivered orders', 0)),
+                "Sales": format_indian_currency(row.get('Sales', 0)),
+                "GMV": format_indian_currency(row.get('GMV', 0)),
+                "Sales from Ads": format_indian_currency(row.get('Sales from Ads', 0)),
+                "Discount given": format_indian_currency(row.get('Discount given', 0))
             })
             
         return JSONResponse(content={
             "max_available_date": max_available_date,
-            "total_gmv": f"₹{total_gmv:,.2f}",
+            "total_gmv": format_indian_currency(total_gmv),
             "raw_total_gmv": total_gmv,
             "raw_prev_total_gmv": prev_total_gmv,
-            "total_orders": f"{total_orders:,}",
+            "total_orders": format_indian_integer(total_orders),
             "raw_total_orders": total_orders,
             "raw_prev_total_orders": prev_total_orders,
-            "avg_aov": f"₹{avg_aov:,.2f}",
+            "avg_aov": format_indian_currency(avg_aov),
             "raw_avg_aov": avg_aov,
             "raw_prev_avg_aov": prev_avg_aov,
-            "sales_ads": f"₹{sales_ads:,.2f}",
+            "sales_ads": format_indian_currency(sales_ads),
             "raw_sales_ads": sales_ads,
             "raw_prev_sales_ads": prev_sales_ads,
-            "discount_given": f"₹{discount_given:,.2f}",
+            "discount_given": format_indian_currency(discount_given),
             "raw_discount_given": discount_given,
             "raw_prev_discount_given": prev_discount_given,
             "ad_roi": ad_roi_str,
@@ -315,11 +348,11 @@ async def render_dashboard(
             "end_date": end_date or "",
             "max_available_date": max_available_date,
             
-            "total_gmv": f"₹{total_gmv:,.2f}",
-            "total_orders": f"{total_orders:,}",
-            "avg_aov": f"₹{avg_aov:,.2f}",
-            "sales_ads": f"₹{sales_ads:,.2f}",
-            "discount_given": f"₹{discount_given:,.2f}",
+            "total_gmv": format_indian_currency(total_gmv),
+            "total_orders": format_indian_integer(total_orders),
+            "avg_aov": format_indian_currency(avg_aov),
+            "sales_ads": format_indian_currency(sales_ads),
+            "discount_given": format_indian_currency(discount_given),
             
             "raw_total_gmv": total_gmv,
             "raw_prev_total_gmv": prev_total_gmv,

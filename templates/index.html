@@ -51,18 +51,14 @@
 </head>
 <body class="bg-background text-on-surface font-body-md min-h-screen">
 
-<!-- HEADER WITH STITCH MODULE SWITCHER -->
 <header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
     <div class="flex items-center gap-6">
-        <!-- Logo & Title -->
         <div class="flex items-center gap-3">
             <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
             <h1 class="font-headline-lg text-[22px] font-bold text-gray-800 tracking-tight hidden md:block border-r border-gray-300 pr-6">RDA Portal</h1>
         </div>
         
-        <!-- MODULE SWITCHER (Functional) -->
         <div class="relative font-['Hanken_Grotesk'] z-[110]" id="module-switcher-container">
-          <!-- Selector Button -->
           <button onclick="toggleCustomDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-[#004ac6] text-[20px]">grid_view</span>
@@ -71,37 +67,28 @@
             <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors text-[20px]">expand_more</span>
           </button>
 
-          <!-- Dropdown Panel (Hidden by default, toggled via JS) -->
           <div id="module-menu" class="hidden dropdown-menu-custom absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50" onclick="event.stopPropagation()">
             <div class="p-4">
-              
-              <!-- Category 1: CORE ANALYTICS -->
               <div class="mb-4">
                 <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Core Analytics</h4>
                 <div class="space-y-1">
-                  <!-- Active Option (Current Page) -->
                   <a href="/" class="flex items-center gap-3 px-3 py-2.5 bg-blue-50 border-l-4 border-[#004ac6] rounded-r-md group no-underline">
                     <span class="material-symbols-outlined text-[#004ac6] text-[20px]">analytics</span>
                     <span class="text-sm font-bold text-[#004ac6]">Sales & Operations</span>
                   </a>
-                  <!-- Swiggy Link -->
                   <a href="/swiggy-insights" class="flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-md transition-colors group no-underline">
                     <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
                     <span class="text-sm font-medium">Swiggy Insights</span>
                   </a>
-                  <!-- Zomato Link -->
                   <a href="/zomato-insights" class="flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-md transition-colors group no-underline">
                     <span class="material-symbols-outlined text-[#E23744] text-[20px]">storefront</span>
                     <span class="text-sm font-medium">Zomato Insights</span>
                   </a>
                 </div>
               </div>
-
-              <!-- Category 2: FINANCE & RECON -->
               <div>
                 <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Finance & Recon</h4>
                 <div class="space-y-1">
-                  <!-- Disabled Option with Badge -->
                   <div class="flex items-center justify-between px-3 py-2.5 opacity-40 cursor-not-allowed">
                     <div class="flex items-center gap-3">
                       <span class="material-symbols-outlined text-gray-400 text-[20px]">payments</span>
@@ -109,7 +96,6 @@
                     </div>
                     <span class="text-[8px] font-bold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded uppercase tracking-tighter">Soon</span>
                   </div>
-                  <!-- Disabled Option -->
                   <div class="flex items-center px-3 py-2.5 opacity-40 cursor-not-allowed">
                     <div class="flex items-center gap-3">
                       <span class="material-symbols-outlined text-gray-400 text-[20px]">calculate</span>
@@ -118,13 +104,11 @@
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
     </div>
 
-    <!-- Right Side Settings & User Profile -->
     <div class="flex items-center gap-4">
         <div class="relative group">
             <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-gray-500">
@@ -167,7 +151,6 @@
 </header>
 
 <main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-[1440px] mx-auto transition-opacity duration-300">
-    <!-- FILTERS -->
     <form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
         
         <div class="relative w-full md:w-auto z-40" id="date-dropdown-container">
@@ -293,7 +276,6 @@
         </div>
     </form>
 
-    <!-- CORE KPIS WITH COMPARISON ARROWS -->
     <section class="grid grid-cols-5 gap-6 mb-8">
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between min-w-0">
             <div class="flex justify-between items-start mb-2">
@@ -341,7 +323,6 @@
         </div>
     </section>
 
-    <!-- CHARTS -->
     <section class="grid grid-cols-2 gap-6 mb-8">
         <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
             <div class="flex flex-wrap justify-between items-center mb-6 gap-2">
@@ -381,7 +362,6 @@
         </div>
     </section>
 
-    <!-- PAGINATION TABLE -->
     <section class="elevation-1 card-radius overflow-hidden">
         <div class="px-6 py-4 border-b border-surface-container-high bg-white flex justify-between items-center">
             <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase">Filtered Daily Operational Report</h2>

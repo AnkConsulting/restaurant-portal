@@ -10,7 +10,6 @@ router = APIRouter()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-# Update this if your Swiggy Insights CSV URL changes
 SWIGGY_INSIGHTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2AAwYZA0r8Y59L5KAOZ0yszHcNjyVKynuPfqcTKBh6VSPsmSqg5pmCizX5qDEEno26-okgxtRvZN5/pub?gid=1328235442&single=true&output=csv"
 
 def format_indian_currency(val):
@@ -90,6 +89,7 @@ async def swiggy_insights(
 
     df = load_swiggy_insights_data()
     
+    # Keep dayfirst=True here because Google Sheets data is DD/MM/YYYY
     if "Report Date" in df.columns:
         df["_temp_date"] = pd.to_datetime(df["Report Date"], dayfirst=True, format="mixed", errors="coerce")
 
@@ -99,17 +99,14 @@ async def swiggy_insights(
     all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist()) if "Restaurant Name" in df.columns else []
     selected_brand = brand.strip() if brand and brand in all_brands else ""
     
-    # Filter by Brand
     context_df = df[df["Restaurant Name"] == selected_brand] if selected_brand else df
 
     outlets = sorted(context_df["Location"].dropna().unique().tolist()) if "Location" in context_df.columns else []
     selected_outlet = outlet.strip() if outlet and outlet in outlets else ""
     
-    # Filter by Outlet
     if selected_outlet and "Location" in context_df.columns:
         context_df = context_df[context_df["Location"] == selected_outlet]
 
-    # --- UPDATED DATE FILTERING LOGIC ---
     max_available_date = ""
     max_date_obj = None
     if "_temp_date" in context_df.columns and not context_df["_temp_date"].dropna().empty:
@@ -117,16 +114,14 @@ async def swiggy_insights(
         if pd.notnull(max_date_obj):
             max_available_date = max_date_obj.strftime("%Y-%m-%d")
 
-    # Safely parse incoming dates from the URL, enforcing day-first for standard Indian dates
-    start_dt = pd.to_datetime(start_date, dayfirst=True, format="mixed", errors="coerce")
-    end_dt = pd.to_datetime(end_date, dayfirst=True, format="mixed", errors="coerce")
+    # FIXED: Removed dayfirst=True here because the HTML calendar sends standard YYYY-MM-DD
+    start_dt = pd.to_datetime(start_date, errors="coerce")
+    end_dt = pd.to_datetime(end_date, errors="coerce")
 
-    # Default to max available date if invalid, empty, or out of bounds
     if pd.isnull(start_dt) or (max_date_obj is not None and start_dt > max_date_obj):
         start_dt = max_date_obj
         end_dt = max_date_obj
 
-    # Standardize string format back to YYYY-MM-DD for the HTML template to render the calendar properly
     if pd.notnull(start_dt):
         start_date = start_dt.strftime("%Y-%m-%d")
     if pd.notnull(end_dt):
@@ -134,13 +129,11 @@ async def swiggy_insights(
 
     filtered_df = context_df.copy()
 
-    # Apply the date filter stripping the time to avoid missed records
     if pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in filtered_df.columns:
         filtered_df = filtered_df[
             (filtered_df["_temp_date"].dt.normalize() >= start_dt.normalize()) & 
             (filtered_df["_temp_date"].dt.normalize() <= end_dt.normalize())
         ]
-    # -------------------------------------
 
     total_gmv = float(filtered_df["GMV"].sum()) if "GMV" in filtered_df.columns else 0.0
     total_orders = int(filtered_df["Orders"].sum()) if "Orders" in filtered_df.columns else 0

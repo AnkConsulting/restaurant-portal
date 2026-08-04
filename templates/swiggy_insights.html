@@ -138,7 +138,7 @@
     <!-- FILTERS FORM -->
     <form method="get" action="/swiggy-insights" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
         
-        <!-- CALENDAR DATE PICKER DROPDOWN -->
+        <!-- CALENDAR DATE PICKER DROPDOWN (Now completely isolated from script.js) -->
         <div class="relative w-full md:w-auto z-40" id="date-dropdown-container">
             <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
             <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
@@ -147,7 +147,7 @@
             <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none group min-w-[300px]">
                 <div class="flex items-center gap-3">
                   <span class="material-symbols-outlined text-gray-500 text-[20px]">calendar_today</span>
-                  <span id="date-picker-label" class="text-sm font-medium text-gray-700"></span>
+                  <span id="custom-cal-label" class="text-sm font-medium text-gray-700"></span>
                 </div>
                 <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors">expand_more</span>
             </button>
@@ -155,24 +155,24 @@
             <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
                 <div class="p-4">
                   <div class="flex items-center justify-between mb-4 relative">
-                    <button type="button" onclick="navigateCalendar(-1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                    <button type="button" onclick="customNavigate(-1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
                       <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_left</span>
                     </button>
                     <div class="flex gap-2 font-bold text-gray-900 text-sm items-center">
                       <div class="relative">
-                          <button type="button" onclick="toggleMonthDropdown(event)" id="current-month-btn" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
-                              <span id="month-text">July</span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+                          <button type="button" onclick="toggleCalMonthMenu(event)" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                              <span id="custom-month-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
                           </button>
-                          <div id="month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-32 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                          <div id="custom-month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-32 max-h-48 overflow-y-auto custom-scrollbar"></div>
                       </div>
                       <div class="relative">
-                          <button type="button" onclick="toggleYearDropdown(event)" id="current-year-btn" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
-                              <span id="year-text">2026</span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+                          <button type="button" onclick="toggleCalYearMenu(event)" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                              <span id="custom-year-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
                           </button>
-                          <div id="year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-24 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                          <div id="custom-year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-24 max-h-48 overflow-y-auto custom-scrollbar"></div>
                       </div>
                     </div>
-                    <button type="button" onclick="navigateCalendar(1, 0)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                    <button type="button" onclick="customNavigate(1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
                       <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_right</span>
                     </button>
                   </div>
@@ -181,11 +181,10 @@
                     <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
                   </div>
 
-                  <div class="grid grid-cols-7 gap-1 text-center text-sm" id="calendar-days-grid"></div>
+                  <div class="grid grid-cols-7 gap-1 text-center text-sm" id="custom-cal-grid"></div>
 
                   <div class="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
                     <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2">Cancel</button>
-                    <!-- FIX: Updated onclick to forceApplyDate() to bypass script.js -->
                     <button type="button" onclick="forceApplyDate()" class="bg-[#2563eb] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100">
                       Apply Range
                     </button>
@@ -328,6 +327,7 @@
 </main>
 
 <script>
+    // --- AVATAR LOGIC ---
     document.addEventListener("DOMContentLoaded", function () {
         const displayNameEl = document.getElementById("user-display-name");
         const displayName = displayNameEl ? displayNameEl.innerText.trim() : "";
@@ -341,84 +341,189 @@
         }
     });
 
+    // --- DROPDOWN & EXPORT LOGIC ---
     function exportToCSV() {
         const brand = document.getElementById('brand-input') ? document.getElementById('brand-input').value : '';
         const outlet = document.getElementById('outlet-input').value;
         const startDate = document.getElementById('start-date-input').value;
         const endDate = document.getElementById('end-date-input').value;
-
         const params = new URLSearchParams();
         if (brand) params.set('brand', brand);
         if (outlet) params.set('outlet', outlet);
         if (startDate) params.set('start_date', startDate);
         if (endDate) params.set('end_date', endDate);
-
         window.location.href = `/swiggy-insights/export?${params.toString()}`;
     }
 
     function selectBrand(brandValue) {
         const url = new URL(window.location.href);
-        if (brandValue) {
-            url.searchParams.set('brand', brandValue);
-        } else {
-            url.searchParams.delete('brand');
-        }
+        if (brandValue) url.searchParams.set('brand', brandValue);
+        else url.searchParams.delete('brand');
         url.searchParams.delete('outlet'); 
         window.location.href = url.toString();
     }
 
     function selectOutlet(outletValue) {
         const url = new URL(window.location.href);
-        if (outletValue) {
-            url.searchParams.set('outlet', outletValue);
-        } else {
-            url.searchParams.delete('outlet');
-        }
+        if (outletValue) url.searchParams.set('outlet', outletValue);
+        else url.searchParams.delete('outlet');
         window.location.href = url.toString();
     }
 
-    // FIX: Renamed to forceApplyDate to bypass conflicts with script.js
+    // --- ISOLATED CALENDAR RENDERER (Bypasses script.js date inversion bugs) ---
+    let calCurrentMonth = new Date().getMonth();
+    let calCurrentYear = new Date().getFullYear();
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    // Safely parse initial dates without timezone shifting
+    function parseLocalIso(dateStr) {
+        if (!dateStr) return null;
+        const parts = dateStr.split('-');
+        if (parts.length === 3) return new Date(parts[0], parts[1] - 1, parts[2]);
+        return null;
+    }
+
+    let calSelStart = parseLocalIso(document.getElementById('start-date-input').value);
+    let calSelEnd = parseLocalIso(document.getElementById('end-date-input').value);
+
+    function initCalendar() {
+        if (calSelStart) {
+            calCurrentMonth = calSelStart.getMonth();
+            calCurrentYear = calSelStart.getFullYear();
+        }
+        renderCalendarGrid();
+        updateCalendarLabel();
+    }
+
+    function renderCalendarGrid() {
+        const monthText = document.getElementById('custom-month-text');
+        const yearText = document.getElementById('custom-year-text');
+        const grid = document.getElementById('custom-cal-grid');
+        if (!monthText || !yearText || !grid) return;
+
+        monthText.innerText = months[calCurrentMonth];
+        yearText.innerText = calCurrentYear;
+        grid.innerHTML = "";
+
+        const firstDay = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
+        const daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+
+        for (let i = 0; i < firstDay; i++) { grid.innerHTML += `<div></div>`; }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            let d = new Date(calCurrentYear, calCurrentMonth, day);
+            let isSelected = false;
+            let isBetween = false;
+
+            if (calSelStart && calSelEnd) {
+                if (d >= calSelStart && d <= calSelEnd) isBetween = true;
+                if (d.getTime() === calSelStart.getTime() || d.getTime() === calSelEnd.getTime()) isSelected = true;
+            } else if (calSelStart && d.getTime() === calSelStart.getTime()) {
+                isSelected = true;
+            }
+
+            let classes = "w-8 h-8 flex items-center justify-center rounded-full cursor-pointer transition-colors mx-auto ";
+            if (isSelected) classes += "bg-[#2563eb] text-white font-bold shadow-md";
+            else if (isBetween) classes += "bg-blue-100 text-[#2563eb] font-medium";
+            else classes += "text-gray-700 hover:bg-gray-100";
+
+            grid.innerHTML += `<div class="${classes}" onclick="selectCalDate(${calCurrentYear}, ${calCurrentMonth}, ${day})">${day}</div>`;
+        }
+    }
+
+    function selectCalDate(y, m, d) {
+        let clicked = new Date(y, m, d);
+        if (!calSelStart || (calSelStart && calSelEnd)) {
+            calSelStart = clicked;
+            calSelEnd = null;
+        } else if (clicked < calSelStart) {
+            calSelStart = clicked;
+            calSelEnd = null;
+        } else {
+            calSelEnd = clicked;
+        }
+        renderCalendarGrid();
+        updateCalendarLabel();
+    }
+
+    function customNavigate(mStep) {
+        calCurrentMonth += mStep;
+        if (calCurrentMonth > 11) { calCurrentMonth = 0; calCurrentYear++; }
+        if (calCurrentMonth < 0) { calCurrentMonth = 11; calCurrentYear--; }
+        renderCalendarGrid();
+    }
+
+    function toggleCalMonthMenu(e) {
+        e.stopPropagation();
+        const mDrop = document.getElementById('custom-month-dropdown');
+        document.getElementById('custom-year-dropdown').classList.add('hidden');
+        mDrop.classList.toggle('hidden');
+        if(!mDrop.classList.contains('hidden')){
+            mDrop.innerHTML = months.map((m, i) => `<div class="px-3 py-1.5 hover:bg-gray-100 cursor-pointer text-sm text-center" onclick="setCalMonth(${i}, event)">${m}</div>`).join('');
+        }
+    }
+
+    function setCalMonth(m, e) {
+        e.stopPropagation();
+        calCurrentMonth = m;
+        document.getElementById('custom-month-dropdown').classList.add('hidden');
+        renderCalendarGrid();
+    }
+
+    function toggleCalYearMenu(e) {
+        e.stopPropagation();
+        const yDrop = document.getElementById('custom-year-dropdown');
+        document.getElementById('custom-month-dropdown').classList.add('hidden');
+        yDrop.classList.toggle('hidden');
+        if(!yDrop.classList.contains('hidden')){
+            let html = '';
+            for(let y = calCurrentYear - 5; y <= calCurrentYear + 2; y++){
+                html += `<div class="px-3 py-1.5 hover:bg-gray-100 cursor-pointer text-sm text-center" onclick="setCalYear(${y}, event)">${y}</div>`;
+            }
+            yDrop.innerHTML = html;
+        }
+    }
+
+    function setCalYear(y, e) {
+        e.stopPropagation();
+        calCurrentYear = y;
+        document.getElementById('custom-year-dropdown').classList.add('hidden');
+        renderCalendarGrid();
+    }
+
+    function updateCalendarLabel() {
+        const label = document.getElementById('custom-cal-label');
+        if (!label) return;
+        const fmt = (d) => `${String(d.getDate()).padStart(2, '0')}/${months[d.getMonth()]}/${d.getFullYear()}`;
+        if (calSelStart && calSelEnd) {
+            label.innerText = `${fmt(calSelStart)} to ${fmt(calSelEnd)}`;
+        } else if (calSelStart) {
+            label.innerText = `${fmt(calSelStart)}`;
+        } else {
+            label.innerText = "Select Date Range";
+        }
+    }
+
+    // Force strictly ISO formatting YYYY-MM-DD on push
     function forceApplyDate() {
-        const labelText = document.getElementById('date-picker-label').innerText || "";
         const url = new URL(window.location.href);
+        const fmtIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         
-        // Helper to safely parse dates like "01/Aug/2026" into "YYYY-MM-DD"
-        function parseCustomDate(dStr) {
-            dStr = dStr.trim();
-            if (!dStr) return null;
-            const d = new Date(dStr.replace(/\//g, ' '));
-            if (!isNaN(d.getTime())) {
-                const year = d.getFullYear();
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            }
-            return null;
-        }
+        if (calSelStart) url.searchParams.set('start_date', fmtIso(calSelStart));
+        if (calSelEnd) url.searchParams.set('end_date', fmtIso(calSelEnd));
+        else if (calSelStart) url.searchParams.set('end_date', fmtIso(calSelStart));
 
-        if (labelText.includes('to')) {
-            const parts = labelText.split('to');
-            const s = parseCustomDate(parts[0]);
-            const e = parseCustomDate(parts[1]);
-            if (s) url.searchParams.set('start_date', s);
-            if (e) url.searchParams.set('end_date', e);
-        } else if (labelText.trim() !== "") {
-            const s = parseCustomDate(labelText);
-            if (s) {
-                url.searchParams.set('start_date', s);
-                url.searchParams.set('end_date', s);
-            }
-        } else {
-            // Ultimate fallback to hidden inputs
-            const startInput = document.getElementById('start-date-input').value;
-            const endInput = document.getElementById('end-date-input').value;
-            if (startInput) url.searchParams.set('start_date', startInput);
-            if (endInput) url.searchParams.set('end_date', endInput);
-        }
-        
-        // Triggers the reload instantly with correct dates
         window.location.href = url.toString();
     }
+
+    document.addEventListener("DOMContentLoaded", initCalendar);
+
+    document.addEventListener("click", function() {
+        const mDrop = document.getElementById('custom-month-dropdown');
+        const yDrop = document.getElementById('custom-year-dropdown');
+        if (mDrop) mDrop.classList.add('hidden');
+        if (yDrop) yDrop.classList.add('hidden');
+    });
 </script>
 <script src="/static/script.js"></script>
 </body>

@@ -400,6 +400,8 @@ async def swiggy_insights(
 
     df = load_data()
     
+    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
+
     if "Platform" in df.columns:
         df = df[df["Platform"].astype(str).str.strip().str.lower() == "swiggy"]
 
@@ -408,8 +410,8 @@ async def swiggy_insights(
 
     if not is_admin:
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
+        all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
 
-    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
     selected_brand = brand if brand in all_brands else ""
     
     context_df = df[df["Restaurant Name"] == selected_brand] if selected_brand else df

@@ -300,7 +300,7 @@
                 <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest truncate pr-2">Total Daily GMV</span>
                 <span class="material-symbols-outlined text-primary shrink-0" style="font-variation-settings: 'FILL' 0;">payments</span>
             </div>
-            <div id="kpi-gmv" class="text-[26px] font-bold text-on-surface truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
+            <div id="kpi-gmv" class="text-[26px] text-on-surface truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
             <div id="kpi-gmv-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_total_gmv }}" data-prev="{{ raw_prev_total_gmv }}" data-inverse="false"></div>
         </div>
         
@@ -309,7 +309,7 @@
                 <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest truncate pr-2">Delivered Orders</span>
                 <span class="material-symbols-outlined text-[#006a61] shrink-0" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
             </div>
-            <div id="kpi-orders" class="text-[26px] font-bold text-on-surface truncate" title="{{ total_orders }}">{{ total_orders }}</div>
+            <div id="kpi-orders" class="text-[26px] text-on-surface truncate" title="{{ total_orders }}">{{ total_orders }}</div>
             <div id="kpi-orders-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_total_orders }}" data-prev="{{ raw_prev_total_orders }}" data-inverse="false"></div>
         </div>
 
@@ -318,7 +318,7 @@
                 <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest truncate pr-2">AOV</span>
                 <span class="material-symbols-outlined text-[#48566b] shrink-0" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
             </div>
-            <div id="kpi-aov" class="text-[26px] font-bold text-on-surface truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
+            <div id="kpi-aov" class="text-[26px] text-on-surface truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
             <div id="kpi-aov-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_avg_aov }}" data-prev="{{ raw_prev_avg_aov }}" data-inverse="false"></div>
         </div>
 
@@ -327,7 +327,7 @@
                 <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest truncate pr-2">Sales from Ads</span>
                 <span class="material-symbols-outlined text-primary-container shrink-0" style="font-variation-settings: 'FILL' 0;">campaign</span>
             </div>
-            <div id="kpi-ads" class="text-[26px] font-bold text-on-surface truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
+            <div id="kpi-ads" class="text-[26px] text-on-surface truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
             <div id="kpi-ads-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_sales_ads }}" data-prev="{{ raw_prev_sales_ads }}" data-inverse="false"></div>
         </div>
 
@@ -336,41 +336,8 @@
                 <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest truncate pr-2">Discount Given</span>
                 <span class="material-symbols-outlined text-error shrink-0" style="font-variation-settings: 'FILL' 0;">sell</span>
             </div>
-            <div id="kpi-discount" class="text-[26px] font-bold text-on-surface truncate" title="{{ discount_given }}">{{ discount_given }}</div>
+            <div id="kpi-discount" class="text-[26px] text-on-surface truncate" title="{{ discount_given }}">{{ discount_given }}</div>
             <div id="kpi-discount-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_discount_given }}" data-prev="{{ raw_prev_discount_given }}" data-inverse="true"></div>
-        </div>
-    </section>
-
-    <!-- EFFICIENCY & PLATFORM INSIGHTS -->
-    <h3 class="font-title-md text-[18px] font-bold text-on-surface mb-4 mt-10">Efficiency & Platform Insights</h3>
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        
-        <!-- Ad ROI -->
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-center bg-white border-l-4 border-l-primary">
-            <div class="text-[12px] font-bold text-gray-500 uppercase tracking-widest mb-1">Ad ROI (GMV per ₹1 spent)</div>
-            <div id="kpi-ad-roi" class="text-3xl font-extrabold text-primary">{{ ad_roi }}</div>
-        </div>
-        
-        <!-- Discount Impact -->
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-center bg-white border-l-4 border-l-error">
-            <div class="text-[12px] font-bold text-gray-500 uppercase tracking-widest mb-1">Discount Impact (% of GMV)</div>
-            <div id="kpi-discount-impact" class="text-3xl font-extrabold text-error">{{ discount_impact }}</div>
-        </div>
-
-        <!-- Platform AOV Comparison -->
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-center bg-white">
-            <div class="text-[12px] font-bold text-gray-500 uppercase tracking-widest mb-3">Platform AOV Split</div>
-            <div id="platform-aov-container" class="space-y-2">
-                {% for plat, aov in platform_aov.items() %}
-                <div class="flex justify-between items-center text-sm border-b border-gray-100 pb-1 last:border-0">
-                    <span class="font-semibold text-gray-700">{{ plat }}</span>
-                    <span class="font-bold text-on-surface">₹{{ "%.2f"|format(aov) }}</span>
-                </div>
-                {% endfor %}
-                {% if not platform_aov %}
-                <span class="text-sm text-gray-400">No data available</span>
-                {% endif %}
-            </div>
         </div>
     </section>
 

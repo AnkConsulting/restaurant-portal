@@ -5,6 +5,8 @@
     <meta content="width=1280" name="viewport"/>
     <title>Swiggy Insights - RDA Portal</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
 
@@ -60,7 +62,7 @@
         
         <!-- MODULE SWITCHER -->
         <div class="relative font-['Hanken_Grotesk'] z-[110]" id="module-switcher-container">
-          <button type="button" onclick="toggleCustomDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
+          <button onclick="toggleCustomDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
               <span class="font-bold text-[#FC8019] text-sm">Swiggy Insights</span>
@@ -202,7 +204,6 @@
                     <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
                     <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
                 </div>
-                <!-- Added onclick="event.stopPropagation()" to keep menu open while searching -->
                 <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
                         <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
@@ -225,7 +226,6 @@
                     <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
                     <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
                 </div>
-                <!-- Added onclick="event.stopPropagation()" to keep menu open while searching -->
                 <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
                         <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
@@ -267,6 +267,39 @@
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Discounts</span>
             <div class="text-[26px] font-bold text-error mt-2">{{ discount_given }}</div>
+        </div>
+    </section>
+
+    <!-- VISUAL ANALYTICS CARDS (GRID OF 6) -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">1. Customer Conversion Funnel</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="funnelChart"></canvas></div>
+        </div>
+        
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">2. Revenue & Volume Trends</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="trendChart"></canvas></div>
+        </div>
+        
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">3. Advertising ROI</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="adsChart"></canvas></div>
+        </div>
+        
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">4. Operational Efficiency</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="opsChart"></canvas></div>
+        </div>
+
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">5. Discount Impact on GMV</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="discountChart"></canvas></div>
+        </div>
+
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">6. Outlet Leaderboard</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="leaderboardChart"></canvas></div>
         </div>
     </section>
 
@@ -348,24 +381,24 @@
 </main>
 
 <script>
-    // --- DROPDOWN TOGGLE & FILTER LOGIC (NEW: Completely isolated from script.js) ---
+    // --- EXPORT DATA FOR EXTERNAL CHART SCRIPT ---
+    // This safely passes the Python table_data to a global JS variable
+    window.swiggyChartData = {{ table_data | tojson | safe }};
+</script>
+
+<!-- EXTERNAL SCRIPTS -->
+<script src="/static/script.js"></script>
+<script src="/static/swiggy_charts.js"></script>
+
+<script>
+    // --- DROPDOWN TOGGLE & FILTER LOGIC ---
     function toggleCustomDropdown(menuId, event) {
         event.stopPropagation();
-        
-        // Close all other dropdowns
         const allMenus = document.querySelectorAll('.dropdown-menu-custom');
-        allMenus.forEach(menu => {
-            if (menu.id !== menuId) {
-                menu.classList.add('hidden');
-            }
-        });
-        
-        // Toggle the target one
+        allMenus.forEach(menu => { if (menu.id !== menuId) menu.classList.add('hidden'); });
         const menu = document.getElementById(menuId);
         if (menu) {
             menu.classList.toggle('hidden');
-            
-            // Auto-focus search input if present
             if (!menu.classList.contains('hidden')) {
                 const searchInput = menu.querySelector('input[type="text"]');
                 if (searchInput) searchInput.focus();
@@ -378,33 +411,24 @@
         const filter = input.value.toLowerCase();
         const ul = document.getElementById(listId);
         const li = ul.getElementsByTagName('li');
-        
         for (let i = 0; i < li.length; i++) {
             const textValue = li[i].textContent || li[i].innerText;
-            if (textValue.toLowerCase().indexOf(filter) > -1) {
-                li[i].style.display = "";
-            } else {
-                li[i].style.display = "none";
-            }
+            if (textValue.toLowerCase().indexOf(filter) > -1) li[i].style.display = "";
+            else li[i].style.display = "none";
         }
     }
 
-    // Close all menus when clicking anywhere outside
     document.addEventListener("click", function(event) {
         const mDrop = document.getElementById('custom-month-dropdown');
         const yDrop = document.getElementById('custom-year-dropdown');
         if (mDrop) mDrop.classList.add('hidden');
         if (yDrop) yDrop.classList.add('hidden');
-
         const allMenus = document.querySelectorAll('.dropdown-menu-custom');
-        allMenus.forEach(menu => {
-            menu.classList.add('hidden');
-        });
+        allMenus.forEach(menu => menu.classList.add('hidden'));
     });
 
     // --- ON LOAD INIT ---
     document.addEventListener("DOMContentLoaded", function () {
-        // Avatar logic
         const displayNameEl = document.getElementById("user-display-name");
         const displayName = displayNameEl ? displayNameEl.innerText.trim() : "";
         const avatarBadge = document.getElementById("avatar-initials");
@@ -416,7 +440,6 @@
           avatarBadge.innerText = initials || "RP";
         }
 
-        // Initialize features
         initCalendar();
         initPagination();
     });
@@ -463,18 +486,11 @@
         const endIdx = Math.min(startIdx + effectiveRowsPerPage, totalRows);
 
         rows.forEach((row, index) => {
-            if (index >= startIdx && index < endIdx) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
+            if (index >= startIdx && index < endIdx) row.style.display = "";
+            else row.style.display = "none";
         });
 
-        // Update Info Text
-        document.getElementById('pagination-info').innerText = 
-            `Showing ${startIdx + 1} to ${endIdx} of ${totalRows} entries`;
-
-        // Render Page Buttons
+        document.getElementById('pagination-info').innerText = `Showing ${startIdx + 1} to ${endIdx} of ${totalRows} entries`;
         const controls = document.getElementById('pagination-controls');
         let html = '';
         
@@ -482,9 +498,7 @@
         
         let startPage = Math.max(1, currentPage - 2);
         let endPage = Math.min(totalPages, startPage + 4);
-        if (endPage - startPage < 4) {
-            startPage = Math.max(1, endPage - 4);
-        }
+        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
         for (let i = startPage; i <= endPage; i++) {
             html += `<button type="button" onclick="changePage(${i})" class="px-3 py-1.5 border rounded-md text-sm font-medium ${i === currentPage ? 'bg-primary text-white border-primary shadow-sm' : 'border-outline-variant hover:bg-gray-100'}">${i}</button>`;
@@ -667,8 +681,6 @@
 
         window.location.href = url.toString();
     }
-
 </script>
-<script src="/static/script.js"></script>
 </body>
 </html>

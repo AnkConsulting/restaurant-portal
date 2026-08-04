@@ -60,7 +60,7 @@
         
         <!-- MODULE SWITCHER -->
         <div class="relative font-['Hanken_Grotesk'] z-[110]" id="module-switcher-container">
-          <button onclick="toggleCustomDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
+          <button type="button" onclick="toggleCustomDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
               <span class="font-bold text-[#FC8019] text-sm">Swiggy Insights</span>
@@ -202,9 +202,10 @@
                     <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
                     <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
                 </div>
-                <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <!-- Added onclick="event.stopPropagation()" to keep menu open while searching -->
+                <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
+                        <input type="text" id="brand-search" onkeyup="filterCustomDropdown('brand-search', 'brand-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
                     </div>
                     <ul id="brand-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
                         <li onclick="selectBrand('')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Brands</li>
@@ -224,9 +225,10 @@
                     <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
                     <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
                 </div>
-                <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom">
+                <!-- Added onclick="event.stopPropagation()" to keep menu open while searching -->
+                <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" onclick="event.stopPropagation()" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
+                        <input type="text" id="outlet-search" onkeyup="filterCustomDropdown('outlet-search', 'outlet-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
                     </div>
                     <ul id="outlet-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
                         <li onclick="selectOutlet('')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Outlets</li>
@@ -273,7 +275,7 @@
         <div class="px-6 py-4 border-b border-surface-container-high bg-white flex flex-wrap justify-between items-center gap-4">
             <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase">Swiggy Insights Performance Records</h2>
             
-            <!-- Rows Per Page Selector (UPDATED) -->
+            <!-- Rows Per Page Selector -->
             <div class="flex items-center gap-2 text-sm text-gray-600">
                 <span>Rows per page:</span>
                 <select id="rows-per-page" onchange="changeRowsPerPage()" class="bg-white border border-outline-variant rounded-md pl-3 pr-8 py-1.5 text-sm focus:outline-none focus:border-primary cursor-pointer">
@@ -346,6 +348,60 @@
 </main>
 
 <script>
+    // --- DROPDOWN TOGGLE & FILTER LOGIC (NEW: Completely isolated from script.js) ---
+    function toggleCustomDropdown(menuId, event) {
+        event.stopPropagation();
+        
+        // Close all other dropdowns
+        const allMenus = document.querySelectorAll('.dropdown-menu-custom');
+        allMenus.forEach(menu => {
+            if (menu.id !== menuId) {
+                menu.classList.add('hidden');
+            }
+        });
+        
+        // Toggle the target one
+        const menu = document.getElementById(menuId);
+        if (menu) {
+            menu.classList.toggle('hidden');
+            
+            // Auto-focus search input if present
+            if (!menu.classList.contains('hidden')) {
+                const searchInput = menu.querySelector('input[type="text"]');
+                if (searchInput) searchInput.focus();
+            }
+        }
+    }
+
+    function filterCustomDropdown(inputId, listId) {
+        const input = document.getElementById(inputId);
+        const filter = input.value.toLowerCase();
+        const ul = document.getElementById(listId);
+        const li = ul.getElementsByTagName('li');
+        
+        for (let i = 0; i < li.length; i++) {
+            const textValue = li[i].textContent || li[i].innerText;
+            if (textValue.toLowerCase().indexOf(filter) > -1) {
+                li[i].style.display = "";
+            } else {
+                li[i].style.display = "none";
+            }
+        }
+    }
+
+    // Close all menus when clicking anywhere outside
+    document.addEventListener("click", function(event) {
+        const mDrop = document.getElementById('custom-month-dropdown');
+        const yDrop = document.getElementById('custom-year-dropdown');
+        if (mDrop) mDrop.classList.add('hidden');
+        if (yDrop) yDrop.classList.add('hidden');
+
+        const allMenus = document.querySelectorAll('.dropdown-menu-custom');
+        allMenus.forEach(menu => {
+            menu.classList.add('hidden');
+        });
+    });
+
     // --- ON LOAD INIT ---
     document.addEventListener("DOMContentLoaded", function () {
         // Avatar logic
@@ -439,7 +495,7 @@
         controls.innerHTML = html;
     }
 
-    // --- DROPDOWN & EXPORT LOGIC ---
+    // --- DROPDOWN URL RELOAD LOGIC ---
     function exportToCSV() {
         const brand = document.getElementById('brand-input') ? document.getElementById('brand-input').value : '';
         const outlet = document.getElementById('outlet-input').value;
@@ -612,12 +668,6 @@
         window.location.href = url.toString();
     }
 
-    document.addEventListener("click", function() {
-        const mDrop = document.getElementById('custom-month-dropdown');
-        const yDrop = document.getElementById('custom-year-dropdown');
-        if (mDrop) mDrop.classList.add('hidden');
-        if (yDrop) yDrop.classList.add('hidden');
-    });
 </script>
 <script src="/static/script.js"></script>
 </body>

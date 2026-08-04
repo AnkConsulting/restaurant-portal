@@ -1,1 +1,128 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=1280" name="viewport"/>
+    <title>Swiggy Insights - RDA Portal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
 
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline-variant": "#c3c6d7",
+                        "surface-container-high": "#e6e8ea",
+                        "on-surface": "#191c1e",
+                        "surface-bright": "#f7f9fb",
+                        "error": "#ba1a1a",
+                        "primary": "#FC8019",
+                        "primary-container": "#2563eb",
+                        "background": "#f7f9fb"
+                    },
+                    fontFamily: {
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-sm": ["JetBrains Mono"],
+                        "title-md": ["Hanken Grotesk"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .elevation-1 { @apply bg-white border border-surface-container-high shadow-[0_4px_12px_rgba(0,0,0,0.02)]; }
+            .card-radius { @apply rounded-[16px]; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen">
+
+<!-- HEADER -->
+<header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-8 py-4 mx-auto border-b border-surface-container-high">
+    <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3">
+            <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
+            <h1 class="font-headline-lg text-[22px] font-bold text-gray-800 tracking-tight border-r border-gray-300 pr-6">Swiggy Insights</h1>
+        </div>
+        <a href="/" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all no-underline">
+            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+            Back to Sales & Operations
+        </a>
+    </div>
+</header>
+
+<main class="pt-[88px] pb-12 px-8 max-w-[1440px] mx-auto">
+    <!-- SWIGGY KPI CARDS -->
+    <section class="grid grid-cols-5 gap-6 mb-8">
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Swiggy GMV</span>
+            <div class="text-[26px] font-bold text-on-surface mt-2">{{ total_gmv }}</div>
+        </div>
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Orders</span>
+            <div class="text-[26px] font-bold text-[#FC8019] mt-2">{{ total_orders }}</div>
+        </div>
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">AOV</span>
+            <div class="text-[26px] font-bold text-on-surface mt-2">{{ avg_aov }}</div>
+        </div>
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Ad Sales</span>
+            <div class="text-[26px] font-bold text-blue-600 mt-2">{{ sales_ads }}</div>
+        </div>
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Discounts</span>
+            <div class="text-[26px] font-bold text-error mt-2">{{ discount_given }}</div>
+        </div>
+    </section>
+
+    <!-- DATA TABLE -->
+    <section class="elevation-1 card-radius overflow-hidden">
+        <div class="px-6 py-4 border-b border-surface-container-high bg-white flex justify-between items-center">
+            <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase">Swiggy Performance Records</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#F1F5F9] font-label-sm text-[12px] text-gray-600 uppercase tracking-widest border-b border-surface-container-high">
+                        <th class="py-4 px-6 font-semibold">Restaurant Name</th>
+                        <th class="py-4 px-6 font-semibold">Report Period</th>
+                        <th class="py-4 px-6 font-semibold">Location</th>
+                        <th class="py-4 px-6 font-semibold">Res ID</th>
+                        <th class="py-4 px-6 font-semibold text-right">Delivered Orders</th>
+                        <th class="py-4 px-6 font-semibold text-right">Sales</th>
+                        <th class="py-4 px-6 font-semibold text-right">GMV</th>
+                        <th class="py-4 px-6 font-semibold text-right">Sales from Ads</th>
+                        <th class="py-4 px-6 font-semibold text-right">Discount Given</th>
+                    </tr>
+                </thead>
+                <tbody class="font-body-md text-sm text-on-surface">
+                    {% for row in table_data %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td class="py-4 px-6 font-medium">{{ row['Restaurant Name'] }}</td>
+                        <td class="py-4 px-6 text-gray-500">{{ row['Report Period'] }}</td>
+                        <td class="py-4 px-6">{{ row['Location'] }}</td>
+                        <td class="py-4 px-6 font-mono text-xs text-gray-400">{{ row['Res ID'] }}</td>
+                        <td class="py-4 px-6 text-right font-bold">{{ "{:,}".format(row['Delivered orders']|int) }}</td>
+                        <td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['Sales']) }}</td>
+                        <td class="py-4 px-6 text-right">₹{{ "{:,.2f}".format(row['GMV']) }}</td>
+                        <td class="py-4 px-6 text-right text-blue-600 font-medium">₹{{ "{:,.2f}".format(row['Sales from Ads']) }}</td>
+                        <td class="py-4 px-6 text-right text-error font-medium">₹{{ "{:,.2f}".format(row['Discount given']) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="py-8 text-center text-gray-500 italic">No Swiggy operational data found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

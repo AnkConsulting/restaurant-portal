@@ -48,25 +48,31 @@ document.addEventListener("DOMContentLoaded", function () {
         totalMenuOpens += Number(row['Menu Opens'] || 0);
         totalOrders += Number(row['Orders'] || 0);
 
-        // Conversion Percentage additions
-        if (row['Impressions to Menu'] !== undefined) {
-            sumI2M += Number(row['Impressions to Menu'] || 0);
-            countI2M++;
-        }
-        if (row['M2C'] !== undefined) {
-            sumM2C += Number(row['M2C'] || 0);
-            countM2C++;
-        }
-        if (row['C2O'] !== undefined) {
-            sumC2O += Number(row['C2O'] || 0);
-            countC2O++;
-        }
+        // Conversion Percentage additions (ignoring zeroes/nulls so averages aren't skewed)
+        let i2m = Number(row['Impressions to Menu'] || 0);
+        if (i2m > 0) { sumI2M += i2m; countI2M++; }
+        
+        let m2c = Number(row['M2C'] || 0);
+        if (m2c > 0) { sumM2C += m2c; countM2C++; }
+        
+        let c2o = Number(row['C2O'] || 0);
+        if (c2o > 0) { sumC2O += c2o; countC2O++; }
     });
 
-    // Calculate integer averages for the conversion percentages
-    const avgI2M = countI2M ? Math.round(sumI2M / countI2M) : 0;
-    const avgM2C = countM2C ? Math.round(sumM2C / countM2C) : 0;
-    const avgC2O = countC2O ? Math.round(sumC2O / countC2O) : 0;
+    // Calculate averages
+    let avgI2M = countI2M ? (sumI2M / countI2M) : 0;
+    let avgM2C = countM2C ? (sumM2C / countM2C) : 0;
+    let avgC2O = countC2O ? (sumC2O / countC2O) : 0;
+
+    // SAFEGUARD: If the sheet provided decimals (e.g. 0.15 instead of 15%), convert to whole numbers
+    if (avgI2M > 0 && avgI2M <= 1) avgI2M *= 100;
+    if (avgM2C > 0 && avgM2C <= 1) avgM2C *= 100;
+    if (avgC2O > 0 && avgC2O <= 1) avgC2O *= 100;
+
+    // Finally, round them to neat integers
+    avgI2M = Math.round(avgI2M);
+    avgM2C = Math.round(avgM2C);
+    avgC2O = Math.round(avgC2O);
 
     const aggregatedList = Object.values(dailyData).sort((a, b) => a.timestamp - b.timestamp);
     const dateLabels = aggregatedList.map(item => item.date.substring(0, 5));
@@ -86,37 +92,55 @@ document.addEventListener("DOMContentLoaded", function () {
                         data: [totalImpressions, null, totalMenuOpens, null, null, totalOrders],
                         backgroundColor: '#94a3b8',
                         borderRadius: 4,
-                        barPercentage: 0.6,
-                        xAxisID: 'x' // Maps to the bottom axis
+                        xAxisID: 'x' 
                     },
                     {
                         label: 'Conversion Rate (%)',
                         data: [null, avgI2M, null, avgM2C, avgC2O, null],
                         backgroundColor: '#FC8019',
                         borderRadius: 4,
-                        barPercentage: 0.6,
-                        xAxisID: 'x1' // Maps to the top axis (0 to 100)
+                        xAxisID: 'x1' 
                     }
                 ]
             },
             options: {
                 indexAxis: 'y', // Makes it horizontal
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, usePointStyle: true } } },
+                plugins: { 
+                    legend: { display: true, position: 'top', labels: { boxWidth: 12, usePointStyle: true } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                // Add '%' sign to tooltip if it's the conversion rate dataset
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.datasetIndex === 1) {
+                                    label += context.raw + '%';
+                                } else {
+                                    label += context.raw;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
                 scales: {
                     y: { 
-                        stacked: true, // Forces alternating datasets to align on the same vertical axis lines
+                        stacked: true, // Forces alignment on the vertical labels
                         grid: { display: false } 
                     },
                     x: { 
+                        stacked: true, // MUST BE STACKED to align with Y
                         type: 'linear', position: 'bottom', 
                         title: { display: true, text: 'Volume Count', font: { size: 11 } },
                         ticks: { callback: v => v >= 1000 ? (v/1000) + 'k' : v }
                     },
                     x1: { 
+                        stacked: true, // MUST BE STACKED to align with Y
                         type: 'linear', position: 'top', max: 100,
                         title: { display: true, text: 'Conversion Rate (%)', font: { size: 11 } },
-                        grid: { drawOnChartArea: false }
+                        grid: { drawOnChartArea: false },
+                        ticks: { callback: v => v + '%' } // Display % symbol on axis
                     }
                 }
             }

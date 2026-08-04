@@ -88,14 +88,16 @@ document.addEventListener("DOMContentLoaded", function () {
                         type: 'line',
                         borderColor: '#FC8019', backgroundColor: '#FC8019',
                         borderWidth: 2, tension: 0.4, pointRadius: 3,
-                        yAxisID: 'y'
+                        yAxisID: 'y',
+                        order: 1 // Pulls the line to the front layer
                     },
                     {
                         label: 'Orders',
                         data: aggregatedList.map(i => i.orders),
                         type: 'bar',
                         backgroundColor: '#cbd5e1', borderRadius: 4,
-                        yAxisID: 'y1'
+                        yAxisID: 'y1',
+                        order: 2 // Pushes the bars to the back layer
                     }
                 ]
             },
@@ -179,14 +181,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     {
                         label: 'GMV (₹)',
                         data: aggregatedList.map(i => i.gmv),
-                        backgroundColor: '#e2e8f0', borderRadius: 4, yAxisID: 'y'
+                        backgroundColor: '#e2e8f0', 
+                        borderRadius: 4, 
+                        yAxisID: 'y',
+                        order: 2 // Pushes the bars to the back layer
                     },
                     {
                         label: 'Discount Given (₹)',
                         data: aggregatedList.map(i => i.discount),
                         type: 'line',
-                        borderColor: '#dc2626', backgroundColor: '#dc2626',
-                        borderWidth: 2, tension: 0.4, yAxisID: 'y'
+                        borderColor: '#dc2626', 
+                        backgroundColor: '#dc2626',
+                        borderWidth: 2, 
+                        tension: 0.4, 
+                        yAxisID: 'y',
+                        order: 1 // Pulls the line to the front layer
                     }
                 ]
             },

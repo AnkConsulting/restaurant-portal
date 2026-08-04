@@ -22,19 +22,14 @@ INACTIVE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftz
 def load_data():
     try:
         df = pd.read_csv(SHEET_CSV_URL)
-        
-        # 1. Clean column headers
         df.columns = df.columns.str.strip()
         
-        # 2. Drop helper column if present
         if "Unique Dropdown Key" in df.columns:
             df = df.drop(columns=["Unique Dropdown Key"])
             
-        # 3. Clean Res ID to prevent type/float mismatching (e.g. 17588.0 vs 17588)
         if "Res ID" in df.columns:
             df["Res ID"] = df["Res ID"].dropna().astype(str).str.split('.').str[0].str.strip()
 
-        # 4. Filter out inactive restaurants automatically
         try:
             inactive_df = pd.read_csv(INACTIVE_CSV_URL)
             inactive_df.columns = inactive_df.columns.str.strip()
@@ -142,29 +137,28 @@ async def render_dashboard(
 
         current_filtered = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
         
-        # Calculate exactly 1 month prior for the WoW/MoM trend arrows
-        prev_start = start_dt - pd.DateOffset(months=1)
-        prev_end = end_dt - pd.DateOffset(months=1)
+        # --- FIX: Changed from 1 Month to 7 Days (WoW) ---
+        prev_start = start_dt - pd.Timedelta(days=7)
+        prev_end = end_dt - pd.Timedelta(days=7)
         prev_filtered = filtered_df[(filtered_df["_temp_date"] >= prev_start) & (filtered_df["_temp_date"] <= prev_end)]
     else:
         current_filtered = filtered_df
         prev_filtered = pd.DataFrame(columns=filtered_df.columns)
 
-    # 1. Current Period Metrics
+    # Core Metrics
     total_gmv = current_filtered["GMV"].sum() if "GMV" in current_filtered.columns else 0.0
     total_orders = int(current_filtered["Delivered orders"].sum()) if "Delivered orders" in current_filtered.columns else 0
     avg_aov = (total_gmv / total_orders) if total_orders > 0 else 0.0
     sales_ads = current_filtered["Sales from Ads"].sum() if "Sales from Ads" in current_filtered.columns else 0.0
     discount_given = current_filtered["Discount given"].sum() if "Discount given" in current_filtered.columns else 0.0
 
-    # 2. Previous Period Metrics (For Trend Arrows)
     prev_total_gmv = prev_filtered["GMV"].sum() if "GMV" in prev_filtered.columns else 0.0
     prev_total_orders = int(prev_filtered["Delivered orders"].sum()) if "Delivered orders" in prev_filtered.columns else 0
     prev_avg_aov = (prev_total_gmv / prev_total_orders) if prev_total_orders > 0 else 0.0
     prev_sales_ads = prev_filtered["Sales from Ads"].sum() if "Sales from Ads" in prev_filtered.columns else 0.0
     prev_discount_given = prev_filtered["Discount given"].sum() if "Discount given" in prev_filtered.columns else 0.0
 
-    # 3. Efficiency Insights (Discount Impact, Ad ROI, Platform AOV)
+    # Efficiency Analytics
     discount_impact_val = (discount_given / total_gmv * 100) if total_gmv > 0 else 0.0
     discount_impact_str = f"{discount_impact_val:.1f}%"
 
@@ -179,7 +173,6 @@ async def render_dashboard(
             p_orders = p_df["Delivered orders"].sum() if "Delivered orders" in p_df.columns else 0
             platform_aov_dict[p] = (p_gmv / p_orders) if p_orders > 0 else 0.0
 
-    # 4. Chart Aggregations
     platform_orders, platform_gmv, platform_sales, platform_ads, platform_discount = {}, {}, {}, {}, {}
     if "Platform" in current_filtered.columns:
         if "Delivered orders" in current_filtered.columns:
@@ -193,21 +186,52 @@ async def render_dashboard(
         if "Discount given" in current_filtered.columns:
             platform_discount = current_filtered.groupby("Platform")["Discount given"].sum().to_dict()
 
-    trend_labels = []
+    # --- FIX: Perfect Date Alignment Engine ---
+    trend_labels, prev_trend_labels = [], []
     sales_trend, gmv_trend, orders_trend, ads_trend, discount_trend = [], [], [], [], []
-    prev_trend_labels = []
     prev_sales_trend, prev_gmv_trend, prev_orders_trend, prev_ads_trend, prev_discount_trend = [], [], [], [], []
 
     if "_temp_date" in current_filtered.columns and not current_filtered.empty:
         agg_dict = {col: "sum" for col in ["Sales", "GMV", "Delivered orders", "Sales from Ads", "Discount given"] if col in current_filtered.columns}
         if agg_dict:
             trend_df = current_filtered.groupby("_temp_date").agg(agg_dict).reset_index().sort_values("_temp_date")
-            trend_labels = trend_df["_temp_date"].dt.strftime('%d-%m-%Y').tolist()
-            sales_trend = trend_df["Sales"].tolist() if "Sales" in trend_df.columns else []
-            gmv_trend = trend_df["GMV"].tolist() if "GMV" in trend_df.columns else []
-            orders_trend = trend_df["Delivered orders"].tolist() if "Delivered orders" in trend_df.columns else []
-            ads_trend = trend_df["Sales from Ads"].tolist() if "Sales from Ads" in trend_df.columns else []
-            discount_trend = trend_df["Discount given"].tolist() if "Discount given" in trend_df.columns else []
+            
+            prev_agg_df = pd.DataFrame()
+            if not prev_filtered.empty:
+                prev_agg_df = prev_filtered.groupby("_temp_date").agg(agg_dict).reset_index()
+                
+            for _, row in trend_df.iterrows():
+                curr_date = row["_temp_date"]
+                trend_labels.append(curr_date.strftime('%d-%m-%Y'))
+                
+                sales_trend.append(row.get("Sales", 0))
+                gmv_trend.append(row.get("GMV", 0))
+                orders_trend.append(row.get("Delivered orders", 0))
+                ads_trend.append(row.get("Sales from Ads", 0))
+                discount_trend.append(row.get("Discount given", 0))
+                
+                # Look up exactly 7 days prior
+                prior_date = curr_date - pd.Timedelta(days=7)
+                prev_trend_labels.append(prior_date.strftime('%d-%m-%Y'))
+                
+                matched = False
+                if not prev_agg_df.empty:
+                    prior_row = prev_agg_df[prev_agg_df["_temp_date"] == prior_date]
+                    if not prior_row.empty:
+                        matched = True
+                        prev_sales_trend.append(prior_row.iloc[0].get("Sales", 0))
+                        prev_gmv_trend.append(prior_row.iloc[0].get("GMV", 0))
+                        prev_orders_trend.append(prior_row.iloc[0].get("Delivered orders", 0))
+                        prev_ads_trend.append(prior_row.iloc[0].get("Sales from Ads", 0))
+                        prev_discount_trend.append(prior_row.iloc[0].get("Discount given", 0))
+                
+                # If no data exists for that specific prior day, append None so Chart.js handles it cleanly
+                if not matched:
+                    prev_sales_trend.append(None)
+                    prev_gmv_trend.append(None)
+                    prev_orders_trend.append(None)
+                    prev_ads_trend.append(None)
+                    prev_discount_trend.append(None)
 
     chart_data = {
         "platform_orders": platform_orders,
@@ -292,14 +316,12 @@ async def render_dashboard(
             "end_date": end_date or "",
             "max_available_date": max_available_date,
             
-            # Formatted KPIs
             "total_gmv": f"₹{total_gmv:,.2f}",
             "total_orders": f"{total_orders:,}",
             "avg_aov": f"₹{avg_aov:,.2f}",
             "sales_ads": f"₹{sales_ads:,.2f}",
             "discount_given": f"₹{discount_given:,.2f}",
             
-            # Raw Data for JS Trend Arrows
             "raw_total_gmv": total_gmv,
             "raw_prev_total_gmv": prev_total_gmv,
             "raw_total_orders": total_orders,
@@ -311,7 +333,6 @@ async def render_dashboard(
             "raw_discount_given": discount_given,
             "raw_prev_discount_given": prev_discount_given,
 
-            # Efficiency block
             "ad_roi": ad_roi_str,
             "discount_impact": discount_impact_str,
             "platform_aov": platform_aov_dict,
@@ -321,13 +342,10 @@ async def render_dashboard(
         },
     )
 
-# --- NEW MODULE SWITCHER ROUTES ---
-
 @app.get("/swiggy-insights", response_class=HTMLResponse)
 async def swiggy_insights(request: Request):
     if not request.session.get("logged_in"):
         return RedirectResponse(url="/login", status_code=303)
-    # Temporary placeholder until we build the full Swiggy Funnel page
     return HTMLResponse("""
         <html class='bg-[#f7f9fb] font-sans'>
             <body class='p-10 flex flex-col items-center justify-center min-h-screen text-center'>
@@ -342,7 +360,6 @@ async def swiggy_insights(request: Request):
 async def zomato_insights(request: Request):
     if not request.session.get("logged_in"):
         return RedirectResponse(url="/login", status_code=303)
-    # Temporary placeholder until we build the full Zomato Funnel page
     return HTMLResponse("""
         <html class='bg-[#f7f9fb] font-sans'>
             <body class='p-10 flex flex-col items-center justify-center min-h-screen text-center'>

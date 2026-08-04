@@ -357,7 +357,7 @@
         window.location.href = `/swiggy-insights/export?${params.toString()}`;
     }
 
-    // NEW: Function to instantly reload page with correct brand filter
+    // Function to instantly reload page with correct brand filter
     function selectBrand(brandValue) {
         const url = new URL(window.location.href);
         if (brandValue) {
@@ -369,7 +369,7 @@
         window.location.href = url.toString();
     }
 
-    // NEW: Function to instantly reload page with correct outlet filter
+    // Function to instantly reload page with correct outlet filter
     function selectOutlet(outletValue) {
         const url = new URL(window.location.href);
         if (outletValue) {
@@ -377,6 +377,41 @@
         } else {
             url.searchParams.delete('outlet');
         }
+        window.location.href = url.toString();
+    }
+
+    // NEW: Bulletproof Date Filter Function for Custom Calendar
+    function applyDateSelection() {
+        // Grab the literal text from the calendar label (e.g., "01/Aug/2026 to 02/Aug/2026")
+        const labelText = document.getElementById('date-picker-label').innerText || "";
+        const url = new URL(window.location.href);
+        
+        function formatToIso(dateStr) {
+            // Converts "01/Aug/2026" to "2026-08-01" so the backend handles it perfectly
+            const cleanStr = dateStr.replace(/\//g, ' '); 
+            const d = new Date(cleanStr);
+            if (!isNaN(d)) {
+                return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
+            }
+            return dateStr;
+        }
+        
+        if (labelText.includes('to')) {
+            const parts = labelText.split('to');
+            url.searchParams.set('start_date', formatToIso(parts[0].trim()));
+            url.searchParams.set('end_date', formatToIso(parts[1].trim()));
+        } else if (labelText.trim() !== "") {
+            url.searchParams.set('start_date', formatToIso(labelText.trim()));
+            url.searchParams.set('end_date', formatToIso(labelText.trim()));
+        } else {
+            // Fallback just in case
+            const startInput = document.getElementById('start-date-input').value;
+            const endInput = document.getElementById('end-date-input').value;
+            if (startInput) url.searchParams.set('start_date', startInput);
+            if (endInput) url.searchParams.set('end_date', endInput);
+        }
+        
+        // Reload page with the new filters
         window.location.href = url.toString();
     }
 </script>

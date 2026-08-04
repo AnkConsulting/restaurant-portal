@@ -247,7 +247,7 @@ function applyTablePagination() {
     }
 }
 
-// --- CHART.JS VISUALIZATION LOGIC (WITH PREVIOUS PERIOD) ---
+// --- CHART.JS VISUALIZATION LOGIC (WITH DYNAMIC PREV DATE TOOLTIP) ---
 function initCharts(data) {
     const donutCtx = document.getElementById('platformDonutChart').getContext('2d');
     
@@ -307,9 +307,6 @@ function initCharts(data) {
     window.latestChartPayload = data;
 
     const currentStyles = getWeekendStyles(data.trend_labels, '#ffffff', '#004ac6', 3);
-    
-    // Create the previous period trend labels to match the length of current
-    // If not provided, it just plots sequentially
     const prevStyles = getWeekendStyles(data.prev_trend_labels, '#ffffff', '#94a3b8', 2);
 
     trendChartInstance = new Chart(trendCtx, {
@@ -358,6 +355,17 @@ function initCharts(data) {
                 },
                 tooltip: {
                     callbacks: {
+                        title: function(context) {
+                            const index = context[0].dataIndex;
+                            const datasetIndex = context[0].datasetIndex;
+                            const payload = window.latestChartPayload;
+                            
+                            // If hovering over Previous Period, show the exact matched prior date
+                            if (datasetIndex === 1 && payload && payload.prev_trend_labels) {
+                                return payload.prev_trend_labels[index] || context[0].label;
+                            }
+                            return context[0].label;
+                        },
                         label: function(context) {
                             let val = context.raw;
                             let label = context.dataset.label || '';
@@ -481,7 +489,6 @@ function switchTrendMetric(metricType, btnEl) {
     trendChartInstance.data.datasets[0].pointRadius = currentStyles.radii;
     trendChartInstance.data.datasets[0].pointBorderWidth = currentStyles.borderWidths;
     
-    // Update Previous Period line
     trendChartInstance.data.datasets[1].data = prevTargetData;
     trendChartInstance.data.datasets[1].pointBackgroundColor = prevStyles.bgColors;
     trendChartInstance.data.datasets[1].pointBorderColor = prevStyles.borderColors;

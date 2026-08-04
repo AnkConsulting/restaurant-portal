@@ -179,14 +179,21 @@ async def render_dashboard(
         current_filtered = filtered_df
         prev_filtered = pd.DataFrame(columns=filtered_df.columns)
 
-    # Core Metrics Calculations
+    # Core Metrics Calculations & Rounded Scorecard Strings
     total_gmv = float(current_filtered["GMV"].sum()) if "GMV" in current_filtered.columns else 0.0
+    formatted_total_gmv = f"₹{format_indian_integer(round(total_gmv))}"
+
     total_orders = int(current_filtered["Delivered orders"].sum()) if "Delivered orders" in current_filtered.columns else 0
+    formatted_total_orders = format_indian_integer(total_orders)
+
     avg_aov = float(total_gmv / total_orders) if total_orders > 0 else 0.0
     formatted_avg_aov = f"₹{format_indian_integer(round(avg_aov))}"
 
     sales_ads = float(current_filtered["Sales from Ads"].sum()) if "Sales from Ads" in current_filtered.columns else 0.0
+    formatted_sales_ads = f"₹{format_indian_integer(round(sales_ads))}"
+
     discount_given = float(current_filtered["Discount given"].sum()) if "Discount given" in current_filtered.columns else 0.0
+    formatted_discount_given = f"₹{format_indian_integer(round(discount_given))}"
 
     prev_total_gmv = float(prev_filtered["GMV"].sum()) if "GMV" in prev_filtered.columns else 0.0
     prev_total_orders = int(prev_filtered["Delivered orders"].sum()) if "Delivered orders" in prev_filtered.columns else 0
@@ -310,19 +317,19 @@ async def render_dashboard(
             
         return JSONResponse(content={
             "max_available_date": max_available_date,
-            "total_gmv": format_indian_currency(total_gmv),
+            "total_gmv": formatted_total_gmv,
             "raw_total_gmv": total_gmv,
             "raw_prev_total_gmv": prev_total_gmv,
-            "total_orders": format_indian_integer(total_orders),
+            "total_orders": formatted_total_orders,
             "raw_total_orders": total_orders,
             "raw_prev_total_orders": prev_total_orders,
             "avg_aov": formatted_avg_aov,
             "raw_avg_aov": avg_aov,
             "raw_prev_avg_aov": prev_avg_aov,
-            "sales_ads": format_indian_currency(sales_ads),
+            "sales_ads": formatted_sales_ads,
             "raw_sales_ads": sales_ads,
             "raw_prev_sales_ads": prev_sales_ads,
-            "discount_given": format_indian_currency(discount_given),
+            "discount_given": formatted_discount_given,
             "raw_discount_given": discount_given,
             "raw_prev_discount_given": prev_discount_given,
             "ad_roi": ad_roi_str,
@@ -350,11 +357,11 @@ async def render_dashboard(
             "end_date": end_date or "",
             "max_available_date": max_available_date,
             
-            "total_gmv": format_indian_currency(total_gmv),
-            "total_orders": format_indian_integer(total_orders),
+            "total_gmv": formatted_total_gmv,
+            "total_orders": formatted_total_orders,
             "avg_aov": formatted_avg_aov,
-            "sales_ads": format_indian_currency(sales_ads),
-            "discount_given": format_indian_currency(discount_given),
+            "sales_ads": formatted_sales_ads,
+            "discount_given": formatted_discount_given,
             
             "raw_total_gmv": total_gmv,
             "raw_prev_total_gmv": prev_total_gmv,

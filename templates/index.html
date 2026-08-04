@@ -51,13 +51,16 @@
 </head>
 <body class="bg-background text-on-surface font-body-md min-h-screen">
 
+<!-- HEADER WITH MODULE SWITCHER -->
 <header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
     <div class="flex items-center gap-6">
+        <!-- Logo & Title -->
         <div class="flex items-center gap-3">
             <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
             <h1 class="font-headline-lg text-[22px] font-bold text-gray-800 tracking-tight hidden md:block border-r border-gray-300 pr-6">RDA Portal</h1>
         </div>
         
+        <!-- MODULE SWITCHER (Functional) -->
         <div class="relative font-['Hanken_Grotesk'] z-[110]" id="module-switcher-container">
           <button onclick="toggleCustomDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
             <div class="flex items-center gap-2">
@@ -69,6 +72,7 @@
 
           <div id="module-menu" class="hidden dropdown-menu-custom absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50" onclick="event.stopPropagation()">
             <div class="p-4">
+              <!-- Category 1: CORE ANALYTICS -->
               <div class="mb-4">
                 <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Core Analytics</h4>
                 <div class="space-y-1">
@@ -86,6 +90,7 @@
                   </a>
                 </div>
               </div>
+              <!-- Category 2: FINANCE & RECON -->
               <div>
                 <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Finance & Recon</h4>
                 <div class="space-y-1">
@@ -109,6 +114,7 @@
         </div>
     </div>
 
+    <!-- Right Side Settings & User Profile -->
     <div class="flex items-center gap-4">
         <div class="relative group">
             <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-gray-500">
@@ -151,6 +157,7 @@
 </header>
 
 <main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-[1440px] mx-auto transition-opacity duration-300">
+    <!-- FILTERS -->
     <form method="get" action="/" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
         
         <div class="relative w-full md:w-auto z-40" id="date-dropdown-container">
@@ -276,6 +283,7 @@
         </div>
     </form>
 
+    <!-- CORE KPIS WITH COMPARISON LABELS -->
     <section class="grid grid-cols-5 gap-6 mb-8">
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between min-w-0">
             <div class="flex justify-between items-start mb-2">
@@ -283,7 +291,10 @@
                 <span class="material-symbols-outlined text-primary shrink-0" style="font-variation-settings: 'FILL' 0;">payments</span>
             </div>
             <div id="kpi-gmv" class="text-[26px] text-on-surface truncate" title="{{ total_gmv }}">{{ total_gmv }}</div>
-            <div id="kpi-gmv-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_total_gmv }}" data-prev="{{ raw_prev_total_gmv }}" data-inverse="false"></div>
+            <div class="mt-2 flex flex-col">
+                <div id="kpi-gmv-change" class="flex items-center kpi-change-indicator" data-current="{{ raw_total_gmv }}" data-prev="{{ raw_prev_total_gmv }}" data-inverse="false"></div>
+                <span class="text-[10px] text-gray-400 font-medium mt-0.5">vs. Last Month (MoM)</span>
+            </div>
         </div>
         
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between min-w-0">
@@ -292,7 +303,10 @@
                 <span class="material-symbols-outlined text-[#006a61] shrink-0" style="font-variation-settings: 'FILL' 0;">local_shipping</span>
             </div>
             <div id="kpi-orders" class="text-[26px] text-on-surface truncate" title="{{ total_orders }}">{{ total_orders }}</div>
-            <div id="kpi-orders-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_total_orders }}" data-prev="{{ raw_prev_total_orders }}" data-inverse="false"></div>
+            <div class="mt-2 flex flex-col">
+                <div id="kpi-orders-change" class="flex items-center kpi-change-indicator" data-current="{{ raw_total_orders }}" data-prev="{{ raw_prev_total_orders }}" data-inverse="false"></div>
+                <span class="text-[10px] text-gray-400 font-medium mt-0.5">vs. Last Month (MoM)</span>
+            </div>
         </div>
 
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between min-w-0">
@@ -301,7 +315,10 @@
                 <span class="material-symbols-outlined text-[#48566b] shrink-0" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
             </div>
             <div id="kpi-aov" class="text-[26px] text-on-surface truncate" title="{{ avg_aov }}">{{ avg_aov }}</div>
-            <div id="kpi-aov-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_avg_aov }}" data-prev="{{ raw_prev_avg_aov }}" data-inverse="false"></div>
+            <div class="mt-2 flex flex-col">
+                <div id="kpi-aov-change" class="flex items-center kpi-change-indicator" data-current="{{ raw_avg_aov }}" data-prev="{{ raw_prev_avg_aov }}" data-inverse="false"></div>
+                <span class="text-[10px] text-gray-400 font-medium mt-0.5">vs. Last Month (MoM)</span>
+            </div>
         </div>
 
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between min-w-0">
@@ -310,7 +327,10 @@
                 <span class="material-symbols-outlined text-primary-container shrink-0" style="font-variation-settings: 'FILL' 0;">campaign</span>
             </div>
             <div id="kpi-ads" class="text-[26px] text-on-surface truncate" title="{{ sales_ads }}">{{ sales_ads }}</div>
-            <div id="kpi-ads-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_sales_ads }}" data-prev="{{ raw_prev_sales_ads }}" data-inverse="false"></div>
+            <div class="mt-2 flex flex-col">
+                <div id="kpi-ads-change" class="flex items-center kpi-change-indicator" data-current="{{ raw_sales_ads }}" data-prev="{{ raw_prev_sales_ads }}" data-inverse="false"></div>
+                <span class="text-[10px] text-gray-400 font-medium mt-0.5">vs. Last Month (MoM)</span>
+            </div>
         </div>
 
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between min-w-0">
@@ -319,10 +339,14 @@
                 <span class="material-symbols-outlined text-error shrink-0" style="font-variation-settings: 'FILL' 0;">sell</span>
             </div>
             <div id="kpi-discount" class="text-[26px] text-on-surface truncate" title="{{ discount_given }}">{{ discount_given }}</div>
-            <div id="kpi-discount-change" class="mt-2 flex items-center kpi-change-indicator" data-current="{{ raw_discount_given }}" data-prev="{{ raw_prev_discount_given }}" data-inverse="true"></div>
+            <div class="mt-2 flex flex-col">
+                <div id="kpi-discount-change" class="flex items-center kpi-change-indicator" data-current="{{ raw_discount_given }}" data-prev="{{ raw_prev_discount_given }}" data-inverse="true"></div>
+                <span class="text-[10px] text-gray-400 font-medium mt-0.5">vs. Last Month (MoM)</span>
+            </div>
         </div>
     </section>
 
+    <!-- CHARTS -->
     <section class="grid grid-cols-2 gap-6 mb-8">
         <div class="elevation-1 card-radius p-6 flex flex-col h-[400px]">
             <div class="flex flex-wrap justify-between items-center mb-6 gap-2">
@@ -362,6 +386,7 @@
         </div>
     </section>
 
+    <!-- PAGINATION TABLE -->
     <section class="elevation-1 card-radius overflow-hidden">
         <div class="px-6 py-4 border-b border-surface-container-high bg-white flex justify-between items-center">
             <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase">Filtered Daily Operational Report</h2>

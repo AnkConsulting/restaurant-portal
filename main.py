@@ -137,8 +137,9 @@ async def render_dashboard(
 
         current_filtered = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
         
-        prev_start = start_dt - pd.Timedelta(days=7)
-        prev_end = end_dt - pd.Timedelta(days=7)
+        # Exact 1 Month Prior for MoM Previous Period Comparison
+        prev_start = start_dt - pd.DateOffset(months=1)
+        prev_end = end_dt - pd.DateOffset(months=1)
         prev_filtered = filtered_df[(filtered_df["_temp_date"] >= prev_start) & (filtered_df["_temp_date"] <= prev_end)]
     else:
         current_filtered = filtered_df
@@ -185,7 +186,7 @@ async def render_dashboard(
         if "Discount given" in current_filtered.columns:
             platform_discount = {k: float(v) for k, v in current_filtered.groupby("Platform")["Discount given"].sum().to_dict().items()}
 
-    # Trend Alignment Engine with Pure Python Types
+    # --- MoM Trend Alignment Engine with Correct Prior Dates ---
     trend_labels, prev_trend_labels = [], []
     sales_trend, gmv_trend, orders_trend, ads_trend, discount_trend = [], [], [], [], []
     prev_sales_trend, prev_gmv_trend, prev_orders_trend, prev_ads_trend, prev_discount_trend = [], [], [], [], []
@@ -209,7 +210,8 @@ async def render_dashboard(
                 ads_trend.append(float(row.get("Sales from Ads", 0)))
                 discount_trend.append(float(row.get("Discount given", 0)))
                 
-                prior_date = curr_date - pd.Timedelta(days=7)
+                # Look up exactly 1 month prior for the tooltip date & data alignment
+                prior_date = curr_date - pd.DateOffset(months=1)
                 prev_trend_labels.append(prior_date.strftime('%d-%m-%Y'))
                 
                 matched = False

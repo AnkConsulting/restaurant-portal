@@ -17,6 +17,7 @@ app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), na
 SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=161887137&single=true&output=csv"
 BRAND_MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=766978685&single=true&output=csv"
 INACTIVE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTw5dwFgDftzaf9t_AE3O1kfCigoSeiIHYCy9T1HVbkRC0gb43AmuU2U67_oOiIujc046TzlS3NQGbb/pub?gid=920943544&single=true&output=csv"
+SWIGGY_INSIGHTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2AAwYZA0r8Y59L5KAOZ0yszHcNjyVKynuPfqcTKBh6VSPsmSqg5pmCizX5qDEEno26-okgxtRvZN5/pub?gid=1328235442&single=true&output=csv"
 
 
 def format_indian_currency(val):
@@ -109,6 +110,39 @@ def load_data():
     return df[ordered_cols]
 
 
+def load_swiggy_insights_data():
+    try:
+        df = pd.read_csv(SWIGGY_INSIGHTS_CSV_URL)
+        df.columns = df.columns.str.strip()
+        
+        if "Res ID" in df.columns:
+            df["Res ID"] = df["Res ID"].dropna().astype(str).str.split('.').str[0].str.strip()
+            
+        numeric_cols = [
+            "Delivered orders", "Delivered Orders", "Sales", "GMV", 
+            "Sales from Ads", "Discount given", "Discount Given"
+        ]
+        for col in numeric_cols:
+            if col in df.columns:
+                cleaned_series = df[col].astype(str).str.replace(r'[₹, ]', '', regex=True)
+                df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
+
+        if "Delivered Orders" in df.columns and "Delivered orders" not in df.columns:
+            df["Delivered orders"] = df["Delivered Orders"]
+        if "Discount Given" in df.columns and "Discount given" not in df.columns:
+            df["Discount given"] = df["Discount Given"]
+
+        return df
+    except Exception as e:
+        print(f"Could not load Swiggy Insights master sheet: {e}")
+        return pd.DataFrame(
+            columns=[
+                "Restaurant Name", "Report Period", "Location", "Res ID",
+                "Delivered orders", "Sales", "GMV", "Sales from Ads", "Discount given"
+            ]
+        )
+
+
 @app.get("/", response_class=HTMLResponse)
 async def render_dashboard(
     request: Request,
@@ -171,7 +205,6 @@ async def render_dashboard(
 
         current_filtered = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
         
-        # MoM Comparison Window
         prev_start = start_dt - pd.DateOffset(months=1)
         prev_end = end_dt - pd.DateOffset(months=1)
         prev_filtered = filtered_df[(filtered_df["_temp_date"] >= prev_start) & (filtered_df["_temp_date"] <= prev_end)]
@@ -179,7 +212,6 @@ async def render_dashboard(
         current_filtered = filtered_df
         prev_filtered = pd.DataFrame(columns=filtered_df.columns)
 
-    # Core Metrics Calculations & Rounded Scorecard Strings
     total_gmv = float(current_filtered["GMV"].sum()) if "GMV" in current_filtered.columns else 0.0
     formatted_total_gmv = f"₹{format_indian_integer(round(total_gmv))}"
 
@@ -201,7 +233,6 @@ async def render_dashboard(
     prev_sales_ads = float(prev_filtered["Sales from Ads"].sum()) if "Sales from Ads" in prev_filtered.columns else 0.0
     prev_discount_given = float(prev_filtered["Discount given"].sum()) if "Discount given" in prev_filtered.columns else 0.0
 
-    # Efficiency Analytics
     discount_impact_val = (discount_given / total_gmv * 100) if total_gmv > 0 else 0.0
     discount_impact_str = f"{discount_impact_val:.1f}%"
 
@@ -229,7 +260,6 @@ async def render_dashboard(
         if "Discount given" in current_filtered.columns:
             platform_discount = {k: float(v) for k, v in current_filtered.groupby("Platform")["Discount given"].sum().to_dict().items()}
 
-    # MoM Trend Alignment Engine
     trend_labels, prev_trend_labels = [], []
     sales_trend, gmv_trend, orders_trend, ads_trend, discount_trend = [], [], [], [], []
     prev_sales_trend, prev_gmv_trend, prev_orders_trend, prev_ads_trend, prev_discount_trend = [], [], [], [], []
@@ -398,27 +428,24 @@ async def swiggy_insights(
     is_admin = request.session.get("is_admin", False)
     authorized_res_ids = request.session.get("authorized_res_ids", [])
 
-    df = load_data()
+    df = load_swiggy_insights_data()
     
-    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
-
-    if "Platform" in df.columns:
-        df = df[df["Platform"].astype(str).str.strip().str.lower() == "swiggy"]
+    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist()) if "Restaurant Name" in df.columns else []
 
     if "Report Period" in df.columns:
         df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
 
-    if not is_admin:
+    if not is_admin and "Res ID" in df.columns:
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
-        all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist())
+        all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist()) if "Restaurant Name" in df.columns else []
 
     selected_brand = brand if brand in all_brands else ""
     
-    context_df = df[df["Restaurant Name"] == selected_brand] if selected_brand else df
+    context_df = df[df["Restaurant Name"] == selected_brand] if selected_brand and "Restaurant Name" in df.columns else df
 
-    outlets = sorted(context_df["Location"].dropna().unique().tolist())
+    outlets = sorted(context_df["Location"].dropna().unique().tolist()) if "Location" in context_df.columns else []
     selected_outlet = outlet if outlet in outlets else ""
-    if selected_outlet:
+    if selected_outlet and "Location" in context_df.columns:
         context_df = context_df[context_df["Location"] == selected_outlet]
 
     max_available_date = ""
@@ -436,7 +463,7 @@ async def swiggy_insights(
     start_dt = pd.to_datetime(start_date, errors="coerce")
     end_dt = pd.to_datetime(end_date, errors="coerce")
 
-    if pd.notnull(start_dt) and pd.notnull(end_dt):
+    if pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in filtered_df.columns:
         if end_date > max_available_date:
             end_date = max_available_date
             end_dt = pd.to_datetime(end_date, errors="coerce")

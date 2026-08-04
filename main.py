@@ -137,7 +137,6 @@ async def render_dashboard(
 
         current_filtered = filtered_df[(filtered_df["_temp_date"] >= start_dt) & (filtered_df["_temp_date"] <= end_dt)]
         
-        # --- FIX: Changed from 1 Month to 7 Days (WoW) ---
         prev_start = start_dt - pd.Timedelta(days=7)
         prev_end = end_dt - pd.Timedelta(days=7)
         prev_filtered = filtered_df[(filtered_df["_temp_date"] >= prev_start) & (filtered_df["_temp_date"] <= prev_end)]
@@ -146,47 +145,47 @@ async def render_dashboard(
         prev_filtered = pd.DataFrame(columns=filtered_df.columns)
 
     # Core Metrics
-    total_gmv = current_filtered["GMV"].sum() if "GMV" in current_filtered.columns else 0.0
+    total_gmv = float(current_filtered["GMV"].sum()) if "GMV" in current_filtered.columns else 0.0
     total_orders = int(current_filtered["Delivered orders"].sum()) if "Delivered orders" in current_filtered.columns else 0
-    avg_aov = (total_gmv / total_orders) if total_orders > 0 else 0.0
-    sales_ads = current_filtered["Sales from Ads"].sum() if "Sales from Ads" in current_filtered.columns else 0.0
-    discount_given = current_filtered["Discount given"].sum() if "Discount given" in current_filtered.columns else 0.0
+    avg_aov = float(total_gmv / total_orders) if total_orders > 0 else 0.0
+    sales_ads = float(current_filtered["Sales from Ads"].sum()) if "Sales from Ads" in current_filtered.columns else 0.0
+    discount_given = float(current_filtered["Discount given"].sum()) if "Discount given" in current_filtered.columns else 0.0
 
-    prev_total_gmv = prev_filtered["GMV"].sum() if "GMV" in prev_filtered.columns else 0.0
+    prev_total_gmv = float(prev_filtered["GMV"].sum()) if "GMV" in prev_filtered.columns else 0.0
     prev_total_orders = int(prev_filtered["Delivered orders"].sum()) if "Delivered orders" in prev_filtered.columns else 0
-    prev_avg_aov = (prev_total_gmv / prev_total_orders) if prev_total_orders > 0 else 0.0
-    prev_sales_ads = prev_filtered["Sales from Ads"].sum() if "Sales from Ads" in prev_filtered.columns else 0.0
-    prev_discount_given = prev_filtered["Discount given"].sum() if "Discount given" in prev_filtered.columns else 0.0
+    prev_avg_aov = float(prev_total_gmv / prev_total_orders) if prev_total_orders > 0 else 0.0
+    prev_sales_ads = float(prev_filtered["Sales from Ads"].sum()) if "Sales from Ads" in prev_filtered.columns else 0.0
+    prev_discount_given = float(prev_filtered["Discount given"].sum()) if "Discount given" in prev_filtered.columns else 0.0
 
     # Efficiency Analytics
     discount_impact_val = (discount_given / total_gmv * 100) if total_gmv > 0 else 0.0
     discount_impact_str = f"{discount_impact_val:.1f}%"
 
-    ad_spend = current_filtered["Ad Spend"].sum() if "Ad Spend" in current_filtered.columns else 0.0
+    ad_spend = float(current_filtered["Ad Spend"].sum()) if "Ad Spend" in current_filtered.columns else 0.0
     ad_roi_str = f"₹{(total_gmv / ad_spend):.1f}" if ad_spend > 0 else "N/A"
 
     platform_aov_dict = {}
     if "Platform" in current_filtered.columns:
         for p in platforms:
             p_df = current_filtered[current_filtered["Platform"] == p]
-            p_gmv = p_df["GMV"].sum() if "GMV" in p_df.columns else 0.0
-            p_orders = p_df["Delivered orders"].sum() if "Delivered orders" in p_df.columns else 0
-            platform_aov_dict[p] = (p_gmv / p_orders) if p_orders > 0 else 0.0
+            p_gmv = float(p_df["GMV"].sum()) if "GMV" in p_df.columns else 0.0
+            p_orders = int(p_df["Delivered orders"].sum()) if "Delivered orders" in p_df.columns else 0
+            platform_aov_dict[p] = float(p_gmv / p_orders) if p_orders > 0 else 0.0
 
     platform_orders, platform_gmv, platform_sales, platform_ads, platform_discount = {}, {}, {}, {}, {}
     if "Platform" in current_filtered.columns:
         if "Delivered orders" in current_filtered.columns:
-            platform_orders = current_filtered.groupby("Platform")["Delivered orders"].sum().to_dict()
+            platform_orders = {k: int(v) for k, v in current_filtered.groupby("Platform")["Delivered orders"].sum().to_dict().items()}
         if "GMV" in current_filtered.columns:
-            platform_gmv = current_filtered.groupby("Platform")["GMV"].sum().to_dict()
+            platform_gmv = {k: float(v) for k, v in current_filtered.groupby("Platform")["GMV"].sum().to_dict().items()}
         if "Sales" in current_filtered.columns:
-            platform_sales = current_filtered.groupby("Platform")["Sales"].sum().to_dict()
+            platform_sales = {k: float(v) for k, v in current_filtered.groupby("Platform")["Sales"].sum().to_dict().items()}
         if "Sales from Ads" in current_filtered.columns:
-            platform_ads = current_filtered.groupby("Platform")["Sales from Ads"].sum().to_dict()
+            platform_ads = {k: float(v) for k, v in current_filtered.groupby("Platform")["Sales from Ads"].sum().to_dict().items()}
         if "Discount given" in current_filtered.columns:
-            platform_discount = current_filtered.groupby("Platform")["Discount given"].sum().to_dict()
+            platform_discount = {k: float(v) for k, v in current_filtered.groupby("Platform")["Discount given"].sum().to_dict().items()}
 
-    # --- FIX: Perfect Date Alignment Engine ---
+    # Trend Alignment Engine with Pure Python Types
     trend_labels, prev_trend_labels = [], []
     sales_trend, gmv_trend, orders_trend, ads_trend, discount_trend = [], [], [], [], []
     prev_sales_trend, prev_gmv_trend, prev_orders_trend, prev_ads_trend, prev_discount_trend = [], [], [], [], []
@@ -204,13 +203,12 @@ async def render_dashboard(
                 curr_date = row["_temp_date"]
                 trend_labels.append(curr_date.strftime('%d-%m-%Y'))
                 
-                sales_trend.append(row.get("Sales", 0))
-                gmv_trend.append(row.get("GMV", 0))
-                orders_trend.append(row.get("Delivered orders", 0))
-                ads_trend.append(row.get("Sales from Ads", 0))
-                discount_trend.append(row.get("Discount given", 0))
+                sales_trend.append(float(row.get("Sales", 0)))
+                gmv_trend.append(float(row.get("GMV", 0)))
+                orders_trend.append(int(row.get("Delivered orders", 0)))
+                ads_trend.append(float(row.get("Sales from Ads", 0)))
+                discount_trend.append(float(row.get("Discount given", 0)))
                 
-                # Look up exactly 7 days prior
                 prior_date = curr_date - pd.Timedelta(days=7)
                 prev_trend_labels.append(prior_date.strftime('%d-%m-%Y'))
                 
@@ -219,13 +217,12 @@ async def render_dashboard(
                     prior_row = prev_agg_df[prev_agg_df["_temp_date"] == prior_date]
                     if not prior_row.empty:
                         matched = True
-                        prev_sales_trend.append(prior_row.iloc[0].get("Sales", 0))
-                        prev_gmv_trend.append(prior_row.iloc[0].get("GMV", 0))
-                        prev_orders_trend.append(prior_row.iloc[0].get("Delivered orders", 0))
-                        prev_ads_trend.append(prior_row.iloc[0].get("Sales from Ads", 0))
-                        prev_discount_trend.append(prior_row.iloc[0].get("Discount given", 0))
+                        prev_sales_trend.append(float(prior_row.iloc[0].get("Sales", 0)))
+                        prev_gmv_trend.append(float(prior_row.iloc[0].get("GMV", 0)))
+                        prev_orders_trend.append(int(prior_row.iloc[0].get("Delivered orders", 0)))
+                        prev_ads_trend.append(float(prior_row.iloc[0].get("Sales from Ads", 0)))
+                        prev_discount_trend.append(float(prior_row.iloc[0].get("Discount given", 0)))
                 
-                # If no data exists for that specific prior day, append None so Chart.js handles it cleanly
                 if not matched:
                     prev_sales_trend.append(None)
                     prev_gmv_trend.append(None)
@@ -268,10 +265,10 @@ async def render_dashboard(
                 "Res ID": str(row.get('Res ID', '')),
                 "Platform": str(row.get('Platform', '')),
                 "Delivered orders": f"{int(row.get('Delivered orders', 0)):,}",
-                "Sales": f"₹{row.get('Sales', 0):,.2f}",
-                "GMV": f"₹{row.get('GMV', 0):,.2f}",
-                "Sales from Ads": f"₹{row.get('Sales from Ads', 0):,.2f}",
-                "Discount given": f"₹{row.get('Discount given', 0):,.2f}"
+                "Sales": f"₹{float(row.get('Sales', 0)):,.2f}",
+                "GMV": f"₹{float(row.get('GMV', 0)):,.2f}",
+                "Sales from Ads": f"₹{float(row.get('Sales from Ads', 0)):,.2f}",
+                "Discount given": f"₹{float(row.get('Discount given', 0)):,.2f}"
             })
             
         return JSONResponse(content={

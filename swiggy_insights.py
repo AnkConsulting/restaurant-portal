@@ -1,3 +1,79 @@
+from typing import Optional
+from fastapi import APIRouter, Request, Query
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+import pandas as pd
+import os
+
+router = APIRouter()
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+
+# Update this if your Swiggy Insights CSV URL changes
+SWIGGY_INSIGHTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2AAwYZA0r8Y59L5KAOZ0yszHcNjyVKynuPfqcTKBh6VSPsmSqg5pmCizX5qDEEno26-okgxtRvZN5/pub?gid=1328235442&single=true&output=csv"
+
+def format_indian_currency(val):
+    try:
+        val = float(val)
+    except (TypeError, ValueError):
+        val = 0.0
+    parts = f"{val:.2f}".split(".")
+    integer_part = parts[0]
+    decimal_part = parts[1] if len(parts) > 1 else "00"
+    last_three = integer_part[-3:]
+    other_digits = integer_part[:-3]
+    if other_digits:
+        other_digits = ",".join([other_digits[max(0, i-2):i] for i in range(len(other_digits), 0, -2)][::-1])
+        res = other_digits + "," + last_three
+    else:
+        res = last_three
+    return f"₹{res}.{decimal_part}"
+
+def format_indian_integer(val):
+    try:
+        val = int(float(val))
+    except (TypeError, ValueError):
+        val = 0
+    integer_part = str(val)
+    last_three = integer_part[-3:]
+    other_digits = integer_part[:-3]
+    if other_digits:
+        other_digits = ",".join([other_digits[max(0, i-2):i] for i in range(len(other_digits), 0, -2)][::-1])
+        res = other_digits + "," + last_three
+    else:
+        res = last_three
+    return res
+
+def load_swiggy_insights_data():
+    try:
+        df = pd.read_csv(SWIGGY_INSIGHTS_CSV_URL)
+        df.columns = df.columns.str.strip()
+        
+        # Clean text columns to prevent whitespace matching bugs
+        if "Restaurant Name" in df.columns:
+            df["Restaurant Name"] = df["Restaurant Name"].astype(str).str.strip()
+        if "Location" in df.columns:
+            df["Location"] = df["Location"].astype(str).str.strip()
+        if "Res ID" in df.columns:
+            df["Res ID"] = df["Res ID"].dropna().astype(str).str.split('.').str[0].str.strip()
+            
+        numeric_cols = [
+            "Orders", "GMV", "Pre discounted AOV", "Online %", "Kitchen Prep Time",
+            "Impressions", "Impressions to Menu", "Menu Opens", "M2C", "C2O",
+            "New Customer Order %", "Repeat Customer Order %", "Total Complaints",
+            "Average Rating", "Ad Sales", "Ad Spend", "Ads ROI", "Discount Given"
+        ]
+        for col in numeric_cols:
+            if col in df.columns:
+                cleaned_series = df[col].astype(str).str.replace(r'[₹, %]', '', regex=True)
+                df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
+
+        return df
+    except Exception as e:
+        print(f"Could not load Swiggy Insights master sheet: {e}")
+        return pd.DataFrame()
+
 @router.get("/swiggy-insights", response_class=HTMLResponse)
 async def swiggy_insights(
     request: Request,

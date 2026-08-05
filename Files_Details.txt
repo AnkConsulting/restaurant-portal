@@ -1,0 +1,3 @@
+Sales & Operation ------> We are using "Daily Sales Script Swiggy/Zomato" Excel File -----------> "Consolidated_Master_Database" sheet
+
+Swiggy and Zomato Insights --------------> Daily Impression Swiggy and Zomato ---------------> Swiggy Master Table & Zomato Master Table.

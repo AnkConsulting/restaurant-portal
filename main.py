@@ -8,11 +8,14 @@ import pandas as pd
 import os
 
 from swiggy_insights import router as swiggy_router
+from zomato_insights import router as zomato_router
+
 
 app = FastAPI(title="Restaurant Daily Analytics Portal")
 app.add_middleware(SessionMiddleware, secret_key="YOUR_SUPER_SECRET_SESSION_KEY")
 
 app.include_router(swiggy_router)
+app.include_router(zomato_router)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))

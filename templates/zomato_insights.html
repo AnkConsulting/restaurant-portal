@@ -189,16 +189,28 @@
                 </div>
             </div>
 
-            <!-- PHASE 1: COMPARISON MODE DROPDOWN -->
-            <div class="relative w-full md:w-auto z-40">
-                <select name="compare" id="compare-dropdown" onchange="zomatoApplyDate()" class="h-10 px-4 pr-10 bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-red-500 focus:outline-none text-sm font-medium text-gray-700 cursor-pointer min-w-[240px] shadow-sm appearance-none">
-                    <option value="none" {% if compare_mode == 'none' or not compare_mode %}selected{% endif %}>Compare: None (Raw Data)</option>
-                    <option value="prev_period" {% if compare_mode == 'prev_period' %}selected{% endif %}>Compare: Previous Period</option>
-                    <option value="prev_week" {% if compare_mode == 'prev_week' %}selected{% endif %}>Compare: Same Days Last Week</option>
-                    <option value="prev_month" {% if compare_mode == 'prev_month' %}selected{% endif %}>Compare: Same Days Last Month</option>
-                    <option value="prev_year" {% if compare_mode == 'prev_year' %}selected{% endif %}>Compare: Same Period Last Year</option>
-                </select>
-                <span class="material-symbols-outlined absolute right-3 top-2.5 pointer-events-none text-gray-500 text-[20px]">swap_vert</span>
+            <!-- PHASE 1: CUSTOM COMPARISON DROPDOWN (UPDATED) -->
+            <div class="relative min-w-[240px] w-full md:w-auto z-40" id="compare-dropdown-container">
+                <input type="hidden" name="compare" id="compare-input" value="{{ compare_mode if compare_mode else 'none' }}">
+                <div onclick="zomatoToggleDropdown('compare-menu', event)" class="w-full h-10 bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-gray-700 font-medium hover:border-[#E23744] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                    <span id="compare-trigger-text" class="truncate">
+                        {% if compare_mode == 'prev_period' %}Compare: Previous Period
+                        {% elif compare_mode == 'prev_week' %}Compare: Same Days Last Week
+                        {% elif compare_mode == 'prev_month' %}Compare: Same Days Last Month
+                        {% elif compare_mode == 'prev_year' %}Compare: Same Period Last Year
+                        {% else %}Compare: None (Raw Data){% endif %}
+                    </span>
+                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500 text-[20px]">expand_more</span>
+                </div>
+                <div id="compare-menu" class="hidden absolute z-50 mt-1 w-full right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
+                    <ul class="max-h-60 overflow-y-auto custom-scrollbar text-sm py-1">
+                        <li onclick="zomatoSelectCompare('none', 'Compare: None (Raw Data)')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors {% if compare_mode == 'none' or not compare_mode %}bg-gray-50 font-semibold{% endif %}">Compare: None (Raw Data)</li>
+                        <li onclick="zomatoSelectCompare('prev_period', 'Compare: Previous Period')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors {% if compare_mode == 'prev_period' %}bg-gray-50 font-semibold{% endif %}">Compare: Previous Period</li>
+                        <li onclick="zomatoSelectCompare('prev_week', 'Compare: Same Days Last Week')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors {% if compare_mode == 'prev_week' %}bg-gray-50 font-semibold{% endif %}">Compare: Same Days Last Week</li>
+                        <li onclick="zomatoSelectCompare('prev_month', 'Compare: Same Days Last Month')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors {% if compare_mode == 'prev_month' %}bg-gray-50 font-semibold{% endif %}">Compare: Same Days Last Month</li>
+                        <li onclick="zomatoSelectCompare('prev_year', 'Compare: Same Period Last Year')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors {% if compare_mode == 'prev_year' %}bg-gray-50 font-semibold{% endif %}">Compare: Same Period Last Year</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -208,7 +220,7 @@
                 <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
                 <div onclick="zomatoToggleDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-on-surface hover:border-[#E23744] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
-                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
+                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500 text-[20px]">expand_more</span>
                 </div>
                 <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
@@ -230,7 +242,7 @@
                 <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
                 <div onclick="zomatoToggleDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 text-sm text-on-surface hover:border-[#E23744] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
-                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
+                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500 text-[20px]">expand_more</span>
                 </div>
                 <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
@@ -252,27 +264,72 @@
         </div>
     </form>
 
-    <!-- ZOMATO KPI CARDS -->
+    <!-- PHASE 4: ZOMATO KPI CARDS WITH DELTA BADGES -->
     <section class="grid grid-cols-5 gap-6 mb-8">
+        
+        <!-- GMV Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Zomato GMV</span>
             <div class="text-[26px] font-bold text-on-surface mt-2">{{ total_gmv }}</div>
+            {% if comp_data and comp_data.gmv and comp_data.gmv.show %}
+            <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.gmv.is_positive else 'text-error' }}">
+                <span class="material-symbols-outlined text-[16px]">{{ 'arrow_upward' if comp_data.gmv.is_positive else 'arrow_downward' }}</span>
+                <span>{{ comp_data.gmv.pct }}%</span>
+                <span class="text-gray-400 font-normal ml-1">vs {{ comp_data.label }}</span>
+            </div>
+            {% endif %}
         </div>
+
+        <!-- Orders Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Orders</span>
             <div class="text-[26px] font-bold text-[#E23744] mt-2">{{ total_orders }}</div>
+            {% if comp_data and comp_data.orders and comp_data.orders.show %}
+            <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.orders.is_positive else 'text-error' }}">
+                <span class="material-symbols-outlined text-[16px]">{{ 'arrow_upward' if comp_data.orders.is_positive else 'arrow_downward' }}</span>
+                <span>{{ comp_data.orders.pct }}%</span>
+                <span class="text-gray-400 font-normal ml-1">vs {{ comp_data.label }}</span>
+            </div>
+            {% endif %}
         </div>
+
+        <!-- AOV Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Pre-Disc AOV</span>
             <div class="text-[26px] font-bold text-on-surface mt-2">{{ avg_aov }}</div>
+            {% if comp_data and comp_data.aov and comp_data.aov.show %}
+            <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.aov.is_positive else 'text-error' }}">
+                <span class="material-symbols-outlined text-[16px]">{{ 'arrow_upward' if comp_data.aov.is_positive else 'arrow_downward' }}</span>
+                <span>{{ comp_data.aov.pct }}%</span>
+                <span class="text-gray-400 font-normal ml-1">vs {{ comp_data.label }}</span>
+            </div>
+            {% endif %}
         </div>
+
+        <!-- Ad Sales Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Ad Sales</span>
             <div class="text-[26px] font-bold text-blue-600 mt-2">{{ sales_ads }}</div>
+            {% if comp_data and comp_data.ads and comp_data.ads.show %}
+            <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.ads.is_positive else 'text-error' }}">
+                <span class="material-symbols-outlined text-[16px]">{{ 'arrow_upward' if comp_data.ads.is_positive else 'arrow_downward' }}</span>
+                <span>{{ comp_data.ads.pct }}%</span>
+                <span class="text-gray-400 font-normal ml-1">vs {{ comp_data.label }}</span>
+            </div>
+            {% endif %}
         </div>
+
+        <!-- Discount Card (Lower is Better, but for now we track raw growth) -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Discounts</span>
             <div class="text-[26px] font-bold text-error mt-2">{{ discount_given }}</div>
+            {% if comp_data and comp_data.discount and comp_data.discount.show %}
+            <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.discount.is_positive else 'text-error' }}">
+                <span class="material-symbols-outlined text-[16px]">{{ 'arrow_upward' if comp_data.discount.is_positive else 'arrow_downward' }}</span>
+                <span>{{ comp_data.discount.pct }}%</span>
+                <span class="text-gray-400 font-normal ml-1">vs {{ comp_data.label }}</span>
+            </div>
+            {% endif %}
         </div>
     </section>
 
@@ -533,6 +590,14 @@
         window.location.href = url.toString();
     }
 
+    // NEW LOGIC FOR CUSTOM COMPARE DROPDOWN
+    function zomatoSelectCompare(value, text) {
+        document.getElementById('compare-input').value = value;
+        document.getElementById('compare-trigger-text').innerText = text;
+        document.getElementById('compare-menu').classList.add('hidden');
+        zomatoApplyDate(); // Trigger URL update automatically when selected
+    }
+
     let zomatoMonth = new Date().getMonth();
     let zomatoYear = new Date().getFullYear();
     const zomatoMonthsList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -665,7 +730,7 @@
         }
     }
 
-    // UPDATED FOR PHASE 1: Attaches 'compare' parameter to URL
+    // PULLS FROM THE HIDDEN INPUT NOW
     function zomatoApplyDate() {
         const url = new URL(window.location.href);
         const fmtIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -674,7 +739,7 @@
         if (zomatoSelEnd) url.searchParams.set('end_date', fmtIso(zomatoSelEnd));
         else if (zomatoSelStart) url.searchParams.set('end_date', fmtIso(zomatoSelStart));
 
-        const compareMode = document.getElementById('compare-dropdown').value;
+        const compareMode = document.getElementById('compare-input').value; // Changed to read hidden input
         if (compareMode && compareMode !== 'none') {
             url.searchParams.set('compare', compareMode);
         } else {

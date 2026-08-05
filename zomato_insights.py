@@ -1,1 +1,188 @@
+from typing import Optional
+from fastapi import APIRouter, Request, Query
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+import pandas as pd
+import os
 
+router = APIRouter()
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+
+# Official Zomato Master CSV Link
+ZOMATO_INSIGHTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2AAwYZA0r8Y59L5KAOZ0yszHcNjyVKynuPfqcTKBh6VSPsmSqg5pmCizX5qDEEno26-okgxtRvZN5/pub?gid=1968701967&single=true&output=csv"
+
+def format_indian_currency(val):
+    try:
+        val = float(val)
+    except (TypeError, ValueError):
+        val = 0.0
+    parts = f"{val:.2f}".split(".")
+    integer_part = parts[0]
+    decimal_part = parts[1] if len(parts) > 1 else "00"
+    last_three = integer_part[-3:]
+    other_digits = integer_part[:-3]
+    if other_digits:
+        other_digits = ",".join([other_digits[max(0, i-2):i] for i in range(len(other_digits), 0, -2)][::-1])
+        res = other_digits + "," + last_three
+    else:
+        res = last_three
+    return f"₹{res}.{decimal_part}"
+
+def format_indian_integer(val):
+    try:
+        val = int(float(val))
+    except (TypeError, ValueError):
+        val = 0
+    integer_part = str(val)
+    last_three = integer_part[-3:]
+    other_digits = integer_part[:-3]
+    if other_digits:
+        other_digits = ",".join([other_digits[max(0, i-2):i] for i in range(len(other_digits), 0, -2)][::-1])
+        res = other_digits + "," + last_three
+    else:
+        res = last_three
+    return res
+
+def load_zomato_insights_data():
+    try:
+        df = pd.read_csv(ZOMATO_INSIGHTS_CSV_URL)
+        df.columns = df.columns.str.strip()
+        
+        # Clean text columns
+        if "Restaurant Name" in df.columns:
+            df["Restaurant Name"] = df["Restaurant Name"].astype(str).str.strip()
+        if "Location" in df.columns:
+            df["Location"] = df["Location"].astype(str).str.strip()
+        if "Res ID" in df.columns:
+            df["Res ID"] = df["Res ID"].dropna().astype(str).str.split('.').str[0].str.strip()
+            
+        # Clean numeric columns
+        numeric_cols = [
+            "Orders", "GMV", "Total GST collected from customers", "Pre discounted AOV", "Online %", "Kitchen Prep Time",
+            "Impressions", "Impressions to Menu", "Menu Opens", "M2C", "C2O",
+            "New Customer Order %", "Repeat Customer Order %", "Total Complaints",
+            "Average Rating", "Ad Sales", "Ad Spend", "Ads ROI", "Discount Given"
+        ]
+        for col in numeric_cols:
+            if col in df.columns:
+                cleaned_series = df[col].astype(str).str.replace(r'[₹, %]', '', regex=True)
+                df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
+
+        # Comm Value (CV) Calculation directly from Raw Data
+        if "GMV" in df.columns and "Total GST collected from customers" in df.columns:
+            df["CV"] = df["GMV"] - df["Total GST collected from customers"]
+        else:
+            df["CV"] = 0.0
+
+        # Rearrange to the strictly mandated format
+        cols = df.columns.tolist()
+        priority_cols = ["Restaurant Name", "Report Period", "Location", "Res ID"]
+        existing_priority = [c for c in priority_cols if c in cols]
+        
+        for c in existing_priority:
+            cols.remove(c)
+            
+        final_cols = existing_priority + cols
+        df = df[final_cols]
+
+        return df
+    except Exception as e:
+        print(f"Could not load Zomato Insights master sheet: {e}")
+        return pd.DataFrame()
+
+@router.get("/zomato-insights", response_class=HTMLResponse)
+async def zomato_insights(
+    request: Request,
+    brand: Optional[str] = Query(None),
+    outlet: Optional[str] = Query(None),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None)
+):
+    if not request.session.get("logged_in"):
+        return RedirectResponse(url="/login", status_code=303)
+
+    is_admin = request.session.get("is_admin", False)
+    authorized_res_ids = request.session.get("authorized_res_ids", [])
+
+    df = load_zomato_insights_data()
+    
+    # Isolate Date Filtering safely handling variations
+    date_col = "Report Period" if "Report Period" in df.columns else "Report Date"
+    if date_col in df.columns:
+        df["_temp_date"] = pd.to_datetime(df[date_col], dayfirst=True, format="mixed", errors="coerce")
+
+    if not is_admin and "Res ID" in df.columns:
+        df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
+
+    all_brands = sorted(df["Restaurant Name"].dropna().unique().tolist()) if "Restaurant Name" in df.columns else []
+    selected_brand = brand.strip() if brand and brand in all_brands else ""
+    
+    context_df = df[df["Restaurant Name"] == selected_brand] if selected_brand else df
+
+    outlets = sorted(context_df["Location"].dropna().unique().tolist()) if "Location" in context_df.columns else []
+    selected_outlet = outlet.strip() if outlet and outlet in outlets else ""
+    
+    if selected_outlet and "Location" in context_df.columns:
+        context_df = context_df[context_df["Location"] == selected_outlet]
+
+    max_available_date = ""
+    max_date_obj = None
+    if "_temp_date" in context_df.columns and not context_df["_temp_date"].dropna().empty:
+        max_date_obj = context_df["_temp_date"].max()
+        if pd.notnull(max_date_obj):
+            max_available_date = max_date_obj.strftime("%Y-%m-%d")
+
+    start_dt = pd.to_datetime(start_date, errors="coerce")
+    end_dt = pd.to_datetime(end_date, errors="coerce")
+
+    if pd.isnull(start_dt) or (max_date_obj is not None and start_dt > max_date_obj):
+        start_dt = max_date_obj
+        end_dt = max_date_obj
+
+    if pd.notnull(start_dt):
+        start_date = start_dt.strftime("%Y-%m-%d")
+    if pd.notnull(end_dt):
+        end_date = end_dt.strftime("%Y-%m-%d")
+
+    filtered_df = context_df.copy()
+
+    if pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in filtered_df.columns:
+        filtered_df = filtered_df[
+            (filtered_df["_temp_date"].dt.normalize() >= start_dt.normalize()) & 
+            (filtered_df["_temp_date"].dt.normalize() <= end_dt.normalize())
+        ]
+
+    total_gmv = float(filtered_df["GMV"].sum()) if "GMV" in filtered_df.columns else 0.0
+    total_orders = int(filtered_df["Orders"].sum()) if "Orders" in filtered_df.columns else 0
+    avg_aov = float(filtered_df["Pre discounted AOV"].mean()) if "Pre discounted AOV" in filtered_df.columns and not filtered_df["Pre discounted AOV"].empty else 0.0
+    sales_ads = float(filtered_df["Ad Sales"].sum()) if "Ad Sales" in filtered_df.columns else 0.0
+    discount_given = float(filtered_df["Discount Given"].sum()) if "Discount Given" in filtered_df.columns else 0.0
+
+    if "_temp_date" in filtered_df.columns:
+        filtered_df = filtered_df.drop(columns=["_temp_date"])
+        
+    table_records = filtered_df.to_dict(orient="records")
+
+    return templates.TemplateResponse(
+        request=request,
+        name="zomato_insights.html",
+        context={
+            "request": request,
+            "is_admin": is_admin,
+            "all_brands": all_brands,
+            "selected_brand": selected_brand,
+            "outlets": outlets,
+            "selected_outlet": selected_outlet,
+            "start_date": start_date or "",
+            "end_date": end_date or "",
+            "max_available_date": max_available_date,
+            "total_gmv": format_indian_currency(total_gmv),
+            "total_orders": format_indian_integer(total_orders),
+            "avg_aov": f"₹{format_indian_integer(round(avg_aov))}",
+            "sales_ads": format_indian_currency(sales_ads),
+            "discount_given": format_indian_currency(discount_given),
+            "table_data": table_records
+        }
+    )

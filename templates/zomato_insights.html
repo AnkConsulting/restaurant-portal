@@ -1,1 +1,666 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=1280" name="viewport"/>
+    <title>Zomato Insights - RDA Portal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
 
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline-variant": "#c3c6d7",
+                        "surface-container-high": "#e6e8ea",
+                        "on-surface": "#191c1e",
+                        "surface-bright": "#f7f9fb",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#e0e3e5",
+                        "primary": "#004ac6",
+                        "primary-container": "#2563eb",
+                        "background": "#f7f9fb"
+                    },
+                    fontFamily: {
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-sm": ["JetBrains Mono"],
+                        "title-md": ["Hanken Grotesk"]
+                    },
+                    spacing: {
+                        "margin-desktop": "32px"
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .elevation-1 { @apply bg-white border border-surface-container-high shadow-[0_4px_12px_rgba(0,0,0,0.02)]; }
+            .elevation-2 { @apply bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]; }
+            .card-radius { @apply rounded-[16px]; }
+            .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+            .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c3c6d7; border-radius: 20px; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen">
+
+<header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
+    <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3">
+            <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
+            <h1 class="font-headline-lg text-[22px] font-bold text-gray-800 tracking-tight hidden md:block border-r border-gray-300 pr-6">RDA Portal</h1>
+        </div>
+        
+        <div class="relative font-['Hanken_Grotesk'] z-[110]" id="module-switcher-container">
+          <button onclick="zomatoToggleDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-red-200 transition-all group focus:outline-none">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#E23744] text-[20px]">storefront</span>
+              <span class="font-bold text-[#E23744] text-sm">Zomato Insights</span>
+            </div>
+            <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors text-[20px]">expand_more</span>
+          </button>
+
+          <div id="module-menu" class="hidden dropdown-menu-custom absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50" onclick="event.stopPropagation()">
+            <div class="p-4">
+              <div class="mb-4">
+                <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Core Analytics</h4>
+                <div class="space-y-1">
+                  <a href="/" class="flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-md transition-colors group no-underline">
+                    <span class="material-symbols-outlined text-[#004ac6] text-[20px]">analytics</span>
+                    <span class="text-sm font-medium">Sales & Operations</span>
+                  </a>
+                  <a href="/swiggy-insights" class="flex items-center gap-3 px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-md transition-colors group no-underline">
+                    <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
+                    <span class="text-sm font-medium">Swiggy Insights</span>
+                  </a>
+                  <a href="/zomato-insights" class="flex items-center gap-3 px-3 py-2.5 bg-red-50 border-l-4 border-[#E23744] rounded-r-md group no-underline">
+                    <span class="material-symbols-outlined text-[#E23744] text-[20px]">storefront</span>
+                    <span class="text-sm font-bold text-[#E23744]">Zomato Insights</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-4">
+        <div class="relative group">
+            <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-gray-500">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
+            <div class="absolute right-0 mt-2 w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
+                <h4 class="font-title-md text-[18px] font-semibold text-on-surface mb-4">Theme Settings</h4>
+                <div class="mt-4 pt-4 border-t border-outline-variant">
+                    <a href="/logout" class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-red-50 rounded-lg transition-colors duration-200 group no-underline">
+                        <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
+                        <span class="font-semibold text-sm">Logout</span>
+                    </a>
+                </div>  
+            </div>
+        </div>
+        
+        <div class="md:flex flex-col items-end">
+            <span class="font-label-sm text-[12px] tracking-wider text-gray-500 uppercase">Welcome,</span>
+            <span id="user-display-name" class="font-title-md text-[16px] font-semibold text-on-surface">
+                {% if is_admin %}
+                    ANK Consulting Admin
+                {% else %}
+                    {% if selected_brand %}
+                        {{ selected_brand }}
+                    {% elif all_brands %}
+                        {{ all_brands[0] }}
+                    {% else %}
+                        Partner
+                    {% endif %}
+                {% endif %}
+            </span>
+        </div>
+        
+        {% if is_admin %}
+            <img alt="User Logo" class="w-10 h-10 object-contain rounded-full border border-surface-container-high bg-white p-0.5" src="/static/ank-logo.png"/>
+        {% else %}
+            <div id="avatar-initials" class="w-10 h-10 rounded-full bg-[#E23744] text-white flex items-center justify-center font-bold shadow-sm"></div>
+        {% endif %}
+    </div>
+</header>
+
+<main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-[1440px] mx-auto transition-opacity duration-300">
+    <form method="get" action="/zomato-insights" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div class="relative w-full md:w-auto z-40" id="date-dropdown-container">
+            <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
+            <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
+            <input type="hidden" id="max-available-date" value="{{ max_available_date }}">
+
+            <button type="button" onclick="zomatoToggleDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-red-500 focus:outline-none group min-w-[300px]">
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-gray-500 text-[20px]">calendar_today</span>
+                  <span id="custom-cal-label" class="text-sm font-medium text-gray-700"></span>
+                </div>
+                <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors">expand_more</span>
+            </button>
+          
+            <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
+                <div class="p-4">
+                  <div class="flex items-center justify-between mb-4 relative">
+                    <button type="button" onclick="zomatoNavigate(-1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                      <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_left</span>
+                    </button>
+                    <div class="flex gap-2 font-bold text-gray-900 text-sm items-center">
+                      <div class="relative">
+                          <button type="button" onclick="zomatoToggleMonthMenu(event)" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                              <span id="custom-month-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+                          </button>
+                          <div id="custom-month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-32 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                      </div>
+                      <div class="relative">
+                          <button type="button" onclick="zomatoToggleYearMenu(event)" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                              <span id="custom-year-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+                          </button>
+                          <div id="custom-year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-24 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                      </div>
+                    </div>
+                    <button type="button" onclick="zomatoNavigate(1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
+                      <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_right</span>
+                    </button>
+                  </div>
+
+                  <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
+                    <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+                  </div>
+
+                  <div class="grid grid-cols-7 gap-1 text-center text-sm" id="custom-cal-grid"></div>
+
+                  <div class="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
+                    <button type="button" onclick="zomatoToggleDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2">Cancel</button>
+                    <button type="button" onclick="zomatoApplyDate()" class="bg-[#E23744] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-red-700 transition-all active:scale-95 shadow-lg shadow-red-100">
+                      Apply Range
+                    </button>
+                  </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4 flex-1 justify-end z-[50]">
+            {% if is_admin %}
+            <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
+                <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
+                <div onclick="zomatoToggleDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-on-surface hover:border-[#E23744] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                    <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
+                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
+                </div>
+                <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
+                    <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                        <input type="text" id="brand-search" onkeyup="zomatoFilterDropdown('brand-search', 'brand-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-[#E23744] focus:ring-1 focus:ring-[#E23744] bg-white" placeholder="Search brands...">
+                    </div>
+                    <ul id="brand-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
+                        <li onclick="zomatoSelectBrand('')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Brands</li>
+                        {% for b in all_brands %}
+                        <li onclick="zomatoSelectBrand('{{ b }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">{{ b }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% else %}
+            <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
+            {% endif %}
+
+            <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
+                <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
+                <div onclick="zomatoToggleDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 text-sm text-on-surface hover:border-[#E23744] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                    <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
+                    <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500">expand_more</span>
+                </div>
+                <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
+                    <div class="p-2 border-b border-surface-container-high bg-surface-bright">
+                        <input type="text" id="outlet-search" onkeyup="zomatoFilterDropdown('outlet-search', 'outlet-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-[#E23744] focus:ring-1 focus:ring-[#E23744] bg-white" placeholder="Search outlets...">
+                    </div>
+                    <ul id="outlet-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
+                        <li onclick="zomatoSelectOutlet('')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Outlets</li>
+                        {% for loc in outlets %}
+                        <li onclick="zomatoSelectOutlet('{{ loc }}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">{{ loc }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <button type="button" onclick="zomatoExportCSV()" class="h-[46px] px-5 flex items-center justify-center gap-2 bg-[#F1F5F9] border border-outline-variant rounded-lg font-semibold text-sm hover:bg-gray-200 hover:border-[#E23744] transition-all shadow-sm group">
+                <span class="material-symbols-outlined text-[20px] text-[#E23744] group-hover:scale-110 transition-transform">download</span>
+                Export CSV
+            </button>
+        </div>
+    </form>
+
+    <!-- ZOMATO KPI CARDS -->
+    <section class="grid grid-cols-5 gap-6 mb-8">
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Zomato GMV</span>
+            <div class="text-[26px] font-bold text-on-surface mt-2">{{ total_gmv }}</div>
+        </div>
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Orders</span>
+            <div class="text-[26px] font-bold text-[#E23744] mt-2">{{ total_orders }}</div>
+        </div>
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Pre-Disc AOV</span>
+            <div class="text-[26px] font-bold text-on-surface mt-2">{{ avg_aov }}</div>
+        </div>
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Ad Sales</span>
+            <div class="text-[26px] font-bold text-blue-600 mt-2">{{ sales_ads }}</div>
+        </div>
+        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Discounts</span>
+            <div class="text-[26px] font-bold text-error mt-2">{{ discount_given }}</div>
+        </div>
+    </section>
+
+    <!-- VISUAL ANALYTICS CARDS -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">1. Customer Conversion Funnel</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="funnelChart"></canvas></div>
+        </div>
+        
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">2. Revenue & Volume Trends</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="trendChart"></canvas></div>
+        </div>
+        
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">3. Advertising ROI</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="adsChart"></canvas></div>
+        </div>
+        
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">4. Operational Efficiency</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="opsChart"></canvas></div>
+        </div>
+
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">5. Discount Impact on GMV</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="discountChart"></canvas></div>
+        </div>
+
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
+            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">6. Customer Mix (New vs Repeat)</h3>
+            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="customerMixChart"></canvas></div>
+        </div>
+    </section>
+
+    <!-- DATA TABLE -->
+    <section class="elevation-1 card-radius overflow-hidden mb-12">
+        <div class="px-6 py-4 border-b border-surface-container-high bg-white flex flex-wrap justify-between items-center gap-4">
+            <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase tracking-wide">Zomato Insights Performance Records</h2>
+            
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+                <span>Rows per page:</span>
+                <select id="rows-per-page" onchange="zomatoChangeRowsPerPage()" class="bg-white border border-outline-variant rounded-md pl-3 pr-8 py-1.5 text-sm focus:outline-none focus:border-[#E23744] cursor-pointer">
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="all">All</option>
+                </select>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse whitespace-nowrap" id="zomato-table">
+                <thead>
+                    <tr class="bg-[#F1F5F9] font-label-sm text-[12px] text-gray-600 uppercase tracking-widest border-b border-surface-container-high">
+                        <th class="py-4 px-4 font-semibold">Restaurant Name</th>
+                        <th class="py-4 px-4 font-semibold">Report Period</th>
+                        <th class="py-4 px-4 font-semibold">Location</th>
+                        <th class="py-4 px-4 font-semibold">Res ID</th>
+                        <th class="py-4 px-4 font-semibold text-right">Orders</th>
+                        <th class="py-4 px-4 font-semibold text-right">GMV</th>
+                        <th class="py-4 px-4 font-semibold text-right text-[#E23744]">Comm Value (CV)</th>
+                        <th class="py-4 px-4 font-semibold text-right">Pre Disc AOV</th>
+                        <th class="py-4 px-4 font-semibold text-right">Online %</th>
+                        <th class="py-4 px-4 font-semibold text-right">Prep Time</th>
+                        <th class="py-4 px-4 font-semibold text-right">Impressions</th>
+                        <th class="py-4 px-4 font-semibold text-right">Menu Opens</th>
+                        <th class="py-4 px-4 font-semibold text-right">Ad Sales</th>
+                        <th class="py-4 px-4 font-semibold text-right">Ad Spend</th>
+                        <th class="py-4 px-4 font-semibold text-right">Ads ROI</th>
+                        <th class="py-4 px-4 font-semibold text-right">Discount Given</th>
+                    </tr>
+                </thead>
+                <tbody class="font-body-md text-sm text-on-surface" id="table-body">
+                    {% for row in table_data %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors data-row">
+                        <td class="py-4 px-4 font-medium">{{ row.get('Restaurant Name', '') }}</td>
+                        <td class="py-4 px-4 text-gray-500">{{ row.get('Report Period', row.get('Report Date', '')) }}</td>
+                        <td class="py-4 px-4">{{ row.get('Location', '') }}</td>
+                        <td class="py-4 px-4 font-mono text-xs text-gray-400">{{ row.get('Res ID', '') }}</td>
+                        <td class="py-4 px-4 text-right font-bold">{{ row.get('Orders', 0) }}</td>
+                        <td class="py-4 px-4 text-right">₹{{ row.get('GMV', 0) }}</td>
+                        <td class="py-4 px-4 text-right text-[#E23744] font-bold">₹{{ row.get('CV', 0) }}</td>
+                        <td class="py-4 px-4 text-right">₹{{ row.get('Pre discounted AOV', 0) }}</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Online %', 0) }}%</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Kitchen Prep Time', 0) }}m</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Impressions', 0) }}</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Menu Opens', 0) }}</td>
+                        <td class="py-4 px-4 text-right text-blue-600 font-medium">₹{{ row.get('Ad Sales', 0) }}</td>
+                        <td class="py-4 px-4 text-right">₹{{ row.get('Ad Spend', 0) }}</td>
+                        <td class="py-4 px-4 text-right font-bold">{{ row.get('Ads ROI', 0) }}</td>
+                        <td class="py-4 px-4 text-right text-error font-medium">₹{{ row.get('Discount Given', 0) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="16" class="py-8 text-center text-gray-500 italic">No Zomato Insights operational data found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="px-6 py-4 bg-white border-t border-surface-container-high flex items-center justify-between">
+            <span id="pagination-info" class="text-sm text-gray-500">Showing 0 to 0 of 0 entries</span>
+            <div class="flex items-center gap-2" id="pagination-controls"></div>
+        </div>
+    </section>
+</main>
+
+<script>
+    window.zomatoChartData = {{ table_data | tojson | safe }};
+</script>
+
+<script src="/static/script.js"></script>
+<script src="/static/zomato_charts.js?v=1"></script>
+
+<script>
+    function zomatoToggleDropdown(menuId, event) {
+        event.stopPropagation();
+        const allMenus = document.querySelectorAll('.dropdown-menu-custom');
+        allMenus.forEach(menu => { if (menu.id !== menuId) menu.classList.add('hidden'); });
+        const menu = document.getElementById(menuId);
+        if (menu) {
+            menu.classList.toggle('hidden');
+            if (!menu.classList.contains('hidden')) {
+                const searchInput = menu.querySelector('input[type="text"]');
+                if (searchInput) searchInput.focus();
+            }
+        }
+    }
+
+    function zomatoFilterDropdown(inputId, listId) {
+        const input = document.getElementById(inputId);
+        const filter = input.value.toLowerCase();
+        const ul = document.getElementById(listId);
+        const li = ul.getElementsByTagName('li');
+        for (let i = 0; i < li.length; i++) {
+            const textValue = li[i].textContent || li[i].innerText;
+            if (textValue.toLowerCase().indexOf(filter) > -1) li[i].style.display = "";
+            else li[i].style.display = "none";
+        }
+    }
+
+    document.addEventListener("click", function(event) {
+        const mDrop = document.getElementById('custom-month-dropdown');
+        const yDrop = document.getElementById('custom-year-dropdown');
+        if (mDrop) mDrop.classList.add('hidden');
+        if (yDrop) yDrop.classList.add('hidden');
+        const allMenus = document.querySelectorAll('.dropdown-menu-custom');
+        allMenus.forEach(menu => menu.classList.add('hidden'));
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const displayNameEl = document.getElementById("user-display-name");
+        const displayName = displayNameEl ? displayNameEl.innerText.trim() : "";
+        const avatarBadge = document.getElementById("avatar-initials");
+        
+        if (avatarBadge && displayName) {
+          const words = displayName.split(/\s+/);
+          let initials = words.map(w => w[0]).join("").toUpperCase();
+          if (initials.length > 2) initials = initials.substring(0, 2);
+          avatarBadge.innerText = initials || "RP";
+        }
+
+        zomatoInitCalendar();
+        zomatoInitPagination();
+    });
+
+    let zomatoCurrentPage = 1;
+    let zomatoRowsPerPage = 20;
+
+    function zomatoInitPagination() {
+        const select = document.getElementById('rows-per-page');
+        if (select) zomatoRowsPerPage = select.value === 'all' ? Infinity : parseInt(select.value);
+        zomatoRenderTablePage();
+    }
+
+    function zomatoChangeRowsPerPage() {
+        const select = document.getElementById('rows-per-page');
+        zomatoRowsPerPage = select.value === 'all' ? Infinity : parseInt(select.value);
+        zomatoCurrentPage = 1;
+        zomatoRenderTablePage();
+    }
+
+    function zomatoChangePage(page) {
+        zomatoCurrentPage = page;
+        zomatoRenderTablePage();
+    }
+
+    function zomatoRenderTablePage() {
+        const tbody = document.getElementById('table-body');
+        if (!tbody) return;
+        const rows = Array.from(tbody.querySelectorAll('.data-row'));
+        const totalRows = rows.length;
+
+        if (totalRows === 0) {
+            document.getElementById('pagination-info').innerText = "Showing 0 to 0 of 0 entries";
+            document.getElementById('pagination-controls').innerHTML = "";
+            return;
+        }
+
+        const effectiveRowsPerPage = zomatoRowsPerPage === Infinity ? totalRows : zomatoRowsPerPage;
+        const totalPages = Math.ceil(totalRows / effectiveRowsPerPage);
+        if (zomatoCurrentPage > totalPages) zomatoCurrentPage = totalPages || 1;
+
+        const startIdx = (zomatoCurrentPage - 1) * effectiveRowsPerPage;
+        const endIdx = Math.min(startIdx + effectiveRowsPerPage, totalRows);
+
+        rows.forEach((row, index) => {
+            if (index >= startIdx && index < endIdx) row.style.display = "";
+            else row.style.display = "none";
+        });
+
+        document.getElementById('pagination-info').innerText = `Showing ${startIdx + 1} to ${endIdx} of ${totalRows} entries`;
+        const controls = document.getElementById('pagination-controls');
+        let html = '';
+        
+        html += `<button type="button" onclick="zomatoChangePage(${zomatoCurrentPage - 1})" ${zomatoCurrentPage === 1 ? 'disabled' : ''} class="px-3 py-1.5 border border-outline-variant rounded-md text-sm font-medium ${zomatoCurrentPage === 1 ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100'}">Previous</button>`;
+        
+        let startPage = Math.max(1, zomatoCurrentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button type="button" onclick="zomatoChangePage(${i})" class="px-3 py-1.5 border rounded-md text-sm font-medium ${i === zomatoCurrentPage ? 'bg-[#E23744] text-white border-[#E23744] shadow-sm' : 'border-outline-variant hover:bg-gray-100'}">${i}</button>`;
+        }
+
+        html += `<button type="button" onclick="zomatoChangePage(${zomatoCurrentPage + 1})" ${zomatoCurrentPage === totalPages || totalPages === 0 ? 'disabled' : ''} class="px-3 py-1.5 border border-outline-variant rounded-md text-sm font-medium ${zomatoCurrentPage === totalPages || totalPages === 0 ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100'}">Next</button>`;
+        
+        controls.innerHTML = html;
+    }
+
+    function zomatoExportCSV() {
+        const brand = document.getElementById('brand-input') ? document.getElementById('brand-input').value : '';
+        const outlet = document.getElementById('outlet-input').value;
+        const startDate = document.getElementById('start-date-input').value;
+        const endDate = document.getElementById('end-date-input').value;
+        const params = new URLSearchParams();
+        if (brand) params.set('brand', brand);
+        if (outlet) params.set('outlet', outlet);
+        if (startDate) params.set('start_date', startDate);
+        if (endDate) params.set('end_date', endDate);
+        window.location.href = `/zomato-insights/export?${params.toString()}`;
+    }
+
+    function zomatoSelectBrand(brandValue) {
+        const url = new URL(window.location.href);
+        if (brandValue) url.searchParams.set('brand', brandValue);
+        else url.searchParams.delete('brand');
+        url.searchParams.delete('outlet'); 
+        window.location.href = url.toString();
+    }
+
+    function zomatoSelectOutlet(outletValue) {
+        const url = new URL(window.location.href);
+        if (outletValue) url.searchParams.set('outlet', outletValue);
+        else url.searchParams.delete('outlet');
+        window.location.href = url.toString();
+    }
+
+    let zomatoMonth = new Date().getMonth();
+    let zomatoYear = new Date().getFullYear();
+    const zomatoMonthsList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    function zomatoParseIso(dateStr) {
+        if (!dateStr) return null;
+        const parts = dateStr.split('-');
+        if (parts.length === 3) return new Date(parts[0], parts[1] - 1, parts[2]);
+        return null;
+    }
+
+    let zomatoSelStart = zomatoParseIso(document.getElementById('start-date-input').value);
+    let zomatoSelEnd = zomatoParseIso(document.getElementById('end-date-input').value);
+
+    function zomatoInitCalendar() {
+        if (zomatoSelStart) {
+            zomatoMonth = zomatoSelStart.getMonth();
+            zomatoYear = zomatoSelStart.getFullYear();
+        }
+        zomatoRenderGrid();
+        zomatoUpdateLabel();
+    }
+
+    function zomatoRenderGrid() {
+        const monthText = document.getElementById('custom-month-text');
+        const yearText = document.getElementById('custom-year-text');
+        const grid = document.getElementById('custom-cal-grid');
+        if (!monthText || !yearText || !grid) return;
+
+        monthText.innerText = zomatoMonthsList[zomatoMonth];
+        yearText.innerText = zomatoYear;
+        grid.innerHTML = "";
+
+        const firstDay = new Date(zomatoYear, zomatoMonth, 1).getDay();
+        const daysInMonth = new Date(zomatoYear, zomatoMonth + 1, 0).getDate();
+
+        for (let i = 0; i < firstDay; i++) { grid.innerHTML += `<div></div>`; }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            let d = new Date(zomatoYear, zomatoMonth, day);
+            let isSelected = false;
+            let isBetween = false;
+
+            if (zomatoSelStart && zomatoSelEnd) {
+                if (d >= zomatoSelStart && d <= zomatoSelEnd) isBetween = true;
+                if (d.getTime() === zomatoSelStart.getTime() || d.getTime() === zomatoSelEnd.getTime()) isSelected = true;
+            } else if (zomatoSelStart && d.getTime() === zomatoSelStart.getTime()) {
+                isSelected = true;
+            }
+
+            let classes = "w-8 h-8 flex items-center justify-center rounded-full cursor-pointer transition-colors mx-auto ";
+            if (isSelected) classes += "bg-[#E23744] text-white font-bold shadow-md";
+            else if (isBetween) classes += "bg-red-100 text-[#E23744] font-medium";
+            else classes += "text-gray-700 hover:bg-gray-100";
+
+            grid.innerHTML += `<div class="${classes}" onclick="zomatoSelectDate(${zomatoYear}, ${zomatoMonth}, ${day})">${day}</div>`;
+        }
+    }
+
+    function zomatoSelectDate(y, m, d) {
+        let clicked = new Date(y, m, d);
+        if (!zomatoSelStart || (zomatoSelStart && zomatoSelEnd)) {
+            zomatoSelStart = clicked;
+            zomatoSelEnd = null;
+        } else if (clicked < zomatoSelStart) {
+            zomatoSelStart = clicked;
+            zomatoSelEnd = null;
+        } else {
+            zomatoSelEnd = clicked;
+        }
+        zomatoRenderGrid();
+        zomatoUpdateLabel();
+    }
+
+    function zomatoNavigate(mStep) {
+        zomatoMonth += mStep;
+        if (zomatoMonth > 11) { zomatoMonth = 0; zomatoYear++; }
+        if (zomatoMonth < 0) { zomatoMonth = 11; zomatoYear--; }
+        zomatoRenderGrid();
+    }
+
+    function zomatoToggleMonthMenu(e) {
+        e.stopPropagation();
+        const mDrop = document.getElementById('custom-month-dropdown');
+        document.getElementById('custom-year-dropdown').classList.add('hidden');
+        mDrop.classList.toggle('hidden');
+        if(!mDrop.classList.contains('hidden')){
+            mDrop.innerHTML = zomatoMonthsList.map((m, i) => `<div class="px-3 py-1.5 hover:bg-gray-100 cursor-pointer text-sm text-center" onclick="zomatoSetMonth(${i}, event)">${m}</div>`).join('');
+        }
+    }
+
+    function zomatoSetMonth(m, e) {
+        e.stopPropagation();
+        zomatoMonth = m;
+        document.getElementById('custom-month-dropdown').classList.add('hidden');
+        zomatoRenderGrid();
+    }
+
+    function zomatoToggleYearMenu(e) {
+        e.stopPropagation();
+        const yDrop = document.getElementById('custom-year-dropdown');
+        document.getElementById('custom-month-dropdown').classList.add('hidden');
+        yDrop.classList.toggle('hidden');
+        if(!yDrop.classList.contains('hidden')){
+            let html = '';
+            for(let y = zomatoYear - 5; y <= zomatoYear + 2; y++){
+                html += `<div class="px-3 py-1.5 hover:bg-gray-100 cursor-pointer text-sm text-center" onclick="zomatoSetYear(${y}, event)">${y}</div>`;
+            }
+            yDrop.innerHTML = html;
+        }
+    }
+
+    function zomatoSetYear(y, e) {
+        e.stopPropagation();
+        zomatoYear = y;
+        document.getElementById('custom-year-dropdown').classList.add('hidden');
+        zomatoRenderGrid();
+    }
+
+    function zomatoUpdateLabel() {
+        const label = document.getElementById('custom-cal-label');
+        if (!label) return;
+        const fmt = (d) => `${String(d.getDate()).padStart(2, '0')}/${zomatoMonthsList[d.getMonth()]}/${d.getFullYear()}`;
+        if (zomatoSelStart && zomatoSelEnd) {
+            label.innerText = `${fmt(zomatoSelStart)} to ${fmt(zomatoSelEnd)}`;
+        } else if (zomatoSelStart) {
+            label.innerText = `${fmt(zomatoSelStart)}`;
+        } else {
+            label.innerText = "Select Date Range";
+        }
+    }
+
+    function zomatoApplyDate() {
+        const url = new URL(window.location.href);
+        const fmtIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        
+        if (zomatoSelStart) url.searchParams.set('start_date', fmtIso(zomatoSelStart));
+        if (zomatoSelEnd) url.searchParams.set('end_date', fmtIso(zomatoSelEnd));
+        else if (zomatoSelStart) url.searchParams.set('end_date', fmtIso(zomatoSelStart));
+
+        window.location.href = url.toString();
+    }
+</script>
+</body>
+</html>

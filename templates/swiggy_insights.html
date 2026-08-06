@@ -339,7 +339,7 @@
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">1. Customer Conversion Funnel</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-1', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
-                    <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-1">fullscreen</span>
+                    <span class="material-symbols-outlined text-[20px]">fullscreen</span>
                 </button>
             </div>
             <div class="relative w-full flex-1"><canvas id="funnelChart"></canvas></div>
@@ -350,7 +350,7 @@
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">2. Revenue & Volume Trends</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-2', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
-                    <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-2">fullscreen</span>
+                    <span class="material-symbols-outlined text-[20px]">fullscreen</span>
                 </button>
             </div>
             <div class="relative w-full flex-1"><canvas id="trendChart"></canvas></div>
@@ -361,7 +361,7 @@
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">3. Advertising ROI</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-3', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
-                    <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-3">fullscreen</span>
+                    <span class="material-symbols-outlined text-[20px]">fullscreen</span>
                 </button>
             </div>
             <div class="relative w-full flex-1"><canvas id="adsChart"></canvas></div>
@@ -372,7 +372,7 @@
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">4. Operational Efficiency</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-4', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
-                    <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-4">fullscreen</span>
+                    <span class="material-symbols-outlined text-[20px]">fullscreen</span>
                 </button>
             </div>
             <div class="relative w-full flex-1"><canvas id="opsChart"></canvas></div>
@@ -383,7 +383,7 @@
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">5. Discount Impact on GMV</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-5', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
-                    <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-5">fullscreen</span>
+                    <span class="material-symbols-outlined text-[20px]">fullscreen</span>
                 </button>
             </div>
             <div class="relative w-full flex-1"><canvas id="discountChart"></canvas></div>
@@ -394,7 +394,7 @@
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">6. Customer Mix (New vs Repeat)</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-6', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
-                    <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-6">fullscreen</span>
+                    <span class="material-symbols-outlined text-[20px]">fullscreen</span>
                 </button>
             </div>
             <div class="relative w-full flex-1"><canvas id="customerMixChart"></canvas></div>
@@ -449,7 +449,7 @@
                         <td class="py-4 px-4 text-right">₹{{ row.get('GMV', 0) }}</td>
                         <td class="py-4 px-4 text-right text-[#FC8019] font-bold">₹{{ row.get('CV', 0) }}</td>
                         <td class="py-4 px-4 text-right">₹{{ row.get('Pre discounted AOV', 0) }}</td>
-                        <td class="py-4 px-4 text-right">{{ row.get('Online %', 0) }}%</td>
+                        <td class="py-4 px-4 text-right">{{ row.get('Online %', 0) %></td>
                         <td class="py-4 px-4 text-right">{{ row.get('Kitchen Prep Time', 0) }}m</td>
                         <td class="py-4 px-4 text-right">{{ row.get('Impressions', 0) }}</td>
                         <td class="py-4 px-4 text-right">{{ row.get('Menu Opens', 0) }}</td>
@@ -474,10 +474,18 @@
     </section>
 </main>
 
-<!-- BULLETPROOF DOM-SWAPPING MODAL OVERLAY -->
-<div id="chart-modal-overlay" class="hidden fixed inset-0 bg-black/60 z-[200] backdrop-blur-sm flex items-center justify-center p-8" onclick="closeMaximizedModal()">
-    <div id="chart-modal-content" class="bg-white rounded-[24px] shadow-2xl w-full max-w-7xl h-[85vh] p-8 flex flex-col relative" onclick="event.stopPropagation()">
-        <!-- Maximized card is dynamically injected here -->
+<!-- GLOBAL FULLSCREEN CHART MODAL -->
+<div id="fullscreen-chart-modal" class="fixed inset-0 bg-black/70 z-[9999] hidden items-center justify-center p-6 backdrop-blur-sm" onclick="closeFullscreenModal()">
+    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-6xl h-[85vh] flex flex-col p-6 relative" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="fullscreen-modal-title" class="font-title-md text-[18px] font-bold text-on-surface uppercase tracking-wide">Chart View</h3>
+            <button type="button" onclick="closeFullscreenModal()" class="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center">
+                <span class="material-symbols-outlined text-[24px]">fullscreen_exit</span>
+            </button>
+        </div>
+        <div class="relative w-full flex-1">
+            <canvas id="fullscreenModalCanvas"></canvas>
+        </div>
     </div>
 </div>
 
@@ -503,96 +511,65 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=16"></script>
+<script src="/static/swiggy_charts.js?v=17"></script>
 
 <script>
-    let activeCardId = null;
-    let cardPlaceholder = null;
+    let activeModalChart = null;
 
     function toggleMaximize(cardId, event) {
         event.stopPropagation();
         const card = document.getElementById(cardId);
-        const icon = document.getElementById('icon-' + cardId);
-        const overlay = document.getElementById('chart-modal-overlay');
-        const modalContent = document.getElementById('chart-modal-content');
+        if (!card) return;
 
-        if (!card || !overlay || !modalContent) return;
-
-        if (!activeCardId) {
-            // --- MAXIMIZE (DOM Node Transfer + Ghost Placeholder) ---
-            activeCardId = cardId;
-            
-            // 1. Create invisible placeholder to hold grid spot open
-            cardPlaceholder = document.createElement('div');
-            cardPlaceholder.id = 'placeholder-' + cardId;
-            cardPlaceholder.style.width = card.offsetWidth + 'px';
-            cardPlaceholder.style.height = card.offsetHeight + 'px';
-            cardPlaceholder.style.flexShrink = '0';
-            card.parentNode.insertBefore(cardPlaceholder, card);
-
-            // 2. Adjust card sizing classes for modal view
-            card.classList.remove('h-[420px]');
-            card.classList.add('h-full', 'w-full');
-            if (icon) icon.innerText = 'fullscreen_exit';
-
-            // 3. Move card DOM node into modal overlay
-            modalContent.innerHTML = '';
-            modalContent.appendChild(card);
-            overlay.classList.remove('hidden');
-        } else {
-            // --- MINIMIZE ---
-            closeMaximizedModal();
-            return;
-        }
-
-        // 4. Trigger Chart.js resize
+        const titleEl = card.querySelector('h3');
         const canvas = card.querySelector('canvas');
-        const chartInstance = Chart.getChart(canvas);
-        if (chartInstance) {
-            setTimeout(() => {
-                chartInstance.resize();
-            }, 50);
+        if (!canvas) return;
+
+        const sourceChart = Chart.getChart(canvas);
+        if (!sourceChart) return;
+
+        const modal = document.getElementById('fullscreen-chart-modal');
+        const modalTitle = document.getElementById('fullscreen-modal-title');
+        const modalCanvas = document.getElementById('fullscreenModalCanvas');
+
+        if (modalTitle && titleEl) {
+            modalTitle.innerText = titleEl.innerText;
         }
-    }
 
-    function closeMaximizedModal() {
-        if (!activeCardId) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
 
-        const card = document.getElementById(activeCardId);
-        const icon = document.getElementById('icon-' + activeCardId);
-        const overlay = document.getElementById('chart-modal-overlay');
+        if (activeModalChart) {
+            activeModalChart.destroy();
+        }
 
-        if (card && cardPlaceholder && cardPlaceholder.parentNode) {
-            // 1. Reset card styling back to grid view
-            card.classList.remove('h-full', 'w-full');
-            card.classList.add('h-[420px]');
-            if (icon) icon.innerText = 'fullscreen';
-
-            // 2. Move card DOM node back to its original slot before placeholder
-            cardPlaceholder.parentNode.insertBefore(card, cardPlaceholder);
-            cardPlaceholder.remove();
-
-            // 3. Hide modal overlay
-            if (overlay) overlay.classList.add('hidden');
-
-            // 4. Trigger Chart.js resize back
-            const canvas = card.querySelector('canvas');
-            const chartInstance = Chart.getChart(canvas);
-            if (chartInstance) {
-                setTimeout(() => {
-                    chartInstance.resize();
-                }, 50);
+        const chartConfig = {
+            type: sourceChart.config.type,
+            data: JSON.parse(JSON.stringify(sourceChart.config.data)),
+            options: {
+                ...sourceChart.config.options,
+                responsive: true,
+                maintainAspectRatio: false,
             }
-        }
+        };
 
-        activeCardId = null;
-        cardPlaceholder = null;
+        activeModalChart = new Chart(modalCanvas, chartConfig);
     }
 
-    // Close modal on pressing ESC key
+    function closeFullscreenModal() {
+        const modal = document.getElementById('fullscreen-chart-modal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+
+        if (activeModalChart) {
+            activeModalChart.destroy();
+            activeModalChart = null;
+        }
+    }
+
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            closeMaximizedModal();
+            closeFullscreenModal();
         }
     });
 

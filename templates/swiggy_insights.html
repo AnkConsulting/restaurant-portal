@@ -379,9 +379,10 @@
                         <th class="py-4 px-4 font-semibold">Report Period</th>
                         <th class="py-4 px-4 font-semibold">Location</th>
                         <th class="py-4 px-4 font-semibold">Res ID</th>
-                        <th class="py-4 px-4 font-semibold">City</th>
                         <th class="py-4 px-4 font-semibold text-right">Orders</th>
                         <th class="py-4 px-4 font-semibold text-right">GMV</th>
+                        <!-- FIXED: Comm Value (CV) Column with Swiggy Orange Color -->
+                        <th class="py-4 px-4 font-semibold text-right text-[#FC8019]">Comm Value (CV)</th>
                         <th class="py-4 px-4 font-semibold text-right">Pre Disc AOV</th>
                         <th class="py-4 px-4 font-semibold text-right">Online %</th>
                         <th class="py-4 px-4 font-semibold text-right">Prep Time</th>
@@ -401,9 +402,10 @@
                         <td class="py-4 px-4 text-gray-500">{{ row.get('Report Period', row.get('Report Date', '')) }}</td>
                         <td class="py-4 px-4">{{ row.get('Location', '') }}</td>
                         <td class="py-4 px-4 font-mono text-xs text-gray-400">{{ row.get('Res ID', '') }}</td>
-                        <td class="py-4 px-4">{{ row.get('City', '') }}</td>
                         <td class="py-4 px-4 text-right font-bold">{{ row.get('Orders', 0) }}</td>
                         <td class="py-4 px-4 text-right">₹{{ row.get('GMV', 0) }}</td>
+                        <!-- FIXED: Comm Value (CV) Data Row -->
+                        <td class="py-4 px-4 text-right text-[#FC8019] font-bold">₹{{ row.get('CV', 0) }}</td>
                         <td class="py-4 px-4 text-right">₹{{ row.get('Pre discounted AOV', 0) }}</td>
                         <td class="py-4 px-4 text-right">{{ row.get('Online %', 0) }}%</td>
                         <td class="py-4 px-4 text-right">{{ row.get('Kitchen Prep Time', 0) }}m</td>

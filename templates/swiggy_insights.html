@@ -332,7 +332,7 @@
         </div>
     </section>
 
-    <!-- VISUAL ANALYTICS CARDS WITH FLEXIBLE HEIGHT & MAXIMIZE TOGGLE -->
+    <!-- VISUAL ANALYTICS CARDS WITH FIXED HEIGHT & MAXIMIZE TOGGLE -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
         <!-- Chart 1 -->
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-1">
@@ -496,7 +496,7 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=11"></script>
+<script src="/static/swiggy_charts.js?v=12"></script>
 
 <script>
     function toggleMaximize(cardId, event) {
@@ -524,16 +524,15 @@
             // --- MINIMIZE ---
             card.classList.remove('maximized-modal', 'fixed', 'inset-6', 'z-[200]', 'shadow-2xl', 'bg-white');
             
-            // Reset back to exact default grid height
-            card.style.height = '420px';
+            // Completely wipe inline styles to return cleanly to grid layout without residual conflicts
+            card.style.cssText = '';
             icon.innerText = 'fullscreen';
             
             if (backdrop) backdrop.remove();
             
             // Clear Chart.js inline canvas dimensions
             if (canvas) {
-                canvas.style.height = '';
-                canvas.style.width = '';
+                canvas.style.cssText = '';
             }
         }
         

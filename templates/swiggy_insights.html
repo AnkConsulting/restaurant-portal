@@ -189,7 +189,7 @@
                 </div>
             </div>
 
-            <!-- PHASE 1: CUSTOM COMPARISON DROPDOWN -->
+            <!-- COMPARISON DROPDOWN -->
             <div class="relative min-w-[240px] w-full md:w-auto z-40" id="compare-dropdown-container">
                 <input type="hidden" name="compare" id="compare-input" value="{{ compare_mode if compare_mode else 'none' }}">
                 <div onclick="swiggyToggleDropdown('compare-menu', event)" class="w-full h-10 bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-gray-700 font-medium hover:border-[#FC8019] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
@@ -439,7 +439,7 @@
 </main>
 
 <script>
-    // Safely mapping data so the charts never break even if columns change
+    // FULL DATA PIPELINE HOOK
     let rawSwiggyData = {{ table_data | tojson | safe }};
     window.swiggyChartData = rawSwiggyData.map(row => {
         if (row['Report Period']) {
@@ -449,12 +449,18 @@
         return row;
     });
 
-    // Safely loading comparison trend data for Phase 5
-    window.swiggyCompTrendData = {{ comp_trend_data | default('{}') | tojson | safe }};
+    let rawCompData = {{ comp_trend_data.get('raw_data', []) | tojson | safe }};
+    window.swiggyCompRawData = rawCompData.map(row => {
+        if (row['Report Period']) {
+            row['Report Date'] = row['Report Period'];
+            row['Date'] = row['Report Period']; 
+        }
+        return row;
+    });
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=5"></script>
+<script src="/static/swiggy_charts.js?v=6"></script>
 
 <script>
     function swiggyToggleDropdown(menuId, event) {

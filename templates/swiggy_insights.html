@@ -332,7 +332,7 @@
         </div>
     </section>
 
-    <!-- VISUAL ANALYTICS CARDS WITH FIXED HEIGHT & MAXIMIZE TOGGLE -->
+    <!-- VISUAL ANALYTICS CARDS WITH FLEXIBLE HEIGHT & MAXIMIZE TOGGLE -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
         <!-- Chart 1 -->
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-1">
@@ -342,7 +342,7 @@
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-1">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full h-[330px]"><canvas id="funnelChart"></canvas></div>
+            <div class="relative w-full flex-1"><canvas id="funnelChart"></canvas></div>
         </div>
         
         <!-- Chart 2 -->
@@ -353,7 +353,7 @@
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-2">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full h-[330px]"><canvas id="trendChart"></canvas></div>
+            <div class="relative w-full flex-1"><canvas id="trendChart"></canvas></div>
         </div>
         
         <!-- Chart 3 -->
@@ -364,7 +364,7 @@
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-3">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full h-[330px]"><canvas id="adsChart"></canvas></div>
+            <div class="relative w-full flex-1"><canvas id="adsChart"></canvas></div>
         </div>
         
         <!-- Chart 4 -->
@@ -375,7 +375,7 @@
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-4">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full h-[330px]"><canvas id="opsChart"></canvas></div>
+            <div class="relative w-full flex-1"><canvas id="opsChart"></canvas></div>
         </div>
 
         <!-- Chart 5 -->
@@ -386,7 +386,7 @@
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-5">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full h-[330px]"><canvas id="discountChart"></canvas></div>
+            <div class="relative w-full flex-1"><canvas id="discountChart"></canvas></div>
         </div>
 
         <!-- Chart 6 -->
@@ -397,7 +397,7 @@
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-6">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full h-[330px]"><canvas id="customerMixChart"></canvas></div>
+            <div class="relative w-full flex-1"><canvas id="customerMixChart"></canvas></div>
         </div>
     </section>
 
@@ -496,7 +496,7 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=10"></script>
+<script src="/static/swiggy_charts.js?v=11"></script>
 
 <script>
     function toggleMaximize(cardId, event) {

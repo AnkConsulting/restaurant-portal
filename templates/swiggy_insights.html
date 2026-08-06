@@ -189,7 +189,6 @@
                 </div>
             </div>
 
-            <!-- PHASE 1: CUSTOM COMPARISON DROPDOWN -->
             <div class="relative min-w-[240px] w-full md:w-auto z-40" id="compare-dropdown-container">
                 <input type="hidden" name="compare" id="compare-input" value="{{ compare_mode if compare_mode else 'none' }}">
                 <div onclick="swiggyToggleDropdown('compare-menu', event)" class="w-full h-10 bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-gray-700 font-medium hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
@@ -264,7 +263,6 @@
         </div>
     </form>
 
-    <!-- PHASE 4: SWIGGY KPI CARDS (Badges currently hidden until backend is updated for Swiggy) -->
     <section class="grid grid-cols-5 gap-6 mb-8">
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Swiggy GMV</span>
@@ -323,7 +321,6 @@
         </div>
     </section>
 
-    <!-- VISUAL ANALYTICS CARDS (GRID OF 6) -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
             <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">1. Customer Conversion Funnel</h3>
@@ -356,7 +353,6 @@
         </div>
     </section>
 
-    <!-- DATA TABLE WITH PAGINATION -->
     <section class="elevation-1 card-radius overflow-hidden mb-12">
         <div class="px-6 py-4 border-b border-surface-container-high bg-white flex flex-wrap justify-between items-center gap-4">
             <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase tracking-wide">Swiggy Insights Performance Records</h2>
@@ -379,7 +375,6 @@
                         <th class="py-4 px-4 font-semibold">Report Period</th>
                         <th class="py-4 px-4 font-semibold">Location</th>
                         <th class="py-4 px-4 font-semibold">Res ID</th>
-                        <th class="py-4 px-4 font-semibold">City</th>
                         <th class="py-4 px-4 font-semibold text-right">Orders</th>
                         <th class="py-4 px-4 font-semibold text-right">GMV</th>
                         <th class="py-4 px-4 font-semibold text-right">Pre Disc AOV</th>
@@ -397,10 +392,9 @@
                     {% for row in table_data %}
                     <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors data-row">
                         <td class="py-4 px-4 font-medium">{{ row.get('Restaurant Name', '') }}</td>
-                        <td class="py-4 px-4 text-gray-500">{{ row.get('Report Date', '') }}</td>
+                        <td class="py-4 px-4 text-gray-500">{{ row.get('Report Period', row.get('Report Date', '')) }}</td>
                         <td class="py-4 px-4">{{ row.get('Location', '') }}</td>
                         <td class="py-4 px-4 font-mono text-xs text-gray-400">{{ row.get('Res ID', '') }}</td>
-                        <td class="py-4 px-4">{{ row.get('City', '') }}</td>
                         <td class="py-4 px-4 text-right font-bold">{{ row.get('Orders', 0) }}</td>
                         <td class="py-4 px-4 text-right">₹{{ row.get('GMV', 0) }}</td>
                         <td class="py-4 px-4 text-right">₹{{ row.get('Pre discounted AOV', 0) }}</td>
@@ -430,7 +424,15 @@
 </main>
 
 <script>
-    window.swiggyChartData = {{ table_data | tojson | safe }};
+    // THIS BLOCK FIXES THE "Unkno" CHART ERROR
+    let rawSwiggyData = {{ table_data | tojson | safe }};
+    window.swiggyChartData = rawSwiggyData.map(row => {
+        if (row['Report Period']) {
+            row['Report Date'] = row['Report Period'];
+            row['Date'] = row['Report Period']; 
+        }
+        return row;
+    });
 </script>
 
 <script src="/static/script.js"></script>
@@ -580,12 +582,11 @@
         window.location.href = url.toString();
     }
 
-    // NEW LOGIC FOR CUSTOM COMPARE DROPDOWN
     function swiggySelectCompare(value, text) {
         document.getElementById('compare-input').value = value;
         document.getElementById('compare-trigger-text').innerText = text;
         document.getElementById('compare-menu').classList.add('hidden');
-        swiggyApplyDate(); // Trigger URL update automatically when selected
+        swiggyApplyDate(); 
     }
 
     let swiggyMonth = new Date().getMonth();
@@ -720,7 +721,6 @@
         }
     }
 
-    // PULLS FROM THE HIDDEN INPUT NOW
     function swiggyApplyDate() {
         const url = new URL(window.location.href);
         const fmtIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -729,7 +729,7 @@
         if (swiggySelEnd) url.searchParams.set('end_date', fmtIso(swiggySelEnd));
         else if (swiggySelStart) url.searchParams.set('end_date', fmtIso(swiggySelStart));
 
-        const compareMode = document.getElementById('compare-input').value; // Changed to read hidden input
+        const compareMode = document.getElementById('compare-input').value; 
         if (compareMode && compareMode !== 'none') {
             url.searchParams.set('compare', compareMode);
         } else {

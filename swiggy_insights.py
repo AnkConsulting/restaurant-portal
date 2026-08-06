@@ -4,13 +4,16 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import pandas as pd
 import os
+from datetime import timedelta
 
 router = APIRouter()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-SWIGGY_INSIGHTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2AAwYZA0r8Y59L5KAOZ0yszHcNjyVKynuPfqcTKBh6VSPsmSqg5pmCizX5qDEEno26-okgxtRvZN5/pub?gid=1328235442&single=true&output=csv"
+# Official Swiggy Master CSV Link
+# (Replace this with your actual Swiggy CSV URL if different)
+SWIGGY_INSIGHTS_CSV_URL = "YOUR_SWIGGY_CSV_LINK_HERE" 
 
 def format_indian_currency(val):
     try:
@@ -44,12 +47,52 @@ def format_indian_integer(val):
         res = last_three
     return res
 
+# PHASE 2: Python Date Math Logic
+def get_comparison_date_range(start_dt, end_dt, compare_mode):
+    if pd.isnull(start_dt) or pd.isnull(end_dt):
+        return None, None
+        
+    days_diff = (end_dt - start_dt).days + 1
+    
+    if compare_mode == "prev_period":
+        comp_end = start_dt - timedelta(days=1)
+        comp_start = comp_end - timedelta(days=days_diff - 1)
+    elif compare_mode == "prev_week":
+        comp_start = start_dt - timedelta(days=7)
+        comp_end = end_dt - timedelta(days=7)
+    elif compare_mode == "prev_month":
+        comp_start = start_dt - pd.DateOffset(months=1)
+        comp_end = end_dt - pd.DateOffset(months=1)
+    elif compare_mode == "prev_year":
+        comp_start = start_dt - pd.DateOffset(years=1)
+        comp_end = end_dt - pd.DateOffset(years=1)
+    else:
+        return None, None
+        
+    return comp_start, comp_end
+
+# PHASE 3: Percentage & Delta Calculator
+def calculate_growth(current_val, baseline_val):
+    if not baseline_val or baseline_val == 0:
+        return {"pct": 0.0, "diff": current_val, "is_positive": True, "show": False}
+    
+    diff = current_val - baseline_val
+    pct = (diff / baseline_val) * 100
+    
+    return {
+        "pct": round(pct, 1),
+        "diff": diff,
+        "is_positive": diff >= 0,
+        "show": True
+    }
+
 def load_swiggy_insights_data():
     try:
+        # Load the CSV
         df = pd.read_csv(SWIGGY_INSIGHTS_CSV_URL)
         df.columns = df.columns.str.strip()
         
-        # Clean text columns to prevent whitespace matching bugs
+        # Clean text columns
         if "Restaurant Name" in df.columns:
             df["Restaurant Name"] = df["Restaurant Name"].astype(str).str.strip()
         if "Location" in df.columns:
@@ -57,8 +100,9 @@ def load_swiggy_insights_data():
         if "Res ID" in df.columns:
             df["Res ID"] = df["Res ID"].dropna().astype(str).str.split('.').str[0].str.strip()
             
+        # Clean numeric columns
         numeric_cols = [
-            "Orders", "GMV", "Pre discounted AOV", "Online %", "Kitchen Prep Time",
+            "Orders", "GMV", "Total GST collected from customers", "Pre discounted AOV", "Online %", "Kitchen Prep Time",
             "Impressions", "Impressions to Menu", "Menu Opens", "M2C", "C2O",
             "New Customer Order %", "Repeat Customer Order %", "Total Complaints",
             "Average Rating", "Ad Sales", "Ad Spend", "Ads ROI", "Discount Given"
@@ -67,6 +111,29 @@ def load_swiggy_insights_data():
             if col in df.columns:
                 cleaned_series = df[col].astype(str).str.replace(r'[₹, %]', '', regex=True)
                 df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
+
+        # Enforce exact calculation for Comm Value (CV)
+        if "GMV" in df.columns and "Total GST collected from customers" in df.columns:
+            df["CV"] = df["GMV"] - df["Total GST collected from customers"]
+        else:
+            df["CV"] = 0.0
+
+        # Rearrange to the strictly mandated 4-column format
+        cols = df.columns.tolist()
+        
+        # Standardize Date column for the mandated layout
+        if "Report Date" in cols and "Report Period" not in cols:
+            df.rename(columns={"Report Date": "Report Period"}, inplace=True)
+            cols = df.columns.tolist()
+
+        priority_cols = ["Restaurant Name", "Report Period", "Location", "Res ID"]
+        existing_priority = [c for c in priority_cols if c in cols]
+        
+        for c in existing_priority:
+            cols.remove(c)
+            
+        final_cols = existing_priority + cols
+        df = df[final_cols]
 
         return df
     except Exception as e:
@@ -79,7 +146,8 @@ async def swiggy_insights(
     brand: Optional[str] = Query(None),
     outlet: Optional[str] = Query(None),
     start_date: Optional[str] = Query(None),
-    end_date: Optional[str] = Query(None)
+    end_date: Optional[str] = Query(None),
+    compare: Optional[str] = Query("none")
 ):
     if not request.session.get("logged_in"):
         return RedirectResponse(url="/login", status_code=303)
@@ -89,9 +157,8 @@ async def swiggy_insights(
 
     df = load_swiggy_insights_data()
     
-    # Keep dayfirst=True here because Google Sheets data is DD/MM/YYYY
-    if "Report Date" in df.columns:
-        df["_temp_date"] = pd.to_datetime(df["Report Date"], dayfirst=True, format="mixed", errors="coerce")
+    if "Report Period" in df.columns:
+        df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
 
     if not is_admin and "Res ID" in df.columns:
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
@@ -114,7 +181,6 @@ async def swiggy_insights(
         if pd.notnull(max_date_obj):
             max_available_date = max_date_obj.strftime("%Y-%m-%d")
 
-    # FIXED: Removed dayfirst=True here because the HTML calendar sends standard YYYY-MM-DD
     start_dt = pd.to_datetime(start_date, errors="coerce")
     end_dt = pd.to_datetime(end_date, errors="coerce")
 
@@ -128,18 +194,53 @@ async def swiggy_insights(
         end_date = end_dt.strftime("%Y-%m-%d")
 
     filtered_df = context_df.copy()
-
     if pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in filtered_df.columns:
         filtered_df = filtered_df[
             (filtered_df["_temp_date"].dt.normalize() >= start_dt.normalize()) & 
             (filtered_df["_temp_date"].dt.normalize() <= end_dt.normalize())
         ]
 
+    # Calculate Current KPIs
     total_gmv = float(filtered_df["GMV"].sum()) if "GMV" in filtered_df.columns else 0.0
     total_orders = int(filtered_df["Orders"].sum()) if "Orders" in filtered_df.columns else 0
     avg_aov = float(filtered_df["Pre discounted AOV"].mean()) if "Pre discounted AOV" in filtered_df.columns and not filtered_df["Pre discounted AOV"].empty else 0.0
     sales_ads = float(filtered_df["Ad Sales"].sum()) if "Ad Sales" in filtered_df.columns else 0.0
     discount_given = float(filtered_df["Discount Given"].sum()) if "Discount Given" in filtered_df.columns else 0.0
+
+    # PHASE 3: Comparison Calculations
+    comp_data = {
+        "mode": compare,
+        "label": "",
+        "gmv": None, "orders": None, "aov": None, "ads": None, "discount": None
+    }
+
+    if compare and compare != "none" and pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in context_df.columns:
+        comp_start, comp_end = get_comparison_date_range(start_dt, end_dt, compare)
+        if comp_start and comp_end:
+            comp_df = context_df[
+                (context_df["_temp_date"].dt.normalize() >= comp_start.normalize()) & 
+                (context_df["_temp_date"].dt.normalize() <= comp_end.normalize())
+            ]
+            
+            base_gmv = float(comp_df["GMV"].sum()) if "GMV" in comp_df.columns else 0.0
+            base_orders = int(comp_df["Orders"].sum()) if "Orders" in comp_df.columns else 0
+            base_aov = float(comp_df["Pre discounted AOV"].mean()) if "Pre discounted AOV" in comp_df.columns and not comp_df["Pre discounted AOV"].empty else 0.0
+            base_ads = float(comp_df["Ad Sales"].sum()) if "Ad Sales" in comp_df.columns else 0.0
+            base_discount = float(comp_df["Discount Given"].sum()) if "Discount Given" in comp_df.columns else 0.0
+
+            comp_data["gmv"] = calculate_growth(total_gmv, base_gmv)
+            comp_data["orders"] = calculate_growth(total_orders, base_orders)
+            comp_data["aov"] = calculate_growth(avg_aov, base_aov)
+            comp_data["ads"] = calculate_growth(sales_ads, base_ads)
+            comp_data["discount"] = calculate_growth(discount_given, base_discount)
+            
+            labels = {
+                "prev_period": "Previous Period",
+                "prev_week": "Last Week",
+                "prev_month": "Last Month",
+                "prev_year": "Last Year"
+            }
+            comp_data["label"] = labels.get(compare, "Comparison")
 
     if "_temp_date" in filtered_df.columns:
         filtered_df = filtered_df.drop(columns=["_temp_date"])
@@ -159,6 +260,8 @@ async def swiggy_insights(
             "start_date": start_date or "",
             "end_date": end_date or "",
             "max_available_date": max_available_date,
+            "compare_mode": compare,
+            "comp_data": comp_data,
             "total_gmv": format_indian_currency(total_gmv),
             "total_orders": format_indian_integer(total_orders),
             "avg_aov": f"₹{format_indian_integer(round(avg_aov))}",

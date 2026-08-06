@@ -73,8 +73,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // --- CHART 1: Concentric Radial Funnel (Nested Doughnut) ---
     const ctxFunnel = document.getElementById('funnelChart');
-    if (ctxFunnel) {
-        // Step 1: Calculate the integer volumes for all 6 layers based on your logic
+    const legendContainer = document.getElementById('funnel-custom-legend');
+    
+    if (ctxFunnel && legendContainer) {
+        // 1. Calculate the exact integer volumes
         const imp = curr.totals.imp;
         const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)); // I2M % of Impressions
         const menu = curr.totals.menu;
@@ -82,67 +84,112 @@ document.addEventListener("DOMContentLoaded", function () {
         const c2o_vol = Math.round(m2c_vol * (curr.averages.c2o / 100)); // C2O % of M2C Volume
         const orders = curr.totals.orders; // Core Orders
 
-        // Max Value ensures rings don't stretch past the total impression boundary
-        let maxVal = imp || 1; 
-        if (hasComp) maxVal = Math.max(imp, comp.totals.imp) || 1;
+        // Max Value ensures rings don't stretch past the total impression boundary (360 degrees)
+        const maxVal = imp || 1; 
 
-        const datasets = [];
         const brandColor = '#FC8019'; // Swiggy Orange
-        const grayColor = '#94a3b8';  // Slate Gray
-        const trackColor = '#f1f5f9'; // Faint Gray for empty track space
+        const brandColorLight = '#fdba74'; // Lighter Orange
+        const grayColor = '#475569';  // Dark Gray
+        const grayColorLight = '#94a3b8'; // Lighter Gray
+        const trackColor = '#f8fafc'; // Faint Gray for empty track space
 
-        // Helper to dynamically build layers outside-in
-        const addLayer = (label, currentVal, compVal, color) => {
-            if (hasComp) {
-                // Add comparative dashed ring
-                datasets.push({
-                    label: 'Comp ' + label,
-                    data: [compVal, maxVal - compVal],
-                    backgroundColor: ['transparent', 'transparent'],
-                    borderColor: color,
-                    borderWidth: 2,
-                    borderDash: [4, 4]
-                });
-            }
-            // Add primary solid ring
-            datasets.push({
-                label: label,
-                data: [currentVal, maxVal - currentVal],
+        // Helper to dynamically build Chart.js layers outside-in
+        const buildRing = (activeVal, color) => {
+            return {
+                data: [activeVal, maxVal - activeVal],
                 backgroundColor: [color, trackColor],
-                borderWidth: 1,
-                borderColor: '#ffffff'
-            });
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                borderRadius: [20, 0], // Rounded cap on the active bar
+                cutout: '20%' 
+            };
         };
 
-        // Datasets are drawn Outside to Inside
-        addLayer('Impressions', imp, hasComp ? comp.totals.imp : 0, grayColor);
-        addLayer('I2M Volume', i2m_vol, hasComp ? Math.round(comp.totals.imp * (comp.averages.i2m / 100)) : 0, brandColor);
-        addLayer('Menu Opens', menu, hasComp ? comp.totals.menu : 0, grayColor);
-        addLayer('M2C Volume', m2c_vol, hasComp ? Math.round(comp.totals.menu * (comp.averages.m2c / 100)) : 0, brandColor);
-        addLayer('C2O Volume', c2o_vol, hasComp ? Math.round(Math.round(comp.totals.menu * (comp.averages.m2c / 100)) * (comp.averages.c2o / 100)) : 0, brandColor);
-        addLayer('Orders', orders, hasComp ? comp.totals.orders : 0, grayColor);
-
+        // Draw Chart Outside -> Inside
         new Chart(ctxFunnel, {
             type: 'doughnut',
-            data: { labels: ['Converted Volume', 'Drop-off'], datasets: datasets },
+            data: { 
+                labels: ['Volume', 'Drop-off'], 
+                datasets: [
+                    buildRing(imp, grayColor),
+                    buildRing(i2m_vol, grayColorLight),
+                    buildRing(menu, grayColorLight),
+                    buildRing(m2c_vol, brandColorLight),
+                    buildRing(c2o_vol, brandColor),
+                    buildRing(orders, brandColor) // Core
+                ] 
+            },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                cutout: '15%', // Makes the center small so the inner Order pie is highly visible
+                rotation: -90, // Starts at 12 o'clock
+                circumference: 360,
                 plugins: { 
-                    legend: { display: false }, // Hidden since the tooltips map the data clearly
+                    legend: { display: false },
                     tooltip: {
-                        filter: function(tooltipItem) { 
-                            return tooltipItem.dataIndex === 0; // Only show tooltip when hovering on the active colored bar, not the empty track!
-                        },
-                        callbacks: {
-                            label: function(context) { 
-                                return context.dataset.label + ': ' + context.raw.toLocaleString(); 
-                            }
-                        }
+                        filter: (t) => t.dataIndex === 0,
+                        callbacks: { label: (c) => `Volume: ${c.raw.toLocaleString()}` }
                     }
                 }
             }
         });
+
+        // 2. Build the Rich HTML Legend
+        const steps = [
+            { icon: 'visibility', title: '1. Impressions', desc: 'People saw your product', vol: imp, pct: 100, color: grayColor },
+            { icon: 'touch_app', title: '2. I2M Volume', desc: 'Clicked on restaurant', vol: i2m_vol, pct: curr.averages.i2m, color: grayColorLight },
+            { icon: 'menu_book', title: '3. Menu Opens', desc: 'Viewed menu details', vol: menu, pct: ((menu/imp)*100).toFixed(1), color: grayColorLight },
+            { icon: 'shopping_cart', title: '4. M2C Volume', desc: 'Added to cart', vol: m2c_vol, pct: curr.averages.m2c, color: brandColorLight },
+            { icon: 'credit_card', title: '5. Checkout Initiated', desc: 'Started checkout', vol: c2o_vol, pct: curr.averages.c2o, color: brandColor },
+            { icon: 'check_circle', title: '6. Orders', desc: 'Successfully purchased', vol: orders, pct: ((orders/imp)*100).toFixed(1), color: brandColor }
+        ];
+
+        let legendHTML = '';
+        steps.forEach((step, index) => {
+            let dropOffHTML = '';
+            if (index > 0) {
+                const prevVol = steps[index-1].vol;
+                const dropOffPct = prevVol > 0 ? (((prevVol - step.vol) / prevVol) * 100).toFixed(1) : 0;
+                dropOffHTML = `
+                    <div class="flex items-center gap-2 ml-4 my-1">
+                        <span class="material-symbols-outlined text-gray-300 text-[16px]">arrow_downward</span>
+                        <div class="h-px border-t border-dashed border-gray-200 flex-1"></div>
+                        <span class="text-[11px] text-gray-400 font-medium">Drop-off: ${dropOffPct}%</span>
+                    </div>
+                `;
+            }
+
+            legendHTML += `
+                ${dropOffHTML}
+                <div class="flex items-center justify-between group hover:bg-gray-50 p-1.5 rounded-lg transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded flex items-center justify-center text-white shadow-sm" style="background-color: ${step.color}">
+                            <span class="material-symbols-outlined text-[18px]">${step.icon}</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-800 leading-tight">${step.title}</p>
+                            <p class="text-[10px] text-gray-500">${step.desc}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-gray-800">${step.pct}%</p>
+                        <p class="text-[11px] text-gray-500">${step.vol.toLocaleString()}</p>
+                    </div>
+                </div>
+            `;
+        });
+
+        legendHTML += `
+            <div class="mt-4 p-3 rounded-xl border border-gray-100 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex items-center gap-4">
+                <span class="material-symbols-outlined text-gray-400 text-[24px]">monitoring</span>
+                <div>
+                    <p class="text-[11px] text-gray-500 font-medium">Overall Conversion Rate</p>
+                    <p class="text-lg font-bold" style="color: ${brandColor}">${((orders/imp)*100).toFixed(1)}%</p>
+                    <p class="text-[10px] text-gray-400">${orders.toLocaleString()} out of ${imp.toLocaleString()} impressions</p>
+                </div>
+            </div>
+        `;
+
+        legendContainer.innerHTML = legendHTML;
     }
 
     // --- CHART 2: Revenue & Volume Trends ---

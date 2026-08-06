@@ -11,9 +11,8 @@ router = APIRouter()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-# Official Swiggy Master CSV Link
-# (Paste your corrected pub?output=csv link here)
-SWIGGY_INSIGHTS_CSV_URL = "YOUR_SWIGGY_CSV_LINK_HERE" 
+# Official Swiggy Master CSV Link (Corrected & Hardcoded!)
+SWIGGY_INSIGHTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2AAwYZA0r8Y59L5KAOZ0yszHcNjyVKynuPfqcTKBh6VSPsmSqg5pmCizX5qDEEno26-okgxtRvZN5/pub?gid=1328235442&single=true&output=csv"
 
 def format_indian_currency(val):
     try:
@@ -89,6 +88,15 @@ def load_swiggy_insights_data():
         df = pd.read_csv(SWIGGY_INSIGHTS_CSV_URL)
         df.columns = df.columns.str.strip()
         
+        # BULLETPROOF DATE RENAME LOGIC
+        if "Report Period" not in df.columns:
+            if "Report Date" in df.columns:
+                df.rename(columns={"Report Date": "Report Period"}, inplace=True)
+            elif "Date" in df.columns:
+                df.rename(columns={"Date": "Report Period"}, inplace=True)
+            elif "Order Date" in df.columns:
+                df.rename(columns={"Order Date": "Report Period"}, inplace=True)
+        
         if "Restaurant Name" in df.columns:
             df["Restaurant Name"] = df["Restaurant Name"].astype(str).str.strip()
         if "Location" in df.columns:
@@ -107,17 +115,14 @@ def load_swiggy_insights_data():
                 cleaned_series = df[col].astype(str).str.replace(r'[₹, %]', '', regex=True)
                 df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
 
+        # STRICT CV CALCULATION
         if "GMV" in df.columns and "Total GST collected from customers" in df.columns:
             df["CV"] = df["GMV"] - df["Total GST collected from customers"]
         else:
             df["CV"] = 0.0
 
+        # STRICT 4-COLUMN LAYOUT
         cols = df.columns.tolist()
-        
-        if "Report Date" in cols and "Report Period" not in cols:
-            df.rename(columns={"Report Date": "Report Period"}, inplace=True)
-            cols = df.columns.tolist()
-
         priority_cols = ["Restaurant Name", "Report Period", "Location", "Res ID"]
         existing_priority = [c for c in priority_cols if c in cols]
         
@@ -128,7 +133,7 @@ def load_swiggy_insights_data():
         df = df[final_cols]
         return df
     except Exception as e:
-        print(f"CRITICAL ERROR loading Swiggy Insights master sheet: {e}")
+        print(f"CRITICAL ERROR loading Swiggy Insights: {e}")
         return pd.DataFrame()
 
 @router.get("/swiggy-insights", response_class=HTMLResponse)
@@ -203,7 +208,6 @@ async def swiggy_insights(
         "gmv": None, "orders": None, "aov": None, "ads": None, "discount": None
     }
     
-    # NEW FOR PHASE 5: Empty dictionary to hold our historical chart timeline
     comp_trend_data = {"prev_labels": [], "prev_sales": [], "prev_orders": []}
 
     if compare and compare != "none" and pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in context_df.columns:
@@ -234,7 +238,6 @@ async def swiggy_insights(
             }
             comp_data["label"] = labels.get(compare, "Comparison")
             
-            # NEW FOR PHASE 5: Process the day-by-day trend data for the charts
             if not comp_df.empty:
                 trend_df = comp_df.groupby(comp_df["_temp_date"].dt.date).agg({
                     "GMV": "sum",
@@ -266,7 +269,7 @@ async def swiggy_insights(
             "max_available_date": max_available_date,
             "compare_mode": compare,
             "comp_data": comp_data,
-            "comp_trend_data": comp_trend_data, # PASSED TO FRONTEND HERE
+            "comp_trend_data": comp_trend_data,
             "total_gmv": format_indian_currency(total_gmv),
             "total_orders": format_indian_integer(total_orders),
             "avg_aov": f"₹{format_indian_integer(round(avg_aov))}",

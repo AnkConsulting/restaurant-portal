@@ -76,16 +76,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const legendContainer = document.getElementById('funnel-custom-legend');
     
     if (ctxFunnel && legendContainer) {
-        // 1. Calculate the exact integer volumes
+        // 1. Calculate the exact integer volumes for Current Period
         const imp = curr.totals.imp;
-        const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)); // I2M % of Impressions
+        const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
         const menu = curr.totals.menu;
-        const m2c_vol = Math.round(menu * (curr.averages.m2c / 100)); // M2C % of Menu Opens
-        const c2o_vol = Math.round(m2c_vol * (curr.averages.c2o / 100)); // C2O % of M2C Volume
-        const orders = curr.totals.orders; // Core Orders
+        const m2c_vol = Math.round(menu * (curr.averages.m2c / 100)) || 0; 
+        const c2o_vol = Math.round(m2c_vol * (curr.averages.c2o / 100)) || 0; 
+        const orders = curr.totals.orders;
+
+        // 1B. Calculate the exact integer volumes for Comp Period
+        const comp_imp = hasComp ? comp.totals.imp : 0;
+        const comp_i2m_vol = hasComp ? Math.round(comp_imp * (comp.averages.i2m / 100)) : 0;
+        const comp_menu = hasComp ? comp.totals.menu : 0;
+        const comp_m2c_vol = hasComp ? Math.round(comp_menu * (comp.averages.m2c / 100)) : 0;
+        const comp_c2o_vol = hasComp ? Math.round(comp_m2c_vol * (comp.averages.c2o / 100)) : 0;
+        const comp_orders = hasComp ? comp.totals.orders : 0;
 
         // Max Value ensures rings don't stretch past the total impression boundary (360 degrees)
-        const maxVal = imp || 1; 
+        let maxVal = imp || 1; 
+        if (hasComp) maxVal = Math.max(imp, comp_imp) || 1;
 
         const brandColor = '#FC8019'; // Swiggy Orange
         const brandColorLight = '#fdba74'; // Lighter Orange
@@ -93,33 +102,41 @@ document.addEventListener("DOMContentLoaded", function () {
         const grayColorLight = '#94a3b8'; // Lighter Gray
         const trackColor = '#f8fafc'; // Faint Gray for empty track space
 
-        // Helper to dynamically build Chart.js layers outside-in
-        const buildRing = (labelName, activeVal, color) => {
+        // Helper to dynamically build Chart.js layers (Supports transparent ghost rings!)
+        const buildRing = (labelName, activeVal, color, isComp = false) => {
             return {
-                label: labelName,
-                data: [activeVal, maxVal - activeVal],
-                backgroundColor: [color, trackColor],
-                borderWidth: 2,
-                borderColor: '#ffffff',
-                borderRadius: [20, 0], // Rounded cap on the active bar
-                cutout: '20%' 
+                label: isComp ? 'Comp ' + labelName : labelName,
+                data: [activeVal, Math.max(0, maxVal - activeVal)],
+                // Comp is transparent, Current is solid colored
+                backgroundColor: isComp ? ['transparent', 'transparent'] : [color, trackColor],
+                // We only apply the border to the active value slice, NOT the empty track!
+                borderWidth: isComp ? [2, 0] : [2, 0],
+                borderColor: isComp ? [color, 'transparent'] : ['#ffffff', 'transparent'],
+                borderDash: isComp ? [4, 4] : [],
+                borderRadius: isComp ? [0, 0] : [20, 0], // Rounded caps for current, flat for dash
+                weight: isComp ? 0.3 : 1, // Comp rings are 30% thickness so they look like faint borders
+                cutout: isComp ? '0%' : '20%' // spacing
             };
         };
 
+        const datasets = [];
+        // Helper to add layers paired with their comparison ghost rings
+        const addLayer = (name, val, compVal, color) => {
+            if (hasComp) datasets.push(buildRing(name, compVal, color, true));
+            datasets.push(buildRing(name, val, color, false));
+        };
+
         // Draw Chart Outside -> Inside
+        addLayer('Impressions', imp, comp_imp, grayColor);
+        addLayer('I2M Volume', i2m_vol, comp_i2m_vol, grayColorLight);
+        addLayer('Menu Opens', menu, comp_menu, grayColorLight);
+        addLayer('M2C Volume', m2c_vol, comp_m2c_vol, brandColorLight);
+        addLayer('Checkout Initiated', c2o_vol, comp_c2o_vol, brandColor);
+        addLayer('Orders', orders, comp_orders, brandColor); // Core
+
         new Chart(ctxFunnel, {
             type: 'doughnut',
-            data: { 
-                labels: ['Volume', 'Drop-off'], 
-                datasets: [
-                    buildRing('Impressions', imp, grayColor),
-                    buildRing('I2M Volume', i2m_vol, grayColorLight),
-                    buildRing('Menu Opens', menu, grayColorLight),
-                    buildRing('M2C Volume', m2c_vol, brandColorLight),
-                    buildRing('Checkout Initiated', c2o_vol, brandColor),
-                    buildRing('Orders', orders, brandColor) // Core
-                ] 
-            },
+            data: { labels: ['Volume', 'Drop-off'], datasets: datasets },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 rotation: -90, // Starts at 12 o'clock
@@ -129,7 +146,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     tooltip: {
                         filter: (t) => t.dataIndex === 0,
                         callbacks: { 
-                            title: () => null, // Removes the generic "Volume" title
+                            title: () => null, 
                             label: (c) => ` ${c.dataset.label}: ${c.raw.toLocaleString()}` 
                         }
                     }
@@ -137,14 +154,14 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // 2. Build the Rich HTML Legend
+        // 2. Build the Rich HTML Legend (Now includes Comp Data + Delta Colors)
         const steps = [
-            { icon: 'visibility', title: '1. Impressions', desc: 'People saw your product', vol: imp, pct: 100, color: grayColor },
-            { icon: 'touch_app', title: '2. I2M Volume', desc: 'Clicked on restaurant', vol: i2m_vol, pct: curr.averages.i2m, color: grayColorLight },
-            { icon: 'menu_book', title: '3. Menu Opens', desc: 'Viewed menu details', vol: menu, pct: ((menu/imp)*100).toFixed(1), color: grayColorLight },
-            { icon: 'shopping_cart', title: '4. M2C Volume', desc: 'Added to cart', vol: m2c_vol, pct: curr.averages.m2c, color: brandColorLight },
-            { icon: 'credit_card', title: '5. Checkout Initiated', desc: 'Started checkout', vol: c2o_vol, pct: curr.averages.c2o, color: brandColor },
-            { icon: 'check_circle', title: '6. Orders', desc: 'Successfully purchased', vol: orders, pct: ((orders/imp)*100).toFixed(1), color: brandColor }
+            { icon: 'visibility', title: '1. Impressions', desc: 'People saw your product', vol: imp, compVol: comp_imp, pct: 100, color: grayColor },
+            { icon: 'touch_app', title: '2. I2M Volume', desc: 'Clicked on restaurant', vol: i2m_vol, compVol: comp_i2m_vol, pct: curr.averages.i2m, color: grayColorLight },
+            { icon: 'menu_book', title: '3. Menu Opens', desc: 'Viewed menu details', vol: menu, compVol: comp_menu, pct: imp ? ((menu/imp)*100).toFixed(1) : 0, color: grayColorLight },
+            { icon: 'shopping_cart', title: '4. M2C Volume', desc: 'Added to cart', vol: m2c_vol, compVol: comp_m2c_vol, pct: curr.averages.m2c, color: brandColorLight },
+            { icon: 'credit_card', title: '5. Checkout Initiated', desc: 'Started checkout', vol: c2o_vol, compVol: comp_c2o_vol, pct: curr.averages.c2o, color: brandColor },
+            { icon: 'check_circle', title: '6. Orders', desc: 'Successfully purchased', vol: orders, compVol: comp_orders, pct: imp ? ((orders/imp)*100).toFixed(1) : 0, color: brandColor }
         ];
 
         let legendHTML = '';
@@ -153,13 +170,29 @@ document.addEventListener("DOMContentLoaded", function () {
             if (index > 0) {
                 const prevVol = steps[index-1].vol;
                 const dropOffPct = prevVol > 0 ? (((prevVol - step.vol) / prevVol) * 100).toFixed(1) : 0;
+                
+                let compDropHTML = '';
+                if (hasComp) {
+                    const prevCompVol = steps[index-1].compVol;
+                    const compDropPct = prevCompVol > 0 ? (((prevCompVol - step.compVol) / prevCompVol) * 100).toFixed(1) : 0;
+                    compDropHTML = `<span class="text-[9px] text-gray-300 ml-1">Comp: ${compDropPct}%</span>`;
+                }
+
                 dropOffHTML = `
                     <div class="flex items-center gap-2 ml-4 my-1">
                         <span class="material-symbols-outlined text-gray-300 text-[16px]">arrow_downward</span>
                         <div class="h-px border-t border-dashed border-gray-200 flex-1"></div>
-                        <span class="text-[11px] text-gray-400 font-medium">Drop-off: ${dropOffPct}%</span>
+                        <span class="text-[11px] text-gray-400 font-medium">Drop-off: ${dropOffPct}% ${compDropHTML}</span>
                     </div>
                 `;
+            }
+
+            let compVolHTML = '';
+            if (hasComp) {
+                let diff = step.vol - step.compVol;
+                let diffStr = diff >= 0 ? '+' + diff.toLocaleString() : diff.toLocaleString();
+                let colorCls = diff >= 0 ? 'text-[#10b981]' : 'text-error';
+                compVolHTML = `<p class="text-[10px] text-gray-400 mt-0.5">Comp: ${step.compVol.toLocaleString()} <span class="${colorCls}">(${diffStr})</span></p>`;
             }
 
             legendHTML += `
@@ -176,20 +209,32 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                     <div class="text-right">
                         <p class="text-sm font-bold text-gray-800">${step.pct}%</p>
-                        <p class="text-[11px] text-gray-500">${step.vol.toLocaleString()}</p>
+                        <p class="text-[11px] text-gray-500 font-medium">${step.vol.toLocaleString()}</p>
+                        ${compVolHTML}
                     </div>
                 </div>
             `;
         });
 
+        let compOverallHTML = '';
+        if (hasComp) {
+            let compRate = comp_imp ? ((comp_orders/comp_imp)*100).toFixed(1) : 0;
+            compOverallHTML = `<p class="text-[11px] text-gray-400 mt-1">Comp Rate: <span class="font-bold">${compRate}%</span> (${comp_orders.toLocaleString()} / ${comp_imp.toLocaleString()})</p>`;
+        }
+
         legendHTML += `
-            <div class="mt-4 p-3 rounded-xl border border-gray-100 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex items-center gap-4">
-                <span class="material-symbols-outlined text-gray-400 text-[24px]">monitoring</span>
-                <div>
-                    <p class="text-[11px] text-gray-500 font-medium">Overall Conversion Rate</p>
-                    <p class="text-lg font-bold" style="color: ${brandColor}">${((orders/imp)*100).toFixed(1)}%</p>
-                    <p class="text-[10px] text-gray-400">${orders.toLocaleString()} out of ${imp.toLocaleString()} impressions</p>
+            <div class="mt-4 p-3 rounded-xl border border-gray-100 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col justify-center">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-gray-400 text-[24px]">monitoring</span>
+                    <div>
+                        <p class="text-[11px] text-gray-500 font-medium">Overall Conversion Rate</p>
+                        <div class="flex items-end gap-2">
+                            <p class="text-lg font-bold leading-none" style="color: ${brandColor}">${imp ? ((orders/imp)*100).toFixed(1) : 0}%</p>
+                            <p class="text-[10px] text-gray-400 mb-0.5">${orders.toLocaleString()} out of ${imp.toLocaleString()} views</p>
+                        </div>
+                    </div>
                 </div>
+                ${compOverallHTML}
             </div>
         `;
 

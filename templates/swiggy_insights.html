@@ -342,7 +342,17 @@
                     <span class="material-symbols-outlined text-[20px]">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full flex-1"><canvas id="funnelChart"></canvas></div>
+            <!-- Two Column Layout for Radial Chart + Rich Legend -->
+            <div class="relative w-full flex-1 flex flex-col md:flex-row items-center gap-6 overflow-hidden">
+                <!-- Left: Concentric Radial Chart -->
+                <div class="w-full md:w-1/2 h-full relative flex items-center justify-center min-h-[250px]">
+                    <canvas id="funnelChart"></canvas>
+                </div>
+                <!-- Right: Custom Rich HTML Legend -->
+                <div class="w-full md:w-1/2 h-full overflow-y-auto custom-scrollbar flex flex-col justify-center pr-2" id="funnel-custom-legend">
+                    <!-- JavaScript will dynamically inject the legend items here -->
+                </div>
+            </div>
         </div>
         
         <!-- Chart 2 -->
@@ -511,7 +521,7 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=17"></script>
+<script src="/static/swiggy_charts.js?v=18"></script>
 
 <script>
     let activeModalChart = null;

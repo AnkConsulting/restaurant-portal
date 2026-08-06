@@ -496,7 +496,7 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=8"></script>
+<script src="/static/swiggy_charts.js?v=9"></script>
 
 <script>
     function toggleMaximize(cardId, event) {
@@ -523,12 +523,14 @@
         } else {
             // --- MINIMIZE ---
             card.classList.remove('maximized-modal', 'fixed', 'inset-6', 'z-[200]', 'shadow-2xl', 'bg-white');
+            
+            // Explicitly clear inline height to force it back to grid constraints
             card.style.height = '';
             icon.innerText = 'fullscreen';
             
             if (backdrop) backdrop.remove();
             
-            // Clear Chart.js inline dimensions so it shrinks back to standard grid size
+            // Clear Chart.js inline dimensions
             if (canvas) {
                 canvas.style.height = '';
                 canvas.style.width = '';

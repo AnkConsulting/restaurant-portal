@@ -474,6 +474,13 @@
     </section>
 </main>
 
+<!-- BULLETPROOF DOM-SWAPPING MODAL OVERLAY -->
+<div id="chart-modal-overlay" class="hidden fixed inset-0 bg-black/60 z-[200] backdrop-blur-sm flex items-center justify-center p-8" onclick="closeMaximizedModal()">
+    <div id="chart-modal-content" class="bg-white rounded-[24px] shadow-2xl w-full max-w-7xl h-[85vh] p-8 flex flex-col relative" onclick="event.stopPropagation()">
+        <!-- Maximized card is dynamically injected here -->
+    </div>
+</div>
+
 <script>
     // FULL DATA PIPELINE HOOK
     let rawSwiggyData = {{ table_data | tojson | safe }};
@@ -496,65 +503,98 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=15"></script>
+<script src="/static/swiggy_charts.js?v=16"></script>
 
 <script>
+    let activeCardId = null;
+    let cardPlaceholder = null;
+
     function toggleMaximize(cardId, event) {
         event.stopPropagation();
         const card = document.getElementById(cardId);
         const icon = document.getElementById('icon-' + cardId);
-        const canvas = card.querySelector('canvas');
-        let backdrop = document.getElementById('chart-backdrop');
-        let placeholder = document.getElementById('placeholder-' + cardId);
+        const overlay = document.getElementById('chart-modal-overlay');
+        const modalContent = document.getElementById('chart-modal-content');
 
-        if (!card.classList.contains('maximized-modal')) {
-            // --- MAXIMIZE ---
-            // Create a ghost placeholder to hold the grid slot open so neighboring cards don't shift
-            if (!placeholder) {
-                placeholder = document.createElement('div');
-                placeholder.id = 'placeholder-' + cardId;
-                placeholder.style.width = card.offsetWidth + 'px';
-                placeholder.style.height = card.offsetHeight + 'px';
-                placeholder.style.flexShrink = '0';
-                card.parentNode.insertBefore(placeholder, card);
-            }
+        if (!card || !overlay || !modalContent) return;
 
-            card.classList.add('maximized-modal', 'fixed', 'inset-6', 'z-[200]', 'shadow-2xl', 'bg-white');
-            card.style.height = 'calc(100vh - 3rem)';
-            card.style.width = 'calc(100vw - 3rem)';
-            card.style.top = '1.5rem';
-            card.style.left = '1.5rem';
-            icon.innerText = 'fullscreen_exit';
+        if (!activeCardId) {
+            // --- MAXIMIZE (DOM Node Transfer + Ghost Placeholder) ---
+            activeCardId = cardId;
             
-            if (!backdrop) {
-                backdrop = document.createElement('div');
-                backdrop.id = 'chart-backdrop';
-                backdrop.className = 'fixed inset-0 bg-black/50 z-[190] backdrop-blur-sm';
-                backdrop.onclick = () => toggleMaximize(cardId, event);
-                document.body.appendChild(backdrop);
-            }
+            // 1. Create invisible placeholder to hold grid spot open
+            cardPlaceholder = document.createElement('div');
+            cardPlaceholder.id = 'placeholder-' + cardId;
+            cardPlaceholder.style.width = card.offsetWidth + 'px';
+            cardPlaceholder.style.height = card.offsetHeight + 'px';
+            cardPlaceholder.style.flexShrink = '0';
+            card.parentNode.insertBefore(cardPlaceholder, card);
+
+            // 2. Adjust card sizing classes for modal view
+            card.classList.remove('h-[420px]');
+            card.classList.add('h-full', 'w-full');
+            if (icon) icon.innerText = 'fullscreen_exit';
+
+            // 3. Move card DOM node into modal overlay
+            modalContent.innerHTML = '';
+            modalContent.appendChild(card);
+            overlay.classList.remove('hidden');
         } else {
             // --- MINIMIZE ---
-            card.classList.remove('maximized-modal', 'fixed', 'inset-6', 'z-[200]', 'shadow-2xl', 'bg-white');
-            card.style.cssText = '';
-            icon.innerText = 'fullscreen';
-            
-            if (backdrop) backdrop.remove();
-            if (placeholder) placeholder.remove();
-            
-            if (canvas) {
-                canvas.style.cssText = '';
-            }
+            closeMaximizedModal();
+            return;
         }
-        
+
+        // 4. Trigger Chart.js resize
+        const canvas = card.querySelector('canvas');
         const chartInstance = Chart.getChart(canvas);
         if (chartInstance) {
             setTimeout(() => {
                 chartInstance.resize();
-                window.dispatchEvent(new Event('resize'));
             }, 50);
         }
     }
+
+    function closeMaximizedModal() {
+        if (!activeCardId) return;
+
+        const card = document.getElementById(activeCardId);
+        const icon = document.getElementById('icon-' + activeCardId);
+        const overlay = document.getElementById('chart-modal-overlay');
+
+        if (card && cardPlaceholder && cardPlaceholder.parentNode) {
+            // 1. Reset card styling back to grid view
+            card.classList.remove('h-full', 'w-full');
+            card.classList.add('h-[420px]');
+            if (icon) icon.innerText = 'fullscreen';
+
+            // 2. Move card DOM node back to its original slot before placeholder
+            cardPlaceholder.parentNode.insertBefore(card, cardPlaceholder);
+            cardPlaceholder.remove();
+
+            // 3. Hide modal overlay
+            if (overlay) overlay.classList.add('hidden');
+
+            // 4. Trigger Chart.js resize back
+            const canvas = card.querySelector('canvas');
+            const chartInstance = Chart.getChart(canvas);
+            if (chartInstance) {
+                setTimeout(() => {
+                    chartInstance.resize();
+                }, 50);
+            }
+        }
+
+        activeCardId = null;
+        cardPlaceholder = null;
+    }
+
+    // Close modal on pressing ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeMaximizedModal();
+        }
+    });
 
     function swiggyToggleDropdown(menuId, event) {
         event.stopPropagation();

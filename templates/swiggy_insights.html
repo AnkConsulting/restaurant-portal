@@ -189,6 +189,7 @@
                 </div>
             </div>
 
+            <!-- COMPARISON DROPDOWN -->
             <div class="relative min-w-[240px] w-full md:w-auto z-40" id="compare-dropdown-container">
                 <input type="hidden" name="compare" id="compare-input" value="{{ compare_mode if compare_mode else 'none' }}">
                 <div onclick="swiggyToggleDropdown('compare-menu', event)" class="w-full h-10 bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-gray-700 font-medium hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
@@ -263,6 +264,7 @@
         </div>
     </form>
 
+    <!-- SWIGGY KPI CARDS WITH DELTA BADGES -->
     <section class="grid grid-cols-5 gap-6 mb-8">
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Swiggy GMV</span>
@@ -321,6 +323,7 @@
         </div>
     </section>
 
+    <!-- VISUAL ANALYTICS CARDS -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
             <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">1. Customer Conversion Funnel</h3>
@@ -353,6 +356,7 @@
         </div>
     </section>
 
+    <!-- DATA TABLE WITH PAGINATION -->
     <section class="elevation-1 card-radius overflow-hidden mb-12">
         <div class="px-6 py-4 border-b border-surface-container-high bg-white flex flex-wrap justify-between items-center gap-4">
             <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase tracking-wide">Swiggy Insights Performance Records</h2>
@@ -377,6 +381,7 @@
                         <th class="py-4 px-4 font-semibold">Res ID</th>
                         <th class="py-4 px-4 font-semibold text-right">Orders</th>
                         <th class="py-4 px-4 font-semibold text-right">GMV</th>
+                        <th class="py-4 px-4 font-semibold text-right text-[#FC8019]">Comm Value (CV)</th>
                         <th class="py-4 px-4 font-semibold text-right">Pre Disc AOV</th>
                         <th class="py-4 px-4 font-semibold text-right">Online %</th>
                         <th class="py-4 px-4 font-semibold text-right">Prep Time</th>
@@ -395,8 +400,10 @@
                         <td class="py-4 px-4 text-gray-500">{{ row.get('Report Period', row.get('Report Date', '')) }}</td>
                         <td class="py-4 px-4">{{ row.get('Location', '') }}</td>
                         <td class="py-4 px-4 font-mono text-xs text-gray-400">{{ row.get('Res ID', '') }}</td>
+                        <!-- Removed the City <td> to match the 16 headers perfectly -->
                         <td class="py-4 px-4 text-right font-bold">{{ row.get('Orders', 0) }}</td>
                         <td class="py-4 px-4 text-right">₹{{ row.get('GMV', 0) }}</td>
+                        <td class="py-4 px-4 text-right text-[#FC8019] font-bold">₹{{ row.get('CV', 0) }}</td>
                         <td class="py-4 px-4 text-right">₹{{ row.get('Pre discounted AOV', 0) }}</td>
                         <td class="py-4 px-4 text-right">{{ row.get('Online %', 0) }}%</td>
                         <td class="py-4 px-4 text-right">{{ row.get('Kitchen Prep Time', 0) }}m</td>
@@ -424,7 +431,7 @@
 </main>
 
 <script>
-    // THIS BLOCK FIXES THE "Unkno" CHART ERROR
+    // 1. Send raw table data for the primary trendline
     let rawSwiggyData = {{ table_data | tojson | safe }};
     window.swiggyChartData = rawSwiggyData.map(row => {
         if (row['Report Period']) {
@@ -433,10 +440,13 @@
         }
         return row;
     });
+
+    // 2. Send the new historical comparison data for the dashed trendline
+    window.swiggyCompTrendData = {{ comp_trend_data | default('{}') | tojson | safe }};
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=4"></script>
+<script src="/static/swiggy_charts.js?v=5"></script>
 
 <script>
     function swiggyToggleDropdown(menuId, event) {

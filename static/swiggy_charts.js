@@ -1,357 +1,203 @@
+// --- INITIALIZATION ---
+let swiggyDonutChartInstance = null;
+let swiggyTrendChartInstance = null;
+let swiggyCurrentMetric = 'sales';
+
+// Brand colors
+const SWIGGY_PRIMARY = '#FC8019';
+const SWIGGY_SECONDARY = '#004ac6'; // Blue for generic/ads
+
 document.addEventListener("DOMContentLoaded", function () {
-    const rawData = window.swiggyChartData || [];
-    if (rawData.length === 0) return;
-
-    // --- 1. DATA PREPARATION & AGGREGATION ---
-    const parseDateString = (dStr) => {
-        if (!dStr) return 0;
-        const parts = dStr.split('-');
-        if (parts.length === 3) return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime();
-        return new Date(dStr).getTime();
-    };
-
-    const dailyData = {};
-    
-    // Volume Totals
-    let totalImpressions = 0, totalMenuOpens = 0, totalOrders = 0;
-    
-    // Percentage Aggregators
-    let sumI2M = 0, countI2M = 0;
-    let sumM2C = 0, countM2C = 0;
-    let sumC2O = 0, countC2O = 0;
-
-    rawData.forEach(row => {
-        const date = row['Report Date'] || 'Unknown';
-        if (!dailyData[date]) {
-            dailyData[date] = { 
-                date: date, timestamp: parseDateString(date), 
-                gmv: 0, orders: 0, adSpend: 0, adSales: 0, 
-                prepTimeSum: 0, onlinePctSum: 0, count: 0, discount: 0,
-                newCustSum: 0, repeatCustSum: 0 // Added for Chart 6
-            };
-        }
-        dailyData[date].gmv += Number(row['GMV'] || 0);
-        dailyData[date].orders += Number(row['Orders'] || 0);
-        dailyData[date].adSpend += Number(row['Ad Spend'] || 0);
-        dailyData[date].adSales += Number(row['Ad Sales'] || 0);
-        dailyData[date].discount += Number(row['Discount Given'] || 0);
-        dailyData[date].prepTimeSum += Number(row['Kitchen Prep Time'] || 0);
-        dailyData[date].onlinePctSum += parseFloat(String(row['Online %']).replace('%', '') || 0);
-        
-        // Accumulate New vs Repeat Customer %
-        dailyData[date].newCustSum += parseFloat(String(row['New Customer Order %'] || 0).replace('%', ''));
-        dailyData[date].repeatCustSum += parseFloat(String(row['Repeat Customer Order %'] || 0).replace('%', ''));
-        
-        dailyData[date].count += 1;
-
-        // Absolute Volume additions
-        totalImpressions += Number(row['Impressions'] || 0);
-        totalMenuOpens += Number(row['Menu Opens'] || 0);
-        totalOrders += Number(row['Orders'] || 0);
-
-        // Conversion Percentage additions (ignoring zeroes/nulls so averages aren't skewed)
-        let i2m = Number(row['Impressions to Menu'] || 0);
-        if (i2m > 0) { sumI2M += i2m; countI2M++; }
-        
-        let m2c = Number(row['M2C'] || 0);
-        if (m2c > 0) { sumM2C += m2c; countM2C++; }
-        
-        let c2o = Number(row['C2O'] || 0);
-        if (c2o > 0) { sumC2O += c2o; countC2O++; }
-    });
-
-    // Calculate funnel averages
-    let avgI2M = countI2M ? (sumI2M / countI2M) : 0;
-    let avgM2C = countM2C ? (sumM2C / countM2C) : 0;
-    let avgC2O = countC2O ? (sumC2O / countC2O) : 0;
-
-    // SAFEGUARD: If the sheet provided decimals (e.g. 0.15 instead of 15%), convert to whole numbers
-    if (avgI2M > 0 && avgI2M <= 1) avgI2M *= 100;
-    if (avgM2C > 0 && avgM2C <= 1) avgM2C *= 100;
-    if (avgC2O > 0 && avgC2O <= 1) avgC2O *= 100;
-
-    // Finally, round them to neat integers
-    avgI2M = Math.round(avgI2M);
-    avgM2C = Math.round(avgM2C);
-    avgC2O = Math.round(avgC2O);
-
-    const aggregatedList = Object.values(dailyData).sort((a, b) => a.timestamp - b.timestamp);
-    const dateLabels = aggregatedList.map(item => item.date.substring(0, 5));
-    
-    Chart.defaults.font.family = 'Hanken Grotesk';
-
-    // --- CHART 1: Customer Conversion Funnel (Dual Axis) ---
-    const ctxFunnel = document.getElementById('funnelChart');
-    if (ctxFunnel) {
-        new Chart(ctxFunnel, {
-            type: 'bar',
-            data: {
-                labels: ['Impressions', 'I2M (%)', 'Menu Opens', 'M2C (%)', 'C2O (%)', 'Orders'],
-                datasets: [
-                    {
-                        label: 'Volume Count',
-                        data: [totalImpressions, null, totalMenuOpens, null, null, totalOrders],
-                        backgroundColor: '#94a3b8',
-                        borderRadius: 4,
-                        xAxisID: 'x' 
-                    },
-                    {
-                        label: 'Conversion Rate (%)',
-                        data: [null, avgI2M, null, avgM2C, avgC2O, null],
-                        backgroundColor: '#FC8019',
-                        borderRadius: 4,
-                        xAxisID: 'x1' 
-                    }
-                ]
-            },
-            options: {
-                indexAxis: 'y', // Makes it horizontal
-                responsive: true, maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: true, position: 'top', labels: { boxWidth: 12, usePointStyle: true } },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                // Add '%' sign to tooltip if it's the conversion rate dataset
-                                let label = context.dataset.label || '';
-                                if (label) { label += ': '; }
-                                if (context.datasetIndex === 1) {
-                                    label += context.raw + '%';
-                                } else {
-                                    label += context.raw;
-                                }
-                                return label;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: { 
-                        stacked: true, // Forces alignment on the vertical labels
-                        grid: { display: false } 
-                    },
-                    x: { 
-                        stacked: true, // MUST BE STACKED to align with Y
-                        type: 'linear', position: 'bottom', 
-                        title: { display: true, text: 'Volume Count', font: { size: 11 } },
-                        ticks: { callback: v => v >= 1000 ? (v/1000) + 'k' : v }
-                    },
-                    x1: { 
-                        stacked: true, // MUST BE STACKED to align with Y
-                        type: 'linear', position: 'top', max: 100,
-                        title: { display: true, text: 'Conversion Rate (%)', font: { size: 11 } },
-                        grid: { drawOnChartArea: false },
-                        ticks: { callback: v => v + '%' } // Display % symbol on axis
-                    }
-                }
-            }
-        });
-    }
-
-    // --- CHART 2: Revenue & Volume Trends ---
-    const ctxTrend = document.getElementById('trendChart');
-    if (ctxTrend) {
-        new Chart(ctxTrend, {
-            type: 'bar',
-            data: {
-                labels: dateLabels,
-                datasets: [
-                    {
-                        label: 'GMV (₹)',
-                        data: aggregatedList.map(i => i.gmv),
-                        type: 'line',
-                        borderColor: '#FC8019', backgroundColor: '#FC8019',
-                        borderWidth: 2, tension: 0.4, pointRadius: 3,
-                        yAxisID: 'y',
-                        order: 1
-                    },
-                    {
-                        label: 'Orders',
-                        data: aggregatedList.map(i => i.orders),
-                        type: 'bar',
-                        backgroundColor: '#cbd5e1', borderRadius: 4,
-                        yAxisID: 'y1',
-                        order: 2
-                    }
-                ]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { type: 'linear', display: true, position: 'left', ticks: { callback: v => '₹' + (v/1000) + 'k' } },
-                    y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
-                }
-            }
-        });
-    }
-
-    // --- CHART 3: Advertising ROI (Dual Axis) ---
-    const ctxAds = document.getElementById('adsChart');
-    if (ctxAds) {
-        new Chart(ctxAds, {
-            type: 'bar',
-            data: {
-                labels: dateLabels,
-                datasets: [
-                    {
-                        label: 'Ad Spend (₹)',
-                        data: aggregatedList.map(i => i.adSpend),
-                        backgroundColor: '#94a3b8',
-                        borderRadius: 4,
-                        yAxisID: 'y1'
-                    },
-                    {
-                        label: 'Ad Sales (₹)',
-                        data: aggregatedList.map(i => i.adSales),
-                        backgroundColor: '#2563eb',
-                        borderRadius: 4,
-                        yAxisID: 'y'
-                    }
-                ]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { 
-                        type: 'linear', display: true, position: 'left',
-                        title: { display: true, text: 'Ad Sales (₹)', font: { family: 'Hanken Grotesk', size: 11 } },
-                        ticks: { callback: v => '₹' + (v/1000) + 'k' }
-                    },
-                    y1: { 
-                        type: 'linear', display: true, position: 'right',
-                        title: { display: true, text: 'Ad Spend (₹)', font: { family: 'Hanken Grotesk', size: 11 } },
-                        ticks: { callback: v => '₹' + (v/1000) + 'k' },
-                        grid: { drawOnChartArea: false }
-                    }
-                }
-            }
-        });
-    }
-
-    // --- CHART 4: Operational Efficiency Matrix ---
-    const ctxOps = document.getElementById('opsChart');
-    if (ctxOps) {
-        new Chart(ctxOps, {
-            type: 'line',
-            data: {
-                labels: dateLabels,
-                datasets: [
-                    {
-                        label: 'Avg Prep Time (mins)',
-                        data: aggregatedList.map(i => (i.prepTimeSum / i.count).toFixed(1)),
-                        borderColor: '#ef4444', backgroundColor: '#ef4444',
-                        tension: 0.3, yAxisID: 'y'
-                    },
-                    {
-                        label: 'Online %',
-                        data: aggregatedList.map(i => (i.onlinePctSum / i.count).toFixed(1)),
-                        borderColor: '#10b981', backgroundColor: '#10b981',
-                        borderDash: [5, 5], tension: 0.3, yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { type: 'linear', position: 'left', title: { display: true, text: 'Minutes' } },
-                    y1: { type: 'linear', position: 'right', max: 100, title: { display: true, text: 'Percentage' }, grid: { drawOnChartArea: false } }
-                }
-            }
-        });
-    }
-
-    // --- CHART 5: Discount Impact on GMV ---
-    const ctxDiscount = document.getElementById('discountChart');
-    if (ctxDiscount) {
-        new Chart(ctxDiscount, {
-            type: 'bar',
-            data: {
-                labels: dateLabels,
-                datasets: [
-                    {
-                        label: 'GMV (₹)',
-                        data: aggregatedList.map(i => i.gmv),
-                        backgroundColor: '#e2e8f0', 
-                        borderRadius: 4, 
-                        yAxisID: 'y',
-                        order: 2
-                    },
-                    {
-                        label: 'Discount Given (₹)',
-                        data: aggregatedList.map(i => i.discount),
-                        type: 'line',
-                        borderColor: '#dc2626', 
-                        backgroundColor: '#dc2626',
-                        borderWidth: 2, 
-                        tension: 0.4, 
-                        yAxisID: 'y',
-                        order: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { ticks: { callback: v => '₹' + (v/1000) + 'k' } }
-                }
-            }
-        });
-    }
-
-    // --- CHART 6: Customer Mix (New vs Repeat) ---
-    const ctxCustomer = document.getElementById('customerMixChart');
-    if (ctxCustomer) {
-        new Chart(ctxCustomer, {
-            type: 'bar',
-            data: {
-                labels: dateLabels,
-                datasets: [
-                    {
-                        label: 'Repeat Customers (%)',
-                        data: aggregatedList.map(i => (i.repeatCustSum / i.count).toFixed(1)),
-                        backgroundColor: '#10b981', // Green for healthy retention
-                        borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 }
-                    },
-                    {
-                        label: 'New Customers (%)',
-                        data: aggregatedList.map(i => (i.newCustSum / i.count).toFixed(1)),
-                        backgroundColor: '#3b82f6', // Blue for new acquisition
-                        borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 }
-                    }
-                ]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + context.raw + '%';
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: { 
-                        stacked: true, 
-                        grid: { display: false } 
-                    },
-                    y: { 
-                        stacked: true, 
-                        max: 100, // Forces the chart to cap at 100%
-                        ticks: { callback: v => v + '%' } 
-                    }
-                }
-            }
-        });
+    if (window.swiggyChartData && window.swiggyChartData.length > 0) {
+        swiggyInitCharts(window.swiggyChartData);
     }
 });
+
+// --- CHART.JS VISUALIZATION LOGIC ---
+function swiggyInitCharts(rawData) {
+    // 1. Process data for the charts
+    const chartData = swiggyProcessChartData(rawData);
+    window.swiggyLatestChartPayload = chartData;
+
+    // 2. Initialize the Customer Conversion Funnel (Bar Chart)
+    swiggyInitFunnelChart(chartData);
+
+    // 3. Initialize the Revenue & Volume Trends (Line Chart with Comparison)
+    swiggyInitTrendChart(chartData);
+}
+
+function swiggyProcessChartData(data) {
+    let payload = {
+        trend_labels: [],
+        sales_trend: [],
+        orders_trend: [],
+        // Assuming we extract the historical comp data passed via Jinja if available
+        // For this frontend-only rendering, we pull from the raw table data
+        funnel: {
+            impressions: 0,
+            menu_opens: 0,
+            orders: 0
+        }
+    };
+
+    // Aggregate data by Date
+    let dateMap = {};
+    
+    data.forEach(row => {
+        // Funnel Aggregation
+        payload.funnel.impressions += parseFloat(row['Impressions'] || 0);
+        payload.funnel.menu_opens += parseFloat(row['Menu Opens'] || 0);
+        payload.funnel.orders += parseFloat(row['Orders'] || 0);
+
+        // Trend Aggregation
+        let rawDate = row['Report Period'] || row['Report Date'] || row['Date'];
+        if (!rawDate) return;
+        
+        if (!dateMap[rawDate]) {
+            dateMap[rawDate] = { sales: 0, orders: 0, comp_sales: null, comp_orders: null };
+        }
+        
+        // Clean currency strings
+        let salesStr = String(row['GMV'] || '0').replace(/[₹,]/g, '');
+        dateMap[rawDate].sales += parseFloat(salesStr);
+        dateMap[rawDate].orders += parseInt(row['Orders'] || 0);
+    });
+
+    // Sort dates
+    let sortedDates = Object.keys(dateMap).sort((a, b) => {
+        let partsA = a.split('-');
+        let partsB = b.split('-');
+        // Assuming DD-MM-YYYY format from the backend mapping
+        if(partsA.length === 3 && partsB.length === 3) {
+            let dateA = new Date(partsA[2], partsA[1]-1, partsA[0]);
+            let dateB = new Date(partsB[2], partsB[1]-1, partsB[0]);
+            return dateA - dateB;
+        }
+        return new Date(a) - new Date(b);
+    });
+
+    sortedDates.forEach(date => {
+        payload.trend_labels.push(date);
+        payload.sales_trend.push(dateMap[date].sales);
+        payload.orders_trend.push(dateMap[date].orders);
+    });
+
+    // NOTE: To get the dashed comparison line to draw, the backend Python script
+    // needs to pass 'prev_sales_trend' and 'prev_trend_labels' directly into this window object.
+    // Assuming the backend is passing the comp_data dictionary to the template, 
+    // we map those arrays here if they exist.
+    
+    if (window.swiggyCompTrendData) {
+        payload.prev_trend_labels = window.swiggyCompTrendData.prev_labels || [];
+        payload.prev_sales_trend = window.swiggyCompTrendData.prev_sales || [];
+        payload.prev_orders_trend = window.swiggyCompTrendData.prev_orders || [];
+    } else {
+        payload.prev_trend_labels = [];
+        payload.prev_sales_trend = [];
+        payload.prev_orders_trend = [];
+    }
+
+    return payload;
+}
+
+function swiggyInitFunnelChart(data) {
+    const ctx = document.getElementById('funnelChart');
+    if (!ctx) return;
+    
+    // Basic funnel rendering
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Impressions', 'Menu Opens', 'Orders'],
+            datasets: [{
+                label: 'Volume',
+                data: [data.funnel.impressions, data.funnel.menu_opens, data.funnel.orders],
+                backgroundColor: ['#94a3b8', '#cbd5e1', SWIGGY_PRIMARY],
+                borderWidth: 0,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+function swiggyInitTrendChart(data) {
+    const ctx = document.getElementById('trendChart');
+    if (!ctx) return;
+    
+    let gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(252, 128, 25, 0.2)');
+    gradient.addColorStop(1, 'rgba(252, 128, 25, 0)');
+
+    swiggyTrendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.trend_labels,
+            datasets: [
+                {
+                    label: 'Current Period',
+                    data: data.sales_trend,
+                    borderColor: SWIGGY_PRIMARY,
+                    backgroundColor: gradient,
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: SWIGGY_PRIMARY
+                },
+                // PHASE 5: THE COMPARISON LINE
+                {
+                    label: 'Comparison Period',
+                    data: data.prev_sales_trend.length > 0 ? data.prev_sales_trend : [],
+                    borderColor: '#94a3b8',
+                    borderDash: [5, 5],
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#94a3b8'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true, position: 'top', align: 'end' },
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const index = tooltipItems[0].dataIndex;
+                            const datasetIndex = tooltipItems[0].datasetIndex;
+                            // Custom Tooltip: Show the historical date for the dashed line
+                            if (datasetIndex === 1 && window.swiggyLatestChartPayload.prev_trend_labels) {
+                                return window.swiggyLatestChartPayload.prev_trend_labels[index] || tooltipItems[0].label;
+                            }
+                            return tooltipItems[0].label;
+                        },
+                        label: function(context) {
+                            let val = context.raw;
+                            let label = context.dataset.label || '';
+                            if (swiggyCurrentMetric === 'orders') {
+                                return `${label}: ${val.toLocaleString()} orders`;
+                            } else {
+                                return `${label}: ₹${val.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                            }
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { border: { display: false } }
+            }
+        }
+    });
+}

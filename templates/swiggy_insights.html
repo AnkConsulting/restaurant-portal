@@ -332,35 +332,71 @@
         </div>
     </section>
 
-    <!-- VISUAL ANALYTICS CARDS -->
+    <!-- VISUAL ANALYTICS CARDS WITH MAXIMIZE TOGGLE -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
-            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">1. Customer Conversion Funnel</h3>
+        <!-- Chart 1 -->
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col transition-all duration-300" id="chart-card-1">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">1. Customer Conversion Funnel</h3>
+                <button type="button" onclick="toggleMaximize('chart-card-1', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-1">fullscreen</span>
+                </button>
+            </div>
             <div class="relative flex-1 min-h-[300px] w-full"><canvas id="funnelChart"></canvas></div>
         </div>
         
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
-            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">2. Revenue & Volume Trends</h3>
+        <!-- Chart 2 -->
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col transition-all duration-300" id="chart-card-2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">2. Revenue & Volume Trends</h3>
+                <button type="button" onclick="toggleMaximize('chart-card-2', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-2">fullscreen</span>
+                </button>
+            </div>
             <div class="relative flex-1 min-h-[300px] w-full"><canvas id="trendChart"></canvas></div>
         </div>
         
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
-            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">3. Advertising ROI</h3>
+        <!-- Chart 3 -->
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col transition-all duration-300" id="chart-card-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">3. Advertising ROI</h3>
+                <button type="button" onclick="toggleMaximize('chart-card-3', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-3">fullscreen</span>
+                </button>
+            </div>
             <div class="relative flex-1 min-h-[300px] w-full"><canvas id="adsChart"></canvas></div>
         </div>
         
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
-            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">4. Operational Efficiency</h3>
+        <!-- Chart 4 -->
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col transition-all duration-300" id="chart-card-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">4. Operational Efficiency</h3>
+                <button type="button" onclick="toggleMaximize('chart-card-4', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-4">fullscreen</span>
+                </button>
+            </div>
             <div class="relative flex-1 min-h-[300px] w-full"><canvas id="opsChart"></canvas></div>
         </div>
 
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
-            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">5. Discount Impact on GMV</h3>
+        <!-- Chart 5 -->
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col transition-all duration-300" id="chart-card-5">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">5. Discount Impact on GMV</h3>
+                <button type="button" onclick="toggleMaximize('chart-card-5', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-5">fullscreen</span>
+                </button>
+            </div>
             <div class="relative flex-1 min-h-[300px] w-full"><canvas id="discountChart"></canvas></div>
         </div>
 
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col">
-            <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide mb-4">6. Customer Mix (New vs Repeat)</h3>
+        <!-- Chart 6 -->
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col transition-all duration-300" id="chart-card-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">6. Customer Mix (New vs Repeat)</h3>
+                <button type="button" onclick="toggleMaximize('chart-card-6', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-6">fullscreen</span>
+                </button>
+            </div>
             <div class="relative flex-1 min-h-[300px] w-full"><canvas id="customerMixChart"></canvas></div>
         </div>
     </section>
@@ -460,9 +496,45 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=6"></script>
+<script src="/static/swiggy_charts.js?v=7"></script>
 
 <script>
+    function toggleMaximize(cardId, event) {
+        event.stopPropagation();
+        const card = document.getElementById(cardId);
+        const icon = document.getElementById('icon-' + cardId);
+        
+        let backdrop = document.getElementById('chart-backdrop');
+
+        if (!card.classList.contains('maximized-modal')) {
+            // --- MAXIMIZE ---
+            card.classList.add('maximized-modal', 'fixed', 'inset-6', 'z-[200]', 'shadow-2xl', 'bg-white');
+            card.style.height = 'calc(100vh - 3rem)';
+            icon.innerText = 'fullscreen_exit';
+            
+            // Create dark backdrop behind the modal
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'chart-backdrop';
+                backdrop.className = 'fixed inset-0 bg-black/50 z-[190] backdrop-blur-sm transition-opacity';
+                backdrop.onclick = () => toggleMaximize(cardId, event);
+                document.body.appendChild(backdrop);
+            }
+        } else {
+            // --- MINIMIZE ---
+            card.classList.remove('maximized-modal', 'fixed', 'inset-6', 'z-[200]', 'shadow-2xl', 'bg-white');
+            card.style.height = '';
+            icon.innerText = 'fullscreen';
+            
+            if (backdrop) backdrop.remove();
+        }
+        
+        // Tell Chart.js to recalculate dimensions to fit the new container size
+        setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+        }, 50);
+    }
+
     function swiggyToggleDropdown(menuId, event) {
         event.stopPropagation();
         const allMenus = document.querySelectorAll('.dropdown-menu-custom');

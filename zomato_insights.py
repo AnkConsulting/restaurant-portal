@@ -207,6 +207,8 @@ async def zomato_insights(
         "label": "",
         "gmv": None, "orders": None, "aov": None, "ads": None, "discount": None
     }
+    
+    comp_trend_data = {"raw_data": []}
 
     if compare and compare != "none" and pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in context_df.columns:
         comp_start, comp_end = get_comparison_date_range(start_dt, end_dt, compare)
@@ -235,6 +237,13 @@ async def zomato_insights(
                 "prev_year": "Last Year"
             }
             comp_data["label"] = labels.get(compare, "Comparison")
+            
+            # FULL RAW DATA EXPORT TO JAVASCRIPT
+            if not comp_df.empty:
+                comp_df_clean = comp_df.copy()
+                if "_temp_date" in comp_df_clean.columns:
+                    comp_df_clean = comp_df_clean.drop(columns=["_temp_date"])
+                comp_trend_data["raw_data"] = comp_df_clean.to_dict(orient="records")
 
     if "_temp_date" in filtered_df.columns:
         filtered_df = filtered_df.drop(columns=["_temp_date"])
@@ -256,6 +265,7 @@ async def zomato_insights(
             "max_available_date": max_available_date,
             "compare_mode": compare,
             "comp_data": comp_data,
+            "comp_trend_data": comp_trend_data,
             "total_gmv": format_indian_currency(total_gmv),
             "total_orders": format_indian_integer(total_orders),
             "avg_aov": f"₹{format_indian_integer(round(avg_aov))}",

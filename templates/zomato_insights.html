@@ -490,11 +490,28 @@
 </div>
 
 <script>
-    window.zomatoChartData = {{ table_data | tojson | safe }};
+    // FULL DATA PIPELINE HOOK
+    let rawZomatoData = {{ table_data | tojson | safe }};
+    window.zomatoChartData = rawZomatoData.map(row => {
+        if (row['Report Period']) {
+            row['Report Date'] = row['Report Period'];
+            row['Date'] = row['Report Period']; 
+        }
+        return row;
+    });
+
+    let rawCompData = {{ comp_trend_data.get('raw_data', []) | tojson | safe if comp_trend_data else '[]' }};
+    window.zomatoCompRawData = rawCompData.map(row => {
+        if (row['Report Period']) {
+            row['Report Date'] = row['Report Period'];
+            row['Date'] = row['Report Period']; 
+        }
+        return row;
+    });
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/zomato_charts.js?v=1"></script>
+<script src="/static/zomato_charts.js?v=2"></script>
 
 <script>
     let activeModalChart = null;

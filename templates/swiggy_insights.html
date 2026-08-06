@@ -496,14 +496,14 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=7"></script>
+<script src="/static/swiggy_charts.js?v=8"></script>
 
 <script>
     function toggleMaximize(cardId, event) {
         event.stopPropagation();
         const card = document.getElementById(cardId);
         const icon = document.getElementById('icon-' + cardId);
-        
+        const canvas = card.querySelector('canvas');
         let backdrop = document.getElementById('chart-backdrop');
 
         if (!card.classList.contains('maximized-modal')) {
@@ -527,6 +527,12 @@
             icon.innerText = 'fullscreen';
             
             if (backdrop) backdrop.remove();
+            
+            // Clear Chart.js inline dimensions so it shrinks back to standard grid size
+            if (canvas) {
+                canvas.style.height = '';
+                canvas.style.width = '';
+            }
         }
         
         // Tell Chart.js to recalculate dimensions to fit the new container size

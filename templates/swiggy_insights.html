@@ -59,7 +59,7 @@
         </div>
         
         <div class="relative font-['Hanken_Grotesk'] z-[110]" id="module-switcher-container">
-          <button onclick="swiggyToggleDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-blue-200 transition-all group focus:outline-none">
+          <button onclick="swiggyToggleDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-orange-200 transition-all group focus:outline-none">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-[#FC8019] text-[20px]">local_shipping</span>
               <span class="font-bold text-[#FC8019] text-sm">Swiggy Insights</span>
@@ -127,7 +127,7 @@
         {% if is_admin %}
             <img alt="User Logo" class="w-10 h-10 object-contain rounded-full border border-surface-container-high bg-white p-0.5" src="/static/ank-logo.png"/>
         {% else %}
-            <div id="avatar-initials" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-sm"></div>
+            <div id="avatar-initials" class="w-10 h-10 rounded-full bg-[#FC8019] text-white flex items-center justify-center font-bold shadow-sm"></div>
         {% endif %}
     </div>
 </header>
@@ -189,10 +189,10 @@
                 </div>
             </div>
 
-            <!-- COMPARISON DROPDOWN -->
+            <!-- PHASE 1: CUSTOM COMPARISON DROPDOWN -->
             <div class="relative min-w-[240px] w-full md:w-auto z-40" id="compare-dropdown-container">
                 <input type="hidden" name="compare" id="compare-input" value="{{ compare_mode if compare_mode else 'none' }}">
-                <div onclick="swiggyToggleDropdown('compare-menu', event)" class="w-full h-10 bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-gray-700 font-medium hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <div onclick="swiggyToggleDropdown('compare-menu', event)" class="w-full h-10 bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-gray-700 font-medium hover:border-[#FC8019] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="compare-trigger-text" class="truncate">
                         {% if compare_mode == 'prev_period' %}Compare: Previous Period
                         {% elif compare_mode == 'prev_week' %}Compare: Same Days Last Week
@@ -218,13 +218,13 @@
             {% if is_admin %}
             <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
                 <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
-                <div onclick="swiggyToggleDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <div onclick="swiggyToggleDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-on-surface hover:border-[#FC8019] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
                     <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500 text-[20px]">expand_more</span>
                 </div>
                 <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="brand-search" onkeyup="swiggyFilterDropdown('brand-search', 'brand-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search brands...">
+                        <input type="text" id="brand-search" onkeyup="swiggyFilterDropdown('brand-search', 'brand-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-[#FC8019] focus:ring-1 focus:ring-[#FC8019] bg-white" placeholder="Search brands...">
                     </div>
                     <ul id="brand-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
                         <li onclick="swiggySelectBrand('')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Brands</li>
@@ -240,13 +240,13 @@
 
             <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
                 <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
-                <div onclick="swiggyToggleDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 text-sm text-on-surface hover:border-primary focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
+                <div onclick="swiggyToggleDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 text-sm text-on-surface hover:border-[#FC8019] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
                     <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500 text-[20px]">expand_more</span>
                 </div>
                 <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
-                        <input type="text" id="outlet-search" onkeyup="swiggyFilterDropdown('outlet-search', 'outlet-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" placeholder="Search outlets...">
+                        <input type="text" id="outlet-search" onkeyup="swiggyFilterDropdown('outlet-search', 'outlet-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-[#FC8019] focus:ring-1 focus:ring-[#FC8019] bg-white" placeholder="Search outlets...">
                     </div>
                     <ul id="outlet-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm">
                         <li onclick="swiggySelectOutlet('')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors">All Outlets</li>
@@ -257,15 +257,16 @@
                 </div>
             </div>
 
-            <button type="button" onclick="swiggyExportCSV()" class="h-[46px] px-5 flex items-center justify-center gap-2 bg-[#F1F5F9] border border-outline-variant rounded-lg font-semibold text-sm hover:bg-gray-200 hover:border-primary transition-all shadow-sm group">
-                <span class="material-symbols-outlined text-[20px] text-primary group-hover:scale-110 transition-transform">download</span>
+            <button type="button" onclick="swiggyExportCSV()" class="h-[46px] px-5 flex items-center justify-center gap-2 bg-[#F1F5F9] border border-outline-variant rounded-lg font-semibold text-sm hover:bg-gray-200 hover:border-[#FC8019] transition-all shadow-sm group">
+                <span class="material-symbols-outlined text-[20px] text-[#FC8019] group-hover:scale-110 transition-transform">download</span>
                 Export CSV
             </button>
         </div>
     </form>
 
-    <!-- SWIGGY KPI CARDS WITH DELTA BADGES -->
+    <!-- KPI CARDS WITH DELTA BADGES -->
     <section class="grid grid-cols-5 gap-6 mb-8">
+        <!-- GMV Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Swiggy GMV</span>
             <div class="text-[26px] font-bold text-on-surface mt-2">{{ total_gmv }}</div>
@@ -277,6 +278,8 @@
             </div>
             {% endif %}
         </div>
+
+        <!-- Orders Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Orders</span>
             <div class="text-[26px] font-bold text-[#FC8019] mt-2">{{ total_orders }}</div>
@@ -288,6 +291,8 @@
             </div>
             {% endif %}
         </div>
+
+        <!-- AOV Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Pre-Disc AOV</span>
             <div class="text-[26px] font-bold text-on-surface mt-2">{{ avg_aov }}</div>
@@ -299,6 +304,8 @@
             </div>
             {% endif %}
         </div>
+
+        <!-- Ad Sales Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Ad Sales</span>
             <div class="text-[26px] font-bold text-blue-600 mt-2">{{ sales_ads }}</div>
@@ -310,6 +317,8 @@
             </div>
             {% endif %}
         </div>
+
+        <!-- Discount Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Discounts</span>
             <div class="text-[26px] font-bold text-error mt-2">{{ discount_given }}</div>
@@ -356,14 +365,14 @@
         </div>
     </section>
 
-    <!-- DATA TABLE WITH PAGINATION -->
+    <!-- DATA TABLE -->
     <section class="elevation-1 card-radius overflow-hidden mb-12">
         <div class="px-6 py-4 border-b border-surface-container-high bg-white flex flex-wrap justify-between items-center gap-4">
             <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase tracking-wide">Swiggy Insights Performance Records</h2>
             
             <div class="flex items-center gap-2 text-sm text-gray-600">
                 <span>Rows per page:</span>
-                <select id="rows-per-page" onchange="swiggyChangeRowsPerPage()" class="bg-white border border-outline-variant rounded-md pl-3 pr-8 py-1.5 text-sm focus:outline-none focus:border-primary cursor-pointer">
+                <select id="rows-per-page" onchange="swiggyChangeRowsPerPage()" class="bg-white border border-outline-variant rounded-md pl-3 pr-8 py-1.5 text-sm focus:outline-none focus:border-[#FC8019] cursor-pointer">
                     <option value="20">20</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
@@ -400,7 +409,6 @@
                         <td class="py-4 px-4 text-gray-500">{{ row.get('Report Period', row.get('Report Date', '')) }}</td>
                         <td class="py-4 px-4">{{ row.get('Location', '') }}</td>
                         <td class="py-4 px-4 font-mono text-xs text-gray-400">{{ row.get('Res ID', '') }}</td>
-                        <!-- Removed the City <td> to match the 16 headers perfectly -->
                         <td class="py-4 px-4 text-right font-bold">{{ row.get('Orders', 0) }}</td>
                         <td class="py-4 px-4 text-right">₹{{ row.get('GMV', 0) }}</td>
                         <td class="py-4 px-4 text-right text-[#FC8019] font-bold">₹{{ row.get('CV', 0) }}</td>
@@ -431,7 +439,7 @@
 </main>
 
 <script>
-    // 1. Send raw table data for the primary trendline
+    // Safely mapping data so the charts never break even if columns change
     let rawSwiggyData = {{ table_data | tojson | safe }};
     window.swiggyChartData = rawSwiggyData.map(row => {
         if (row['Report Period']) {
@@ -441,7 +449,7 @@
         return row;
     });
 
-    // 2. Send the new historical comparison data for the dashed trendline
+    // Safely loading comparison trend data for Phase 5
     window.swiggyCompTrendData = {{ comp_trend_data | default('{}') | tojson | safe }};
 </script>
 
@@ -556,7 +564,7 @@
         if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
         for (let i = startPage; i <= endPage; i++) {
-            html += `<button type="button" onclick="swiggyChangePage(${i})" class="px-3 py-1.5 border rounded-md text-sm font-medium ${i === swiggyCurrentPage ? 'bg-primary text-white border-primary shadow-sm' : 'border-outline-variant hover:bg-gray-100'}">${i}</button>`;
+            html += `<button type="button" onclick="swiggyChangePage(${i})" class="px-3 py-1.5 border rounded-md text-sm font-medium ${i === swiggyCurrentPage ? 'bg-[#FC8019] text-white border-[#FC8019] shadow-sm' : 'border-outline-variant hover:bg-gray-100'}">${i}</button>`;
         }
 
         html += `<button type="button" onclick="swiggyChangePage(${swiggyCurrentPage + 1})" ${swiggyCurrentPage === totalPages || totalPages === 0 ? 'disabled' : ''} class="px-3 py-1.5 border border-outline-variant rounded-md text-sm font-medium ${swiggyCurrentPage === totalPages || totalPages === 0 ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100'}">Next</button>`;

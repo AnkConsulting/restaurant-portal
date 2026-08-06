@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import pandas as pd
 import os
+from datetime import timedelta
 
 router = APIRouter()
 
@@ -45,12 +46,50 @@ def format_indian_integer(val):
         res = last_three
     return res
 
+# PHASE 2: Python Date Math Logic
+def get_comparison_date_range(start_dt, end_dt, compare_mode):
+    if pd.isnull(start_dt) or pd.isnull(end_dt):
+        return None, None
+        
+    days_diff = (end_dt - start_dt).days + 1
+    
+    if compare_mode == "prev_period":
+        comp_end = start_dt - timedelta(days=1)
+        comp_start = comp_end - timedelta(days=days_diff - 1)
+    elif compare_mode == "prev_week":
+        comp_start = start_dt - timedelta(days=7)
+        comp_end = end_dt - timedelta(days=7)
+    elif compare_mode == "prev_month":
+        comp_start = start_dt - pd.DateOffset(months=1)
+        comp_end = end_dt - pd.DateOffset(months=1)
+    elif compare_mode == "prev_year":
+        comp_start = start_dt - pd.DateOffset(years=1)
+        comp_end = end_dt - pd.DateOffset(years=1)
+    else:
+        return None, None
+        
+    return comp_start, comp_end
+
+# PHASE 3: Percentage & Delta Calculator
+def calculate_growth(current_val, baseline_val):
+    if not baseline_val or baseline_val == 0:
+        return {"pct": 0.0, "diff": current_val, "is_positive": True, "show": False}
+    
+    diff = current_val - baseline_val
+    pct = (diff / baseline_val) * 100
+    
+    return {
+        "pct": round(pct, 1),
+        "diff": diff,
+        "is_positive": diff >= 0,
+        "show": True
+    }
+
 def load_zomato_insights_data():
     try:
         df = pd.read_csv(ZOMATO_INSIGHTS_CSV_URL)
         df.columns = df.columns.str.strip()
         
-        # Clean text columns
         if "Restaurant Name" in df.columns:
             df["Restaurant Name"] = df["Restaurant Name"].astype(str).str.strip()
         if "Location" in df.columns:
@@ -58,7 +97,6 @@ def load_zomato_insights_data():
         if "Res ID" in df.columns:
             df["Res ID"] = df["Res ID"].dropna().astype(str).str.split('.').str[0].str.strip()
             
-        # Clean numeric columns
         numeric_cols = [
             "Orders", "GMV", "Total GST collected from customers", "Pre discounted AOV", "Online %", "Kitchen Prep Time",
             "Impressions", "Impressions to Menu", "Menu Opens", "M2C", "C2O",
@@ -70,15 +108,19 @@ def load_zomato_insights_data():
                 cleaned_series = df[col].astype(str).str.replace(r'[₹, %]', '', regex=True)
                 df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
 
-        # Comm Value (CV) Calculation directly from Raw Data
         if "GMV" in df.columns and "Total GST collected from customers" in df.columns:
             df["CV"] = df["GMV"] - df["Total GST collected from customers"]
         else:
             df["CV"] = 0.0
 
-        # Rearrange to the strictly mandated format
         cols = df.columns.tolist()
         priority_cols = ["Restaurant Name", "Report Period", "Location", "Res ID"]
+        
+        # Standardize "Report Date" to "Report Period" if needed
+        if "Report Date" in cols and "Report Period" not in cols:
+            df.rename(columns={"Report Date": "Report Period"}, inplace=True)
+            cols = df.columns.tolist()
+
         existing_priority = [c for c in priority_cols if c in cols]
         
         for c in existing_priority:
@@ -98,7 +140,8 @@ async def zomato_insights(
     brand: Optional[str] = Query(None),
     outlet: Optional[str] = Query(None),
     start_date: Optional[str] = Query(None),
-    end_date: Optional[str] = Query(None)
+    end_date: Optional[str] = Query(None),
+    compare: Optional[str] = Query("none")
 ):
     if not request.session.get("logged_in"):
         return RedirectResponse(url="/login", status_code=303)
@@ -108,10 +151,8 @@ async def zomato_insights(
 
     df = load_zomato_insights_data()
     
-    # Isolate Date Filtering safely handling variations
-    date_col = "Report Period" if "Report Period" in df.columns else "Report Date"
-    if date_col in df.columns:
-        df["_temp_date"] = pd.to_datetime(df[date_col], dayfirst=True, format="mixed", errors="coerce")
+    if "Report Period" in df.columns:
+        df["_temp_date"] = pd.to_datetime(df["Report Period"], dayfirst=True, format="mixed", errors="coerce")
 
     if not is_admin and "Res ID" in df.columns:
         df = df[df["Res ID"].astype(str).isin(authorized_res_ids)]
@@ -147,18 +188,53 @@ async def zomato_insights(
         end_date = end_dt.strftime("%Y-%m-%d")
 
     filtered_df = context_df.copy()
-
     if pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in filtered_df.columns:
         filtered_df = filtered_df[
             (filtered_df["_temp_date"].dt.normalize() >= start_dt.normalize()) & 
             (filtered_df["_temp_date"].dt.normalize() <= end_dt.normalize())
         ]
 
+    # Calculate Current KPIs
     total_gmv = float(filtered_df["GMV"].sum()) if "GMV" in filtered_df.columns else 0.0
     total_orders = int(filtered_df["Orders"].sum()) if "Orders" in filtered_df.columns else 0
     avg_aov = float(filtered_df["Pre discounted AOV"].mean()) if "Pre discounted AOV" in filtered_df.columns and not filtered_df["Pre discounted AOV"].empty else 0.0
     sales_ads = float(filtered_df["Ad Sales"].sum()) if "Ad Sales" in filtered_df.columns else 0.0
     discount_given = float(filtered_df["Discount Given"].sum()) if "Discount Given" in filtered_df.columns else 0.0
+
+    # PHASE 3: Comparison Calculations
+    comp_data = {
+        "mode": compare,
+        "label": "",
+        "gmv": None, "orders": None, "aov": None, "ads": None, "discount": None
+    }
+
+    if compare and compare != "none" and pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in context_df.columns:
+        comp_start, comp_end = get_comparison_date_range(start_dt, end_dt, compare)
+        if comp_start and comp_end:
+            comp_df = context_df[
+                (context_df["_temp_date"].dt.normalize() >= comp_start.normalize()) & 
+                (context_df["_temp_date"].dt.normalize() <= comp_end.normalize())
+            ]
+            
+            base_gmv = float(comp_df["GMV"].sum()) if "GMV" in comp_df.columns else 0.0
+            base_orders = int(comp_df["Orders"].sum()) if "Orders" in comp_df.columns else 0
+            base_aov = float(comp_df["Pre discounted AOV"].mean()) if "Pre discounted AOV" in comp_df.columns and not comp_df["Pre discounted AOV"].empty else 0.0
+            base_ads = float(comp_df["Ad Sales"].sum()) if "Ad Sales" in comp_df.columns else 0.0
+            base_discount = float(comp_df["Discount Given"].sum()) if "Discount Given" in comp_df.columns else 0.0
+
+            comp_data["gmv"] = calculate_growth(total_gmv, base_gmv)
+            comp_data["orders"] = calculate_growth(total_orders, base_orders)
+            comp_data["aov"] = calculate_growth(avg_aov, base_aov)
+            comp_data["ads"] = calculate_growth(sales_ads, base_ads)
+            comp_data["discount"] = calculate_growth(discount_given, base_discount)
+            
+            labels = {
+                "prev_period": "Previous Period",
+                "prev_week": "Last Week",
+                "prev_month": "Last Month",
+                "prev_year": "Last Year"
+            }
+            comp_data["label"] = labels.get(compare, "Comparison")
 
     if "_temp_date" in filtered_df.columns:
         filtered_df = filtered_df.drop(columns=["_temp_date"])
@@ -178,6 +254,8 @@ async def zomato_insights(
             "start_date": start_date or "",
             "end_date": end_date or "",
             "max_available_date": max_available_date,
+            "compare_mode": compare,
+            "comp_data": comp_data,
             "total_gmv": format_indian_currency(total_gmv),
             "total_orders": format_indian_integer(total_orders),
             "avg_aov": f"₹{format_indian_integer(round(avg_aov))}",

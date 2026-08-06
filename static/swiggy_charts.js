@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const rawData = window.swiggyChartData || [];
     if (rawData.length === 0) return;
 
-    // Robust Date Parsing (Copied from Zomato)
+    // Robust Date Parsing
     const parseDateString = (dStr) => {
         if (!dStr) return 0;
         const parts = dStr.split('-');
@@ -130,7 +130,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // --- CHART 2: Revenue & Volume Trends ---
     const ctxTrend = document.getElementById('trendChart');
-    const compData = window.swiggyCompTrendData || {};
     
     if (ctxTrend) {
         new Chart(ctxTrend, {
@@ -144,14 +143,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         type: 'line',
                         borderColor: '#FC8019', backgroundColor: '#FC8019',
                         borderWidth: 2, tension: 0.4, pointRadius: 3, yAxisID: 'y', order: 1
-                    },
-                    // Phase 5: Historical Dashed Comparison Line
-                    {
-                        label: 'Comparison GMV (₹)',
-                        data: compData.prev_sales && compData.prev_sales.length > 0 ? compData.prev_sales : [],
-                        type: 'line',
-                        borderColor: '#94a3b8', backgroundColor: 'transparent',
-                        borderDash: [5, 5], borderWidth: 2, tension: 0.4, pointRadius: 2, yAxisID: 'y', order: 0
                     },
                     {
                         label: 'Orders',

@@ -13,7 +13,7 @@ templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 # Official Swiggy Master CSV Link
 # (Replace this with your actual Swiggy CSV URL if different)
-SWIGGY_INSIGHTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1v.../pub?output=csv" 
+SWIGGY_INSIGHTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2AAwYZA0r8Y59L5KAOZ0yszHcNjyVKynuPfqcTKBh6VSPsmSqg5pmCizX5qDEEno26-okgxtRvZN5/pub?gid=1328235442&single=true&output=csv"
 
 def format_indian_currency(val):
     try:

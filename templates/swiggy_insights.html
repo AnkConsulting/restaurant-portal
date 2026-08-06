@@ -335,7 +335,7 @@
     <!-- VISUAL ANALYTICS CARDS WITH FIXED HEIGHT & MAXIMIZE TOGGLE -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
         <!-- Chart 1 -->
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-1">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-1">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">1. Customer Conversion Funnel</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-1', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
@@ -346,7 +346,7 @@
         </div>
         
         <!-- Chart 2 -->
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-2">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-2">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">2. Revenue & Volume Trends</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-2', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
@@ -357,7 +357,7 @@
         </div>
         
         <!-- Chart 3 -->
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-3">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-3">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">3. Advertising ROI</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-3', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
@@ -368,7 +368,7 @@
         </div>
         
         <!-- Chart 4 -->
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-4">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-4">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">4. Operational Efficiency</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-4', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
@@ -379,7 +379,7 @@
         </div>
 
         <!-- Chart 5 -->
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-5">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-5">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">5. Discount Impact on GMV</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-5', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
@@ -390,7 +390,7 @@
         </div>
 
         <!-- Chart 6 -->
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-6">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">6. Customer Mix (New vs Repeat)</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-6', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
@@ -496,7 +496,7 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=12"></script>
+<script src="/static/swiggy_charts.js?v=13"></script>
 
 <script>
     function toggleMaximize(cardId, event) {
@@ -505,6 +505,7 @@
         const icon = document.getElementById('icon-' + cardId);
         const canvas = card.querySelector('canvas');
         let backdrop = document.getElementById('chart-backdrop');
+        const chartInstance = Chart.getChart(canvas);
 
         if (!card.classList.contains('maximized-modal')) {
             // --- MAXIMIZE ---
@@ -516,7 +517,7 @@
             if (!backdrop) {
                 backdrop = document.createElement('div');
                 backdrop.id = 'chart-backdrop';
-                backdrop.className = 'fixed inset-0 bg-black/50 z-[190] backdrop-blur-sm transition-opacity';
+                backdrop.className = 'fixed inset-0 bg-black/50 z-[190] backdrop-blur-sm';
                 backdrop.onclick = () => toggleMaximize(cardId, event);
                 document.body.appendChild(backdrop);
             }
@@ -524,7 +525,7 @@
             // --- MINIMIZE ---
             card.classList.remove('maximized-modal', 'fixed', 'inset-6', 'z-[200]', 'shadow-2xl', 'bg-white');
             
-            // Completely wipe inline styles to return cleanly to grid layout without residual conflicts
+            // Wipe inline styles to return instantly and cleanly to grid layout
             card.style.cssText = '';
             icon.innerText = 'fullscreen';
             
@@ -536,9 +537,13 @@
             }
         }
         
-        // Tell Chart.js to recalculate dimensions to fit the container size
+        // Force Chart.js to recalculate dimensions immediately and after reflow
+        if (chartInstance) {
+            chartInstance.resize();
+        }
         setTimeout(() => {
             window.dispatchEvent(new Event('resize'));
+            if (chartInstance) chartInstance.resize();
         }, 50);
     }
 

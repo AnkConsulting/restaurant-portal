@@ -74,31 +74,32 @@ document.addEventListener("DOMContentLoaded", function () {
     Chart.defaults.font.family = 'Hanken Grotesk';
 
     // --- CHART 1: Customer Conversion Funnel ---
+    // UPDATED to vertical layout by mapping datasets to y and y1
     const ctxFunnel = document.getElementById('funnelChart');
     if (ctxFunnel) {
         const funnelData = {
             labels: ['Impressions', 'I2M (%)', 'Menu Opens', 'M2C (%)', 'C2O (%)', 'Orders'],
             datasets: [
-                { label: 'Current Volume', data: [curr.totals.imp, null, curr.totals.menu, null, null, curr.totals.orders], backgroundColor: '#94a3b8', borderRadius: 4, xAxisID: 'x' },
-                { label: 'Current Rate', data: [null, curr.averages.i2m, null, curr.averages.m2c, curr.averages.c2o, null], backgroundColor: '#FC8019', borderRadius: 4, xAxisID: 'x1' }
+                { label: 'Current Volume', data: [curr.totals.imp, null, curr.totals.menu, null, null, curr.totals.orders], backgroundColor: '#94a3b8', borderRadius: 4, yAxisID: 'y' },
+                { label: 'Current Rate', data: [null, curr.averages.i2m, null, curr.averages.m2c, curr.averages.c2o, null], backgroundColor: '#FC8019', borderRadius: 4, yAxisID: 'y1' }
             ]
         };
         
         if (hasComp) {
-            // Adding Ghost Outlines for Comparison
-            funnelData.datasets.push({ label: 'Comp Volume', data: [comp.totals.imp, null, comp.totals.menu, null, null, comp.totals.orders], backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, xAxisID: 'x' });
-            funnelData.datasets.push({ label: 'Comp Rate', data: [null, comp.averages.i2m, null, comp.averages.m2c, comp.averages.c2o, null], backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, xAxisID: 'x1' });
+            // Adding Ghost Outlines for Comparison mapped to y and y1
+            funnelData.datasets.push({ label: 'Comp Volume', data: [comp.totals.imp, null, comp.totals.menu, null, null, comp.totals.orders], backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y' });
+            funnelData.datasets.push({ label: 'Comp Rate', data: [null, comp.averages.i2m, null, comp.averages.m2c, comp.averages.c2o, null], backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y1' });
         }
 
         new Chart(ctxFunnel, {
             type: 'bar', data: funnelData,
             options: {
-                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, usePointStyle: true } } },
                 scales: {
-                    y: { grid: { display: false } },
-                    x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Volume Count' }, ticks: { callback: v => v >= 1000 ? (v/1000) + 'k' : v } },
-                    x1: { type: 'linear', position: 'top', max: 100, title: { display: true, text: 'Conversion Rate (%)' }, grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } }
+                    x: { grid: { display: false } },
+                    y: { type: 'linear', position: 'left', title: { display: true, text: 'Volume Count' }, ticks: { callback: v => v >= 1000 ? (v/1000) + 'k' : v } },
+                    y1: { type: 'linear', position: 'right', max: 100, title: { display: true, text: 'Conversion Rate (%)' }, grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } }
                 }
             }
         });

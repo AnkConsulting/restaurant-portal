@@ -332,72 +332,72 @@
         </div>
     </section>
 
-    <!-- VISUAL ANALYTICS CARDS WITH MAXIMIZE TOGGLE -->
+    <!-- VISUAL ANALYTICS CARDS WITH FIXED HEIGHT & MAXIMIZE TOGGLE -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
         <!-- Chart 1 -->
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col transition-all duration-300" id="chart-card-1">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-1">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">1. Customer Conversion Funnel</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-1', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-1">fullscreen</span>
                 </button>
             </div>
-            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="funnelChart"></canvas></div>
+            <div class="relative w-full h-[330px]"><canvas id="funnelChart"></canvas></div>
         </div>
         
         <!-- Chart 2 -->
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col transition-all duration-300" id="chart-card-2">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-2">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">2. Revenue & Volume Trends</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-2', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-2">fullscreen</span>
                 </button>
             </div>
-            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="trendChart"></canvas></div>
+            <div class="relative w-full h-[330px]"><canvas id="trendChart"></canvas></div>
         </div>
         
         <!-- Chart 3 -->
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col transition-all duration-300" id="chart-card-3">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-3">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">3. Advertising ROI</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-3', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-3">fullscreen</span>
                 </button>
             </div>
-            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="adsChart"></canvas></div>
+            <div class="relative w-full h-[330px]"><canvas id="adsChart"></canvas></div>
         </div>
         
         <!-- Chart 4 -->
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col transition-all duration-300" id="chart-card-4">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-4">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">4. Operational Efficiency</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-4', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-4">fullscreen</span>
                 </button>
             </div>
-            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="opsChart"></canvas></div>
+            <div class="relative w-full h-[330px]"><canvas id="opsChart"></canvas></div>
         </div>
 
         <!-- Chart 5 -->
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col transition-all duration-300" id="chart-card-5">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-5">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">5. Discount Impact on GMV</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-5', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-5">fullscreen</span>
                 </button>
             </div>
-            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="discountChart"></canvas></div>
+            <div class="relative w-full h-[330px]"><canvas id="discountChart"></canvas></div>
         </div>
 
         <!-- Chart 6 -->
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col transition-all duration-300" id="chart-card-6">
+        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px] transition-all duration-300" id="chart-card-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">6. Customer Mix (New vs Repeat)</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-6', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-6">fullscreen</span>
                 </button>
             </div>
-            <div class="relative flex-1 min-h-[300px] w-full"><canvas id="customerMixChart"></canvas></div>
+            <div class="relative w-full h-[330px]"><canvas id="customerMixChart"></canvas></div>
         </div>
     </section>
 
@@ -496,7 +496,7 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=9"></script>
+<script src="/static/swiggy_charts.js?v=10"></script>
 
 <script>
     function toggleMaximize(cardId, event) {
@@ -524,20 +524,20 @@
             // --- MINIMIZE ---
             card.classList.remove('maximized-modal', 'fixed', 'inset-6', 'z-[200]', 'shadow-2xl', 'bg-white');
             
-            // Explicitly clear inline height to force it back to grid constraints
-            card.style.height = '';
+            // Reset back to exact default grid height
+            card.style.height = '420px';
             icon.innerText = 'fullscreen';
             
             if (backdrop) backdrop.remove();
             
-            // Clear Chart.js inline dimensions
+            // Clear Chart.js inline canvas dimensions
             if (canvas) {
                 canvas.style.height = '';
                 canvas.style.width = '';
             }
         }
         
-        // Tell Chart.js to recalculate dimensions to fit the new container size
+        // Tell Chart.js to recalculate dimensions to fit the container size
         setTimeout(() => {
             window.dispatchEvent(new Event('resize'));
         }, 50);

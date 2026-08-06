@@ -336,20 +336,20 @@
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
         <!-- Chart 1 -->
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-1">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-center mb-4 shrink-0">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">1. Customer Conversion Funnel</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-1', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
                     <span class="material-symbols-outlined text-[20px]">fullscreen</span>
                 </button>
             </div>
             <!-- Two Column Layout for Radial Chart + Rich Legend -->
-            <div class="relative w-full flex-1 flex flex-col md:flex-row items-center gap-6 overflow-hidden">
+            <div class="relative w-full flex-1 flex flex-col md:flex-row items-center md:items-start gap-6 overflow-hidden">
                 <!-- Left: Concentric Radial Chart -->
                 <div class="w-full md:w-1/2 h-full relative flex items-center justify-center min-h-[250px]">
                     <canvas id="funnelChart"></canvas>
                 </div>
                 <!-- Right: Custom Rich HTML Legend -->
-                <div class="w-full md:w-1/2 h-full overflow-y-auto custom-scrollbar flex flex-col justify-center pr-2" id="funnel-custom-legend">
+                <div class="w-full md:w-1/2 h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-4" id="funnel-custom-legend">
                     <!-- JavaScript will dynamically inject the legend items here -->
                 </div>
             </div>
@@ -521,7 +521,7 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=18"></script>
+<script src="/static/swiggy_charts.js?v=19"></script>
 
 <script>
     let activeModalChart = null;

@@ -94,8 +94,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const trackColor = '#f8fafc'; // Faint Gray for empty track space
 
         // Helper to dynamically build Chart.js layers outside-in
-        const buildRing = (activeVal, color) => {
+        const buildRing = (labelName, activeVal, color) => {
             return {
+                label: labelName,
                 data: [activeVal, maxVal - activeVal],
                 backgroundColor: [color, trackColor],
                 borderWidth: 2,
@@ -111,12 +112,12 @@ document.addEventListener("DOMContentLoaded", function () {
             data: { 
                 labels: ['Volume', 'Drop-off'], 
                 datasets: [
-                    buildRing(imp, grayColor),
-                    buildRing(i2m_vol, grayColorLight),
-                    buildRing(menu, grayColorLight),
-                    buildRing(m2c_vol, brandColorLight),
-                    buildRing(c2o_vol, brandColor),
-                    buildRing(orders, brandColor) // Core
+                    buildRing('Impressions', imp, grayColor),
+                    buildRing('I2M Volume', i2m_vol, grayColorLight),
+                    buildRing('Menu Opens', menu, grayColorLight),
+                    buildRing('M2C Volume', m2c_vol, brandColorLight),
+                    buildRing('Checkout Initiated', c2o_vol, brandColor),
+                    buildRing('Orders', orders, brandColor) // Core
                 ] 
             },
             options: {
@@ -127,7 +128,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     legend: { display: false },
                     tooltip: {
                         filter: (t) => t.dataIndex === 0,
-                        callbacks: { label: (c) => `Volume: ${c.raw.toLocaleString()}` }
+                        callbacks: { 
+                            title: () => null, // Removes the generic "Volume" title
+                            label: (c) => ` ${c.dataset.label}: ${c.raw.toLocaleString()}` 
+                        }
                     }
                 }
             }

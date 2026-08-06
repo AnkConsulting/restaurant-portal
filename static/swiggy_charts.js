@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return new Date(dStr).getTime();
     };
 
-    // STEP 1: Reusable Data Processor for both Current and Comparison Periods
+    // STEP 1: Reusable Data Processor for Current and Comparison Periods
     const processData = (dataArray) => {
         if (!dataArray || dataArray.length === 0) return null;
         
@@ -67,39 +67,79 @@ document.addEventListener("DOMContentLoaded", function () {
     const comp = processData(rawCompData);
     const hasComp = comp !== null && comp.list.length > 0;
 
-    // Helper to map comparison data cleanly to the current X-axis
     const getCompData = (metricFn) => curr.list.map((_, i) => comp.list[i] ? metricFn(comp.list[i]) : 0);
-
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- CHART 1: Customer Conversion Funnel ---
-    // UPDATED to vertical layout by mapping datasets to y and y1
+    // --- CHART 1: Concentric Radial Funnel (Nested Doughnut) ---
     const ctxFunnel = document.getElementById('funnelChart');
     if (ctxFunnel) {
-        const funnelData = {
-            labels: ['Impressions', 'I2M (%)', 'Menu Opens', 'M2C (%)', 'C2O (%)', 'Orders'],
-            datasets: [
-                { label: 'Current Volume', data: [curr.totals.imp, null, curr.totals.menu, null, null, curr.totals.orders], backgroundColor: '#94a3b8', borderRadius: 4, yAxisID: 'y' },
-                { label: 'Current Rate', data: [null, curr.averages.i2m, null, curr.averages.m2c, curr.averages.c2o, null], backgroundColor: '#FC8019', borderRadius: 4, yAxisID: 'y1' }
-            ]
+        // Step 1: Calculate the integer volumes for all 6 layers based on your logic
+        const imp = curr.totals.imp;
+        const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)); // I2M % of Impressions
+        const menu = curr.totals.menu;
+        const m2c_vol = Math.round(menu * (curr.averages.m2c / 100)); // M2C % of Menu Opens
+        const c2o_vol = Math.round(m2c_vol * (curr.averages.c2o / 100)); // C2O % of M2C Volume
+        const orders = curr.totals.orders; // Core Orders
+
+        // Max Value ensures rings don't stretch past the total impression boundary
+        let maxVal = imp || 1; 
+        if (hasComp) maxVal = Math.max(imp, comp.totals.imp) || 1;
+
+        const datasets = [];
+        const brandColor = '#FC8019'; // Swiggy Orange
+        const grayColor = '#94a3b8';  // Slate Gray
+        const trackColor = '#f1f5f9'; // Faint Gray for empty track space
+
+        // Helper to dynamically build layers outside-in
+        const addLayer = (label, currentVal, compVal, color) => {
+            if (hasComp) {
+                // Add comparative dashed ring
+                datasets.push({
+                    label: 'Comp ' + label,
+                    data: [compVal, maxVal - compVal],
+                    backgroundColor: ['transparent', 'transparent'],
+                    borderColor: color,
+                    borderWidth: 2,
+                    borderDash: [4, 4]
+                });
+            }
+            // Add primary solid ring
+            datasets.push({
+                label: label,
+                data: [currentVal, maxVal - currentVal],
+                backgroundColor: [color, trackColor],
+                borderWidth: 1,
+                borderColor: '#ffffff'
+            });
         };
-        
-        if (hasComp) {
-            // Adding Ghost Outlines for Comparison mapped to y and y1
-            funnelData.datasets.push({ label: 'Comp Volume', data: [comp.totals.imp, null, comp.totals.menu, null, null, comp.totals.orders], backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y' });
-            funnelData.datasets.push({ label: 'Comp Rate', data: [null, comp.averages.i2m, null, comp.averages.m2c, comp.averages.c2o, null], backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y1' });
-        }
+
+        // Datasets are drawn Outside to Inside
+        addLayer('Impressions', imp, hasComp ? comp.totals.imp : 0, grayColor);
+        addLayer('I2M Volume', i2m_vol, hasComp ? Math.round(comp.totals.imp * (comp.averages.i2m / 100)) : 0, brandColor);
+        addLayer('Menu Opens', menu, hasComp ? comp.totals.menu : 0, grayColor);
+        addLayer('M2C Volume', m2c_vol, hasComp ? Math.round(comp.totals.menu * (comp.averages.m2c / 100)) : 0, brandColor);
+        addLayer('C2O Volume', c2o_vol, hasComp ? Math.round(Math.round(comp.totals.menu * (comp.averages.m2c / 100)) * (comp.averages.c2o / 100)) : 0, brandColor);
+        addLayer('Orders', orders, hasComp ? comp.totals.orders : 0, grayColor);
 
         new Chart(ctxFunnel, {
-            type: 'bar', data: funnelData,
+            type: 'doughnut',
+            data: { labels: ['Converted Volume', 'Drop-off'], datasets: datasets },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, usePointStyle: true } } },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { type: 'linear', position: 'left', title: { display: true, text: 'Volume Count' }, ticks: { callback: v => v >= 1000 ? (v/1000) + 'k' : v } },
-                    y1: { type: 'linear', position: 'right', max: 100, title: { display: true, text: 'Conversion Rate (%)' }, grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } }
+                cutout: '15%', // Makes the center small so the inner Order pie is highly visible
+                plugins: { 
+                    legend: { display: false }, // Hidden since the tooltips map the data clearly
+                    tooltip: {
+                        filter: function(tooltipItem) { 
+                            return tooltipItem.dataIndex === 0; // Only show tooltip when hovering on the active colored bar, not the empty track!
+                        },
+                        callbacks: {
+                            label: function(context) { 
+                                return context.dataset.label + ': ' + context.raw.toLocaleString(); 
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -117,7 +157,6 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         if (hasComp) {
-            // Ghost Line for GMV, Ghost Bar for Orders
             trendData.datasets.push({ label: 'Comp GMV', data: getCompData(i => i.gmv), type: 'line', borderColor: '#FC8019', backgroundColor: 'transparent', borderDash: [5, 5], borderWidth: 2, tension: 0.4, pointRadius: 2, yAxisID: 'y', order: 1 });
             trendData.datasets.push({ label: 'Comp Orders', data: getCompData(i => i.orders), type: 'bar', backgroundColor: 'transparent', borderColor: '#cbd5e1', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y1', order: 2 });
         }
@@ -147,7 +186,6 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         if (hasComp) {
-            // Ghost Bars with Transparent Backgrounds
             adsData.datasets.push({ label: 'Comp Spend', data: getCompData(i => i.adSpend), backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y1' });
             adsData.datasets.push({ label: 'Comp Sales', data: getCompData(i => i.adSales), backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y' });
         }
@@ -177,7 +215,6 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         if (hasComp) {
-            // Dashed Lines for Historical Comparison
             opsData.datasets.push({ label: 'Comp Prep Time', data: getCompData(i => (i.prepTimeSum / i.count).toFixed(1)), borderColor: '#94a3b8', backgroundColor: 'transparent', borderDash: [5, 5], tension: 0.3, yAxisID: 'y' });
             opsData.datasets.push({ label: 'Comp Online %', data: getCompData(i => (i.onlinePctSum / i.count).toFixed(1)), borderColor: '#FC8019', backgroundColor: 'transparent', borderDash: [5, 5], tension: 0.3, yAxisID: 'y1' });
         }
@@ -207,7 +244,6 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         if (hasComp) {
-            // Ghost Bar for GMV, Ghost Dashed Line for Discounts
             discountData.datasets.push({ label: 'Comp GMV', data: getCompData(i => i.gmv), backgroundColor: 'transparent', borderColor: '#e2e8f0', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y', order: 2 });
             discountData.datasets.push({ label: 'Comp Discount', data: getCompData(i => i.discount), type: 'line', borderColor: '#FC8019', backgroundColor: 'transparent', borderDash: [5, 5], borderWidth: 2, tension: 0.4, yAxisID: 'y', order: 1 });
         }
@@ -236,7 +272,6 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         if (hasComp) {
-            // Ghost Stacked Bars using a separate Stack ID ('comp')
             mixData.datasets.push({ label: 'Comp Repeat (%)', data: getCompData(i => (i.repeatCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 } });
             mixData.datasets.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
         }

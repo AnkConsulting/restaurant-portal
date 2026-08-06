@@ -11,7 +11,7 @@ router = APIRouter()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-# Official Swiggy Master CSV Link (Corrected & Hardcoded!)
+# Official Swiggy Master CSV Link
 SWIGGY_INSIGHTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2AAwYZA0r8Y59L5KAOZ0yszHcNjyVKynuPfqcTKBh6VSPsmSqg5pmCizX5qDEEno26-okgxtRvZN5/pub?gid=1328235442&single=true&output=csv"
 
 def format_indian_currency(val):
@@ -88,7 +88,6 @@ def load_swiggy_insights_data():
         df = pd.read_csv(SWIGGY_INSIGHTS_CSV_URL)
         df.columns = df.columns.str.strip()
         
-        # BULLETPROOF DATE RENAME LOGIC
         if "Report Period" not in df.columns:
             if "Report Date" in df.columns:
                 df.rename(columns={"Report Date": "Report Period"}, inplace=True)
@@ -115,13 +114,12 @@ def load_swiggy_insights_data():
                 cleaned_series = df[col].astype(str).str.replace(r'[₹, %]', '', regex=True)
                 df[col] = pd.to_numeric(cleaned_series, errors="coerce").fillna(0)
 
-        # STRICT CV CALCULATION
+        # Calculate CV
         if "GMV" in df.columns and "Total GST collected from customers" in df.columns:
             df["CV"] = df["GMV"] - df["Total GST collected from customers"]
         else:
             df["CV"] = 0.0
 
-        # STRICT 4-COLUMN LAYOUT
         cols = df.columns.tolist()
         priority_cols = ["Restaurant Name", "Report Period", "Location", "Res ID"]
         existing_priority = [c for c in priority_cols if c in cols]
@@ -208,7 +206,7 @@ async def swiggy_insights(
         "gmv": None, "orders": None, "aov": None, "ads": None, "discount": None
     }
     
-    comp_trend_data = {"prev_labels": [], "prev_sales": [], "prev_orders": []}
+    comp_trend_data = {"raw_data": []}
 
     if compare and compare != "none" and pd.notnull(start_dt) and pd.notnull(end_dt) and "_temp_date" in context_df.columns:
         comp_start, comp_end = get_comparison_date_range(start_dt, end_dt, compare)
@@ -238,16 +236,12 @@ async def swiggy_insights(
             }
             comp_data["label"] = labels.get(compare, "Comparison")
             
+            # FULL RAW DATA EXPORT TO JAVASCRIPT
             if not comp_df.empty:
-                trend_df = comp_df.groupby(comp_df["_temp_date"].dt.date).agg({
-                    "GMV": "sum",
-                    "Orders": "sum"
-                }).reset_index()
-                trend_df = trend_df.sort_values("_temp_date")
-                
-                comp_trend_data["prev_labels"] = [d.strftime('%d-%m-%Y') for d in trend_df["_temp_date"]]
-                comp_trend_data["prev_sales"] = trend_df["GMV"].tolist()
-                comp_trend_data["prev_orders"] = trend_df["Orders"].tolist()
+                comp_df_clean = comp_df.copy()
+                if "_temp_date" in comp_df_clean.columns:
+                    comp_df_clean = comp_df_clean.drop(columns=["_temp_date"])
+                comp_trend_data["raw_data"] = comp_df_clean.to_dict(orient="records")
 
     if "_temp_date" in filtered_df.columns:
         filtered_df = filtered_df.drop(columns=["_temp_date"])

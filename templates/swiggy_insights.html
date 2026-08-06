@@ -342,7 +342,7 @@
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-1">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full flex-1"><canvas id="funnelChart"></canvas></div>
+            <div class="relative w-full flex-1" id="slot-chart-card-1"><canvas id="funnelChart"></canvas></div>
         </div>
         
         <!-- Chart 2 -->
@@ -353,7 +353,7 @@
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-2">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full flex-1"><canvas id="trendChart"></canvas></div>
+            <div class="relative w-full flex-1" id="slot-chart-card-2"><canvas id="trendChart"></canvas></div>
         </div>
         
         <!-- Chart 3 -->
@@ -364,7 +364,7 @@
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-3">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full flex-1"><canvas id="adsChart"></canvas></div>
+            <div class="relative w-full flex-1" id="slot-chart-card-3"><canvas id="adsChart"></canvas></div>
         </div>
         
         <!-- Chart 4 -->
@@ -375,7 +375,7 @@
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-4">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full flex-1"><canvas id="opsChart"></canvas></div>
+            <div class="relative w-full flex-1" id="slot-chart-card-4"><canvas id="opsChart"></canvas></div>
         </div>
 
         <!-- Chart 5 -->
@@ -386,7 +386,7 @@
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-5">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full flex-1"><canvas id="discountChart"></canvas></div>
+            <div class="relative w-full flex-1" id="slot-chart-card-5"><canvas id="discountChart"></canvas></div>
         </div>
 
         <!-- Chart 6 -->
@@ -397,7 +397,7 @@
                     <span class="material-symbols-outlined text-[20px]" id="icon-chart-card-6">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full flex-1"><canvas id="customerMixChart"></canvas></div>
+            <div class="relative w-full flex-1" id="slot-chart-card-6"><canvas id="customerMixChart"></canvas></div>
         </div>
     </section>
 
@@ -474,6 +474,19 @@
     </section>
 </main>
 
+<!-- DEDICATED FULLSCREEN CHART MODAL OVERLAY -->
+<div id="global-chart-modal" class="hidden fixed inset-0 bg-black/60 z-[200] backdrop-blur-sm flex items-center justify-center p-6" onclick="closeChartModal()">
+    <div class="bg-white elevation-2 card-radius w-full max-w-[1400px] h-[calc(100vh-3rem)] p-6 flex flex-col relative" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="modal-chart-title" class="font-title-md text-[16px] font-bold text-on-surface uppercase tracking-wide">Chart View</h3>
+            <button type="button" onclick="closeChartModal()" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
+                <span class="material-symbols-outlined text-[24px]">fullscreen_exit</span>
+            </button>
+        </div>
+        <div id="modal-canvas-slot" class="relative w-full flex-1"></div>
+    </div>
+</div>
+
 <script>
     // FULL DATA PIPELINE HOOK
     let rawSwiggyData = {{ table_data | tojson | safe }};
@@ -496,56 +509,81 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/swiggy_charts.js?v=13"></script>
+<script src="/static/swiggy_charts.js?v=14"></script>
 
 <script>
+    let activeMaximizedCardId = null;
+
     function toggleMaximize(cardId, event) {
         event.stopPropagation();
         const card = document.getElementById(cardId);
-        const icon = document.getElementById('icon-' + cardId);
-        const canvas = card.querySelector('canvas');
-        let backdrop = document.getElementById('chart-backdrop');
-        const chartInstance = Chart.getChart(canvas);
+        if (!card) return;
 
-        if (!card.classList.contains('maximized-modal')) {
-            // --- MAXIMIZE ---
-            card.classList.add('maximized-modal', 'fixed', 'inset-6', 'z-[200]', 'shadow-2xl', 'bg-white');
-            card.style.height = 'calc(100vh - 3rem)';
-            icon.innerText = 'fullscreen_exit';
-            
-            // Create dark backdrop behind the modal
-            if (!backdrop) {
-                backdrop = document.createElement('div');
-                backdrop.id = 'chart-backdrop';
-                backdrop.className = 'fixed inset-0 bg-black/50 z-[190] backdrop-blur-sm';
-                backdrop.onclick = () => toggleMaximize(cardId, event);
-                document.body.appendChild(backdrop);
-            }
-        } else {
-            // --- MINIMIZE ---
-            card.classList.remove('maximized-modal', 'fixed', 'inset-6', 'z-[200]', 'shadow-2xl', 'bg-white');
-            
-            // Wipe inline styles to return instantly and cleanly to grid layout
-            card.style.cssText = '';
-            icon.innerText = 'fullscreen';
-            
-            if (backdrop) backdrop.remove();
-            
-            // Clear Chart.js inline canvas dimensions
-            if (canvas) {
-                canvas.style.cssText = '';
-            }
-        }
+        const titleEl = card.querySelector('h3');
+        const canvasSlot = document.getElementById('slot-' + cardId);
+        const canvas = canvasSlot ? canvasSlot.querySelector('canvas') : null;
         
-        // Force Chart.js to recalculate dimensions immediately and after reflow
-        if (chartInstance) {
-            chartInstance.resize();
+        const modal = document.getElementById('global-chart-modal');
+        const modalTitle = document.getElementById('modal-chart-title');
+        const modalSlot = document.getElementById('modal-canvas-slot');
+
+        if (!canvas || !modal || !modalSlot) return;
+
+        activeMaximizedCardId = cardId;
+        if (modalTitle && titleEl) {
+            modalTitle.innerText = titleEl.innerText;
         }
-        setTimeout(() => {
-            window.dispatchEvent(new Event('resize'));
-            if (chartInstance) chartInstance.resize();
-        }, 50);
+
+        // Transfer canvas into the modal container (retains Chart.js instance & data seamlessly)
+        modalSlot.appendChild(canvas);
+        modal.classList.remove('hidden');
+
+        // Resize Chart.js to fit the full screen modal dimensions
+        const chartInstance = Chart.getChart(canvas);
+        if (chartInstance) {
+            setTimeout(() => {
+                chartInstance.resize();
+                window.dispatchEvent(new Event('resize'));
+            }, 50);
+        }
     }
+
+    function closeChartModal() {
+        if (!activeMaximizedCardId) return;
+
+        const card = document.getElementById(activeMaximizedCardId);
+        const canvasSlot = document.getElementById('slot-' + activeMaximizedCardId);
+        const modalSlot = document.getElementById('modal-canvas-slot');
+        const canvas = modalSlot ? modalSlot.querySelector('canvas') : null;
+        const modal = document.getElementById('global-chart-modal');
+
+        if (canvas && canvasSlot) {
+            // Return canvas back to its original grid card slot
+            canvasSlot.appendChild(canvas);
+        }
+
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+
+        // Resize Chart.js back to standard grid card dimensions
+        const chartInstance = Chart.getChart(canvas);
+        if (chartInstance) {
+            setTimeout(() => {
+                chartInstance.resize();
+                window.dispatchEvent(new Event('resize'));
+            }, 50);
+        }
+
+        activeMaximizedCardId = null;
+    }
+
+    // Close modal on pressing ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeChartModal();
+        }
+    });
 
     function swiggyToggleDropdown(menuId, event) {
         event.stopPropagation();

@@ -534,11 +534,9 @@
             modalTitle.innerText = titleEl.innerText;
         }
 
-        // Transfer canvas into the modal container (retains Chart.js instance & data seamlessly)
         modalSlot.appendChild(canvas);
         modal.classList.remove('hidden');
 
-        // Resize Chart.js to fit the full screen modal dimensions
         const chartInstance = Chart.getChart(canvas);
         if (chartInstance) {
             setTimeout(() => {
@@ -558,7 +556,6 @@
         const modal = document.getElementById('global-chart-modal');
 
         if (canvas && canvasSlot) {
-            // Return canvas back to its original grid card slot
             canvasSlot.appendChild(canvas);
         }
 
@@ -566,7 +563,6 @@
             modal.classList.add('hidden');
         }
 
-        // Resize Chart.js back to standard grid card dimensions
         const chartInstance = Chart.getChart(canvas);
         if (chartInstance) {
             setTimeout(() => {
@@ -578,7 +574,6 @@
         activeMaximizedCardId = null;
     }
 
-    // Close modal on pressing ESC key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeChartModal();

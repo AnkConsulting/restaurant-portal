@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const rawCompData = window.swiggyCompRawData || [];
     if (rawData.length === 0) return;
 
+    // Robust Date Parsing
     const parseDateString = (dStr) => {
         if (!dStr) return 0;
         const parts = dStr.split('-');
@@ -10,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return new Date(dStr).getTime();
     };
 
+    // STEP 1: Reusable Data Processor for Current and Comparison Periods
     const processData = (dataArray) => {
         if (!dataArray || dataArray.length === 0) return null;
         
@@ -69,11 +71,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- CHART 1: Centered Pyramid / Horizontal Funnel Chart ---
-    const ctxFunnel = document.getElementById('funnelChart');
+    // --- CHART 1: PURE CSS GEOMETRIC PYRAMID CHART ---
+    const pyramidContainer = document.getElementById('pyramidChart');
     const legendContainer = document.getElementById('funnel-custom-legend');
     
-    if (ctxFunnel && legendContainer) {
+    if (pyramidContainer && legendContainer) {
+        // 1. Calculate the exact integer volumes for Current Period
         const imp = curr.totals.imp;
         const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
         const menu = curr.totals.menu;
@@ -81,6 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const c2o_vol = Math.round(m2c_vol * (curr.averages.c2o / 100)) || 0; 
         const orders = curr.totals.orders;
 
+        // 1B. Calculate the exact integer volumes for Comp Period
         const comp_imp = hasComp ? comp.totals.imp : 0;
         const comp_i2m_vol = hasComp ? Math.round(comp_imp * (comp.averages.i2m / 100)) : 0;
         const comp_menu = hasComp ? comp.totals.menu : 0;
@@ -88,91 +92,34 @@ document.addEventListener("DOMContentLoaded", function () {
         const comp_c2o_vol = hasComp ? Math.round(comp_m2c_vol * (comp.averages.c2o / 100)) : 0;
         const comp_orders = hasComp ? comp.totals.orders : 0;
 
-        // Establish the maximum width so all tiers perfectly center themselves
-        const maxVal = Math.max(imp, comp_imp) || 1; 
+        const brandColor = '#FC8019'; // Swiggy Orange
+        const brandColorLight = '#fdba74'; // Lighter Orange
+        const grayColor = '#475569';  // Dark Gray
+        const grayColorLight = '#94a3b8'; // Lighter Gray
 
-        const brandColor = '#FC8019'; 
-        const brandColorLight = '#fdba74'; 
-        const grayColor = '#475569';  
-        const grayColorLight = '#94a3b8';
-
-        const funnelLabels = ['1. Impressions', '2. I2M Volume', '3. Menu Opens', '4. M2C Volume', '5. Checkout Initiated', '6. Orders'];
-        const currVols = [imp, i2m_vol, menu, m2c_vol, c2o_vol, orders];
-        const compVols = [comp_imp, comp_i2m_vol, comp_menu, comp_m2c_vol, comp_c2o_vol, comp_orders];
-        const bgColors = [grayColor, grayColorLight, grayColorLight, brandColorLight, brandColor, brandColor];
-
-        const datasets = [
-            {
-                // Current Transparent Padding (Centers the active bar)
-                data: currVols.map(v => (maxVal - v) / 2),
-                backgroundColor: 'transparent',
-                stack: 'curr'
-            },
-            {
-                // Current Solid Bar
-                label: 'Current Period',
-                data: currVols,
-                backgroundColor: bgColors,
-                borderWidth: 1,
-                borderColor: '#ffffff',
-                borderRadius: 4,
-                barPercentage: 0.9,
-                stack: 'curr'
-            }
+        // Define the sequence from Top (Orders) to Base (Impressions)
+        const levels = [
+            { name: '6. Orders', vol: orders, color: brandColor },
+            { name: '5. Checkout Initiated', vol: c2o_vol, color: brandColor },
+            { name: '4. M2C Volume', vol: m2c_vol, color: brandColorLight },
+            { name: '3. Menu Opens', vol: menu, color: grayColorLight },
+            { name: '2. I2M Volume', vol: i2m_vol, color: grayColorLight },
+            { name: '1. Impressions', vol: imp, color: grayColor }
         ];
 
-        if (hasComp) {
-            datasets.push({
-                // Comparison Transparent Padding
-                data: compVols.map(v => (maxVal - v) / 2),
-                backgroundColor: 'transparent',
-                stack: 'comp'
-            });
-            datasets.push({
-                // Comparison Ghost Bar
-                label: 'Previous Period',
-                data: compVols,
-                backgroundColor: 'transparent',
-                borderWidth: 2,
-                borderColor: bgColors,
-                borderDash: [4, 4],
-                borderRadius: 4,
-                barPercentage: 0.9,
-                stack: 'comp'
-            });
-        }
-
-        new Chart(ctxFunnel, {
-            type: 'bar',
-            data: { labels: funnelLabels, datasets: datasets },
-            options: {
-                indexAxis: 'y', // Flips it horizontal
-                responsive: true, 
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false },
-                    tooltip: {
-                        // Only show tooltips for the actual data layers (odd indices), skip the transparent padding (even indices)
-                        filter: (t) => t.datasetIndex % 2 !== 0, 
-                        callbacks: { 
-                            label: (c) => ` ${c.dataset.label}: ${c.raw.toLocaleString()}` 
-                        }
-                    }
-                },
-                scales: {
-                    x: { 
-                        stacked: true, 
-                        display: false // Hide the x-axis grid and numbers
-                    },
-                    y: { 
-                        stacked: true, 
-                        grid: { display: false },
-                        border: { display: false },
-                        ticks: { font: { family: "'Hanken Grotesk', sans-serif", size: 11, weight: 'bold' } }
-                    }
-                }
-            }
+        // Dynamically inject the CSS layers into the clipped Pyramid wrapper
+        let pyramidHTML = '';
+        levels.forEach((lvl, index) => {
+            // Apply a bottom margin to create the white separating gap between layers (except for the bottom layer)
+            const margin = index < levels.length - 1 ? 'mb-1.5' : '';
+            pyramidHTML += `
+                <div class="w-full flex-1 ${margin} transition-opacity duration-200 hover:opacity-85 cursor-pointer" 
+                     style="background-color: ${lvl.color};" 
+                     title="${lvl.name}: ${lvl.vol.toLocaleString()}">
+                </div>
+            `;
         });
+        pyramidContainer.innerHTML = pyramidHTML;
 
         // 2. Build the Rich HTML Legend (Unchanged!)
         const steps = [

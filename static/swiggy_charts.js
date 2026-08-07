@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- CUSTOM PYRAMID PLUGIN REGISTRATION ---
+    // --- CUSTOM FIXED GEOMETRIC PYRAMID PLUGIN REGISTRATION ---
     if (!Chart.registry.plugins.get('fixedPyramid')) {
         Chart.register({
             id: 'fixedPyramid',
@@ -93,6 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const pyMaxWidth = width - pad * 2;
 
                 ctx.save();
+                ctx.clearRect(0, 0, chart.width, chart.height);
                 
                 // PASS 1: Draw the geometric pyramid slices
                 for (let i = 0; i < numLayers; i++) {
@@ -117,12 +118,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     ctx.fillStyle = layers[i].color;
                     ctx.fill();
                     
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 2.5;
                     ctx.strokeStyle = '#ffffff';
                     ctx.stroke();
                 }
                 
-                // PASS 2: Overlay the text inside the slices
+                // PASS 2: Overlay values inside the slices
                 for (let i = 0; i < numLayers; i++) {
                     const y0 = pyTop + i * layerHeight;
                     const y1 = pyTop + (i + 1) * layerHeight;
@@ -132,8 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     ctx.textBaseline = 'middle';
                     ctx.fillStyle = '#ffffff';
                     
-                    // Add text shadow to ensure perfect readability even on light layers
-                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                    ctx.shadowColor = 'rgba(0,0,0,0.5)';
                     ctx.shadowBlur = 4;
                     ctx.shadowOffsetX = 1;
                     ctx.shadowOffsetY = 1;
@@ -149,12 +149,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         ctx.fillText(layers[i].value.toLocaleString(), centerX, textY);
                     }
                     
-                    // Reset shadow for next draw
                     ctx.shadowColor = 'transparent';
                     ctx.shadowBlur = 0;
                 }
                 
                 ctx.restore();
+                return false; // Prevents Chart.js default bar rendering
             }
         });
     }
@@ -178,30 +178,30 @@ document.addEventListener("DOMContentLoaded", function () {
         const comp_c2o_vol = hasComp ? Math.round(comp_m2c_vol * (comp.averages.c2o / 100)) : 0;
         const comp_orders = hasComp ? comp.totals.orders : 0;
 
-        const brandColor = '#FC8019'; // Swiggy Orange
-        const brandColorLight = '#fdba74'; 
-        const grayColor = '#475569';  
-        const grayColorLight = '#94a3b8';
+        const brandColor = '#FC8019';      // Swiggy Orange
+        const brandColorLight = '#FF9E4A'; 
+        const grayColorLight = '#94A3B8';
+        const grayColorMedium = '#64748B';
+        const grayColorDark = '#475569';  
 
         new Chart(ctxFunnel, {
-            type: 'bar', // Used merely to initialize the canvas container
-            data: { labels: [''], datasets: [{ data: [0], backgroundColor: 'transparent', borderColor: 'transparent', pointRadius: 0 }] },
+            type: 'bar',
+            data: { labels: [''], datasets: [{ data: [0], backgroundColor: 'transparent', borderColor: 'transparent' }] },
             options: {
                 responsive: true, 
                 maintainAspectRatio: false,
-                events: [], // Disable hover so it acts purely as a crisp infographic
+                events: [],
                 plugins: { 
                     legend: { display: false },
                     tooltip: { enabled: false },
-                    // Inject the custom layer data (Top to Bottom mapping)
                     fixedPyramid: {
                         layers: [
-                            { color: brandColor, value: orders, compValue: comp_orders, hasComp: hasComp },           // Top Apex (Orders)
+                            { color: brandColor, value: orders, compValue: comp_orders, hasComp: hasComp },          // Top Apex (Orders)
                             { color: brandColor, value: c2o_vol, compValue: comp_c2o_vol, hasComp: hasComp },
                             { color: brandColorLight, value: m2c_vol, compValue: comp_m2c_vol, hasComp: hasComp },
                             { color: grayColorLight, value: menu, compValue: comp_menu, hasComp: hasComp },
-                            { color: grayColorLight, value: i2m_vol, compValue: comp_i2m_vol, hasComp: hasComp },
-                            { color: grayColor, value: imp, compValue: comp_imp, hasComp: hasComp }                 // Bottom Base (Impressions)
+                            { color: grayColorMedium, value: i2m_vol, compValue: comp_i2m_vol, hasComp: hasComp },
+                            { color: grayColorDark, value: imp, compValue: comp_imp, hasComp: hasComp }               // Bottom Base (Impressions)
                         ]
                     }
                 },
@@ -214,8 +214,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // 2. Build the Rich HTML Legend
         const steps = [
-            { icon: 'visibility', title: '1. Impressions', desc: 'People saw your product', vol: imp, compVol: comp_imp, pct: 100, color: grayColor },
-            { icon: 'touch_app', title: '2. I2M Volume', desc: 'Clicked on restaurant', vol: i2m_vol, compVol: comp_i2m_vol, pct: curr.averages.i2m, color: grayColorLight },
+            { icon: 'visibility', title: '1. Impressions', desc: 'People saw your product', vol: imp, compVol: comp_imp, pct: 100, color: grayColorDark },
+            { icon: 'touch_app', title: '2. I2M Volume', desc: 'Clicked on restaurant', vol: i2m_vol, compVol: comp_i2m_vol, pct: curr.averages.i2m, color: grayColorMedium },
             { icon: 'menu_book', title: '3. Menu Opens', desc: 'Viewed menu details', vol: menu, compVol: comp_menu, pct: imp ? ((menu/imp)*100).toFixed(1) : 0, color: grayColorLight },
             { icon: 'shopping_cart', title: '4. M2C Volume', desc: 'Added to cart', vol: m2c_vol, compVol: comp_m2c_vol, pct: curr.averages.m2c, color: brandColorLight },
             { icon: 'credit_card', title: '5. Checkout Initiated', desc: 'Started checkout', vol: c2o_vol, compVol: comp_c2o_vol, pct: curr.averages.c2o, color: brandColor },
@@ -427,7 +427,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (hasComp) {
             mixData.datasets.push({ label: 'Comp Repeat (%)', data: getCompData(i => (i.repeatCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 } });
-            mixData.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
+            mixData.datasets.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
         }
 
         new Chart(ctxCustomer, {

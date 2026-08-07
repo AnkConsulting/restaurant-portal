@@ -189,7 +189,6 @@
                 </div>
             </div>
 
-            <!-- COMPARISON DROPDOWN -->
             <div class="relative min-w-[240px] w-full md:w-auto z-40" id="compare-dropdown-container">
                 <input type="hidden" name="compare" id="compare-input" value="{{ compare_mode if compare_mode else 'none' }}">
                 <div onclick="zomatoToggleDropdown('compare-menu', event)" class="w-full h-10 bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-gray-700 font-medium hover:border-[#E23744] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
@@ -264,9 +263,7 @@
         </div>
     </form>
 
-    <!-- KPI CARDS WITH DELTA BADGES -->
     <section class="grid grid-cols-5 gap-6 mb-8">
-        <!-- GMV Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Zomato GMV</span>
             <div class="text-[26px] font-bold text-on-surface mt-2">{{ total_gmv }}</div>
@@ -279,7 +276,6 @@
             {% endif %}
         </div>
 
-        <!-- Orders Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Orders</span>
             <div class="text-[26px] font-bold text-[#E23744] mt-2">{{ total_orders }}</div>
@@ -292,7 +288,6 @@
             {% endif %}
         </div>
 
-        <!-- AOV Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Pre-Disc AOV</span>
             <div class="text-[26px] font-bold text-on-surface mt-2">{{ avg_aov }}</div>
@@ -305,7 +300,6 @@
             {% endif %}
         </div>
 
-        <!-- Ad Sales Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Ad Sales</span>
             <div class="text-[26px] font-bold text-blue-600 mt-2">{{ sales_ads }}</div>
@@ -318,7 +312,6 @@
             {% endif %}
         </div>
 
-        <!-- Discount Card -->
         <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Discounts</span>
             <div class="text-[26px] font-bold text-error mt-2">{{ discount_given }}</div>
@@ -332,9 +325,7 @@
         </div>
     </section>
 
-    <!-- VISUAL ANALYTICS CARDS WITH FIXED HEIGHT & MAXIMIZE TOGGLE -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
-        <!-- Chart 1 -->
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-1">
             <div class="flex justify-between items-center mb-4 shrink-0">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">1. Customer Conversion Funnel</h3>
@@ -342,20 +333,15 @@
                     <span class="material-symbols-outlined text-[20px]">fullscreen</span>
                 </button>
             </div>
-            <!-- Two Column Layout for Radial Chart + Rich Legend -->
             <div class="relative w-full flex-1 flex flex-col md:flex-row items-center md:items-start gap-6 overflow-hidden">
-                <!-- Left: Concentric Radial Chart -->
                 <div class="w-full md:w-1/2 h-full relative flex items-center justify-center min-h-[250px]">
                     <canvas id="funnelChart"></canvas>
                 </div>
-                <!-- Right: Custom Rich HTML Legend -->
                 <div class="w-full md:w-1/2 h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-4" id="funnel-custom-legend">
-                    <!-- JavaScript will dynamically inject the legend items here -->
-                </div>
+                    </div>
             </div>
         </div>
         
-        <!-- Chart 2 -->
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-2">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">2. Revenue & Volume Trends</h3>
@@ -366,7 +352,6 @@
             <div class="relative w-full flex-1"><canvas id="trendChart"></canvas></div>
         </div>
         
-        <!-- Chart 3 -->
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-3">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">3. Advertising ROI</h3>
@@ -377,7 +362,6 @@
             <div class="relative w-full flex-1"><canvas id="adsChart"></canvas></div>
         </div>
         
-        <!-- Chart 4 -->
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-4">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">4. Operational Efficiency</h3>
@@ -388,7 +372,6 @@
             <div class="relative w-full flex-1"><canvas id="opsChart"></canvas></div>
         </div>
 
-        <!-- Chart 5 -->
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-5">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">5. Discount Impact on GMV</h3>
@@ -399,7 +382,6 @@
             <div class="relative w-full flex-1"><canvas id="discountChart"></canvas></div>
         </div>
 
-        <!-- Chart 6 -->
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">6. Customer Mix (New vs Repeat)</h3>
@@ -411,7 +393,6 @@
         </div>
     </section>
 
-    <!-- DATA TABLE -->
     <section class="elevation-1 card-radius overflow-hidden mb-12">
         <div class="px-6 py-4 border-b border-surface-container-high bg-white flex flex-wrap justify-between items-center gap-4">
             <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase tracking-wide">Zomato Insights Performance Records</h2>
@@ -484,7 +465,6 @@
     </section>
 </main>
 
-<!-- GLOBAL FULLSCREEN CHART MODAL WITH UPDATED TWO-COLUMN LAYOUT -->
 <div id="fullscreen-chart-modal" class="fixed inset-0 bg-black/70 z-[9999] hidden items-center justify-center p-6 backdrop-blur-sm" onclick="closeFullscreenModal()">
     <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-6xl h-[85vh] flex flex-col p-6 relative" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center mb-4 shrink-0">
@@ -493,14 +473,12 @@
                 <span class="material-symbols-outlined text-[24px]">fullscreen_exit</span>
             </button>
         </div>
-        <!-- Dynamic Body for Canvas + Optional Legend -->
         <div id="fullscreen-modal-body" class="relative w-full flex-1 flex flex-col md:flex-row items-center md:items-start gap-6 overflow-hidden">
             <div id="fullscreen-canvas-container" class="w-full h-full relative flex items-center justify-center min-h-[250px]">
                 <canvas id="fullscreenModalCanvas"></canvas>
             </div>
             <div id="fullscreen-modal-legend" class="w-full md:w-1/2 h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-4 hidden">
-                <!-- Javascript will inject the custom legend here if it exists -->
-            </div>
+                </div>
         </div>
     </div>
 </div>
@@ -527,7 +505,7 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/zomato_charts.js?v=4"></script>
+<script src="/static/zomato_charts.js"></script>
 
 <script>
     let activeModalChart = null;
@@ -760,14 +738,17 @@
     const zomatoMonthsList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     
     function zomatoParseIso(dateStr) {
-        if (!dateStr) return null;
+        if (!dateStr || dateStr === 'None' || dateStr === 'null') return null;
         const parts = dateStr.split('-');
         if (parts.length === 3) return new Date(parts[0], parts[1] - 1, parts[2]);
         return null;
     }
 
-    let zomatoSelStart = zomatoParseIso(document.getElementById('start-date-input').value);
-    let zomatoSelEnd = zomatoParseIso(document.getElementById('end-date-input').value);
+    let zomatoSelStart = zomatoParseIso(document.getElementById('start-date-input')?.value);
+    let zomatoSelEnd = zomatoParseIso(document.getElementById('end-date-input')?.value);
+    
+    // NEW: Capture the max available date from your backend
+    let zomatoMaxDate = zomatoParseIso(document.getElementById('max-available-date')?.value);
 
     function zomatoInitCalendar() {
         if (zomatoSelStart) {
@@ -793,10 +774,17 @@
 
         for (let i = 0; i < firstDay; i++) { grid.innerHTML += `<div></div>`; }
 
+        // Fallback to today's date if the backend doesn't provide a max_available_date
+        let fallbackMax = new Date();
+        fallbackMax.setHours(0, 0, 0, 0);
+
         for (let day = 1; day <= daysInMonth; day++) {
             let d = new Date(zomatoYear, zomatoMonth, day);
             let isSelected = false;
             let isBetween = false;
+
+            // NEW: Check if this specific day exceeds our max available date limit
+            let isDisabled = zomatoMaxDate ? d.getTime() > zomatoMaxDate.getTime() : d.getTime() > fallbackMax.getTime();
 
             if (zomatoSelStart && zomatoSelEnd) {
                 if (d >= zomatoSelStart && d <= zomatoSelEnd) isBetween = true;
@@ -805,12 +793,21 @@
                 isSelected = true;
             }
 
-            let classes = "w-8 h-8 flex items-center justify-center rounded-full cursor-pointer transition-colors mx-auto ";
-            if (isSelected) classes += "bg-[#E23744] text-white font-bold shadow-md";
-            else if (isBetween) classes += "bg-red-100 text-[#E23744] font-medium";
-            else classes += "text-gray-700 hover:bg-gray-100";
+            let classes = "w-8 h-8 flex items-center justify-center rounded-full mx-auto ";
+            
+            if (isDisabled) {
+                // Disabled State: Faint gray text, no pointer cursor, no click event
+                classes += "text-gray-300 cursor-not-allowed";
+                grid.innerHTML += `<div class="${classes}">${day}</div>`;
+            } else {
+                // Active State: Normal hover and click events
+                classes += "cursor-pointer transition-colors ";
+                if (isSelected) classes += "bg-[#E23744] text-white font-bold shadow-md";
+                else if (isBetween) classes += "bg-red-100 text-[#E23744] font-medium";
+                else classes += "text-gray-700 hover:bg-gray-100";
 
-            grid.innerHTML += `<div class="${classes}" onclick="zomatoSelectDate(${zomatoYear}, ${zomatoMonth}, ${day})">${day}</div>`;
+                grid.innerHTML += `<div class="${classes}" onclick="zomatoSelectDate(${zomatoYear}, ${zomatoMonth}, ${day})">${day}</div>`;
+            }
         }
     }
 

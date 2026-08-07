@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- CHART 1: PURE HTML/CSS CUSTOM FUNNEL (Replaces Chart.js entirely) ---
+    // --- PURE HTML/CSS CUSTOM PYRAMID REPLACEMENT ---
     const imp = curr.totals.imp;
     const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
     const menu = curr.totals.menu;
@@ -84,6 +84,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const comp_c2o_vol = hasComp ? Math.round(comp_m2c_vol * (comp.averages.c2o / 100)) : 0;
     const comp_orders = hasComp ? comp.totals.orders : 0;
 
+    // Build the 6 Layers (From Top to Bottom)
+    const layers = [
+        { icon: 'local_mall', title: 'Orders', color: '#be123c', vol: orders, compVol: comp_orders },
+        { icon: 'credit_card', title: 'Checkout Initiated', color: '#e11d48', vol: c2o_vol, compVol: comp_c2o_vol },
+        { icon: 'shopping_cart', title: 'M2C Volume', color: '#E23744', vol: m2c_vol, compVol: comp_m2c_vol },
+        { icon: 'menu_book', title: 'Menu Opens', color: '#fb7185', vol: menu, compVol: comp_menu },
+        { icon: 'touch_app', title: 'I2M Volume', color: '#64748b', vol: i2m_vol, compVol: comp_i2m_vol },
+        { icon: 'campaign', title: 'Impressions', color: '#334155', vol: imp, compVol: comp_imp }
+    ];
+
+    // LEFT COLUMN: SCROLLABLE LIST WITH VALUES
+    let leftColHTML = `<div class="flex flex-col h-full overflow-y-auto custom-scrollbar pr-2 pb-2">`;
+    
     const overallRate = imp > 0 ? ((orders / imp) * 100).toFixed(1) : 0;
     let compOverallHTML = '';
     if (hasComp && comp_imp > 0) {
@@ -92,104 +105,77 @@ document.addEventListener("DOMContentLoaded", function () {
         const isUp = diff >= 0;
         const colorCls = isUp ? 'text-[#10b981]' : 'text-error';
         const arrow = isUp ? '↑' : '↓';
-        compOverallHTML = `<p class="text-[10px] mt-1.5 font-medium ${colorCls}">${arrow} ${Math.abs(diff)}% <span class="text-gray-400 font-normal">vs Previous</span></p>`;
+        compOverallHTML = `<div class="text-[10px] mt-1 font-medium ${colorCls}">${arrow} ${Math.abs(diff)}% vs Prev</div>`;
     }
 
-    const brandColor = '#E23744'; 
-
-    let leftColHTML = `
-        <div class="bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] rounded-xl p-3 mb-4 shrink-0">
-            <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0" style="color: ${brandColor}">
-                    <span class="material-symbols-outlined text-[18px]">pie_chart</span>
-                </div>
-                <div>
-                    <p class="text-[10px] font-bold text-gray-500 mb-0.5 uppercase tracking-wide">Overall Conversion</p>
-                    <p class="text-2xl font-bold leading-none" style="color: ${brandColor}">${overallRate}%</p>
-                    <p class="text-[10px] text-gray-400 mt-1">${orders.toLocaleString()} of ${imp.toLocaleString()} views</p>
-                    ${compOverallHTML}
-                </div>
-            </div>
+    leftColHTML += `
+        <div class="bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] rounded-xl p-3 mb-3 shrink-0">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Overall Conversion</p>
+            <p class="text-xl font-bold text-gray-800 leading-none">${overallRate}%</p>
+            <p class="text-[9px] text-gray-500 mt-1">${orders.toLocaleString()} / ${imp.toLocaleString()} views</p>
+            ${compOverallHTML}
         </div>
     `;
 
-    const leftSteps = [
-        { icon: 'local_mall', title: 'Orders', desc: 'Completed purchases' },
-        { icon: 'credit_card', title: 'Checkout Initiated', desc: 'Started checkout process' },
-        { icon: 'shopping_cart', title: 'Add to Cart', desc: 'M2C Volume' },
-        { icon: 'menu_book', title: 'Menu Opens', desc: 'Viewed menu details' },
-        { icon: 'touch_app', title: 'I2M Volume', desc: 'Clicked on restaurant' },
-        { icon: 'campaign', title: 'Impressions', desc: 'Saw your content or ad' }
-    ];
-
-    leftSteps.forEach((step, i) => {
+    layers.forEach((layer) => {
+        let compText = hasComp ? `<div class="text-[10px] text-gray-400 mt-0.5 whitespace-nowrap">vs ${layer.compVol.toLocaleString()}</div>` : '';
         leftColHTML += `
-            <div class="flex items-center gap-3 mb-1.5 shrink-0">
-                <div class="w-7 h-7 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-[14px]" style="color: ${brandColor}">${step.icon}</span>
+            <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded-lg border border-gray-100 shrink-0">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0 mt-0.5" style="background-color: ${layer.color}">
+                    <span class="material-symbols-outlined text-[13px]">${layer.icon}</span>
                 </div>
-                <div>
-                    <p class="text-[12px] font-bold text-gray-800 leading-tight">${step.title}</p>
-                    <p class="text-[9px] text-gray-500">${step.desc}</p>
+                <div class="flex-1 min-w-0">
+                    <p class="text-[10px] font-bold text-gray-800 truncate">${layer.title}</p>
+                    <p class="text-[12px] font-bold leading-tight mt-0.5" style="color: ${layer.color}">${layer.vol.toLocaleString()}</p>
+                    ${compText}
                 </div>
             </div>
         `;
-        if (i < leftSteps.length - 1) {
-            leftColHTML += `
-                <div class="pl-3.5 mb-1.5 shrink-0">
-                    <span class="material-symbols-outlined text-[14px] text-gray-300 block">keyboard_arrow_down</span>
-                </div>
-            `;
-        }
     });
+    leftColHTML += `</div>`;
 
-    const layers = [
-        { title: 'Orders', color: '#be123c', vol: orders, compVol: comp_orders },
-        { title: 'Checkout', color: '#e11d48', vol: c2o_vol, compVol: comp_c2o_vol },
-        { title: 'Add to Cart', color: '#f43f5e', vol: m2c_vol, compVol: comp_m2c_vol },
-        { title: 'Menu Opens', color: '#fb7185', vol: menu, compVol: comp_menu },
-        { title: 'I2M', color: '#64748b', vol: i2m_vol, compVol: comp_i2m_vol },
-        { title: 'Impressions', color: '#334155', vol: imp, compVol: comp_imp }
-    ];
-
+    // CENTER PYRAMID & RIGHT DROPOFFS
     let slicesHTML = '';
     let dropOffsHTML = '';
 
     layers.forEach((layer, i) => {
         const isLast = i === layers.length - 1;
-        const borderBottom = isLast ? '' : 'border-b-[3px] border-white';
+        const borderBottom = isLast ? '' : 'border-b-[2px] border-white';
         
+        // Solid Pyramid Slice
         slicesHTML += `
-            <div class="w-full flex items-center justify-center ${borderBottom}" style="height: 16.666%; background-color: ${layer.color};">
-                <div class="text-center">
-                    <div class="text-white/90 text-[10px] font-medium leading-tight tracking-wide drop-shadow-md">${layer.title}</div>
-                    <div class="text-white text-[13px] font-bold leading-tight drop-shadow-md">${layer.vol.toLocaleString()}</div>
-                </div>
+            <div class="w-full flex flex-col items-center justify-center ${borderBottom} relative transition-all" style="height: 16.666%; background-color: ${layer.color};">
+                <span class="text-white/90 text-[10px] font-medium tracking-wide drop-shadow-md px-1 truncate leading-tight">${layer.title}</span>
+                <span class="text-white text-[12px] font-bold drop-shadow-md leading-tight">${layer.vol.toLocaleString()}</span>
             </div>
         `;
 
         if (!isLast) {
-            const currentLayer = layer;
-            const prevLayer = layers[i+1]; 
+            const currentLayer = layer; // Top
+            const prevLayer = layers[i+1]; // Bottom (Wider) base it came from
             const dropOffPct = prevLayer.vol > 0 ? (((prevLayer.vol - currentLayer.vol) / prevLayer.vol) * 100).toFixed(1) : 0;
             
-            let compText = '';
+            let compDropHTML = '';
             if (hasComp) {
                 const compDropPct = prevLayer.compVol > 0 ? (((prevLayer.compVol - currentLayer.compVol) / prevLayer.compVol) * 100).toFixed(1) : 0;
-                compText = `<span class="text-[9px] text-gray-400 block -mt-0.5">vs ${compDropPct}%</span>`;
+                const diff = (dropOffPct - compDropPct).toFixed(1);
+                // Lower dropoff is better (green)
+                const colorCls = diff <= 0 ? 'text-[#10b981]' : 'text-error'; 
+                const arrow = diff <= 0 ? '↓' : '↑';
+                compDropHTML = `<span class="text-[9px] ${colorCls} ml-1 font-medium bg-gray-50 px-1 py-0.5 rounded shadow-sm">${arrow} ${Math.abs(diff)}% vs prev</span>`;
             }
 
             const topPos = (i + 1) * 16.666;
 
+            // Absolute positioned dashed line pointing to dropoff stats
             dropOffsHTML += `
-                <div class="absolute flex items-center" style="top: ${topPos}%; left: 50%; right: -150px; transform: translateY(-50%); z-index: 0;">
-                    <div class="flex-1 border-t border-dashed border-gray-300"></div>
-                    <div class="pl-2 flex items-center gap-1.5 bg-white shrink-0">
-                        <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                        <div class="flex flex-col">
-                            <span class="text-[10px] text-gray-500 font-medium">Drop-off: <span class="font-bold text-gray-800">${dropOffPct}%</span></span>
-                            ${compText}
-                        </div>
+                <div class="absolute w-full flex items-center z-20" style="top: ${topPos}%; left: -5px; transform: translateY(-50%);">
+                    <div class="w-[15px] border-t border-dashed border-gray-400"></div>
+                    <div class="pl-1.5 flex flex-col">
+                        <span class="text-[10px] text-gray-500 font-medium whitespace-nowrap">
+                            Drop-off: <span class="font-bold text-gray-800 text-[11px]">${dropOffPct}%</span>
+                        </span>
+                        ${compDropHTML}
                     </div>
                 </div>
             `;
@@ -207,16 +193,17 @@ document.addEventListener("DOMContentLoaded", function () {
                     <p class="text-[11px] text-gray-500 mt-0.5">Track customer journey from impressions to orders.</p>
                 </div>
             </div>
-            <div class="flex-1 w-full flex flex-row overflow-hidden pt-2">
-                <div class="w-[35%] flex flex-col px-2 h-full overflow-y-auto custom-scrollbar">
+            <div class="flex-1 w-full flex flex-row overflow-hidden pt-2 gap-4 px-2">
+                <div class="w-[35%] h-full relative">
                     ${leftColHTML}
                 </div>
-                <div class="w-[65%] flex items-center justify-center pr-[130px] pl-[20px] py-4">
-                    <div class="w-full max-w-[280px] h-[90%] relative">
+                
+                <div class="w-[65%] h-full flex flex-row items-center py-2 relative">
+                    <div class="w-[55%] h-full relative filter drop-shadow-md overflow-hidden rounded-t-sm" style="clip-path: polygon(30% 0%, 70% 0%, 0% 100%, 100% 100%);">
+                        ${slicesHTML}
+                    </div>
+                    <div class="w-[45%] h-full relative">
                         ${dropOffsHTML}
-                        <div class="w-full h-full flex flex-col relative z-10 filter drop-shadow-lg" style="clip-path: polygon(50% 0%, 0% 100%, 100% 100%);">
-                            ${slicesHTML}
-                        </div>
                     </div>
                 </div>
             </div>
@@ -351,7 +338,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (hasComp) {
             mixData.datasets.push({ label: 'Comp Repeat (%)', data: getCompData(i => (i.repeatCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 } });
-            mixData.datasets.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#E23744', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
+            mixData.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#E23744', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
         }
 
         new Chart(ctxCustomer, {

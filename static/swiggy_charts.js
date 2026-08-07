@@ -69,95 +69,91 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- CUSTOM FIXED GEOMETRIC PYRAMID PLUGIN REGISTRATION ---
-    if (!Chart.registry.plugins.get('fixedPyramid')) {
-        Chart.register({
-            id: 'fixedPyramid',
-            beforeDraw(chart) {
-                const pyramidConfig = chart.config.options.plugins.fixedPyramid;
-                if (!pyramidConfig || !pyramidConfig.layers) return;
-                
-                const { ctx, chartArea } = chart;
-                if (!chartArea) return;
-                const { top, bottom, left, right, width, height } = chartArea;
-                
-                const layers = pyramidConfig.layers;
-                const numLayers = layers.length;
-                
-                const pad = 10;
-                const pyTop = top + pad;
-                const pyBottom = bottom - pad;
-                const pyHeight = pyBottom - pyTop;
-                const layerHeight = pyHeight / numLayers;
-                const centerX = left + width / 2;
-                const pyMaxWidth = width - pad * 2;
+    // --- BULLETPROOF LOCAL PYRAMID PLUGIN ---
+    const customPyramidPlugin = {
+        id: 'customPyramid',
+        beforeDraw(chart, args, options) {
+            if (!options || !options.layers) return;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return;
+            const { top, bottom, left, right, width, height } = chartArea;
+            
+            const layers = options.layers;
+            const numLayers = layers.length;
+            
+            const pad = 10;
+            const pyTop = top + pad;
+            const pyBottom = bottom - pad;
+            const pyHeight = pyBottom - pyTop;
+            const layerHeight = pyHeight / numLayers;
+            const centerX = left + width / 2;
+            const pyMaxWidth = width - pad * 2;
 
-                ctx.save();
-                ctx.clearRect(0, 0, chart.width, chart.height);
+            ctx.save();
+            ctx.clearRect(0, 0, chart.width, chart.height);
+            
+            // PASS 1: Draw the geometric pyramid slices
+            for (let i = 0; i < numLayers; i++) {
+                const y0 = pyTop + i * layerHeight;
+                const y1 = pyTop + (i + 1) * layerHeight;
                 
-                // PASS 1: Draw the geometric pyramid slices
-                for (let i = 0; i < numLayers; i++) {
-                    const y0 = pyTop + i * layerHeight;
-                    const y1 = pyTop + (i + 1) * layerHeight;
-                    
-                    const w0 = ((y0 - pyTop) / pyHeight) * pyMaxWidth;
-                    const w1 = ((y1 - pyTop) / pyHeight) * pyMaxWidth;
-                    
-                    const x0L = centerX - w0 / 2;
-                    const x0R = centerX + w0 / 2;
-                    const x1L = centerX - w1 / 2;
-                    const x1R = centerX + w1 / 2;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(x0L, y0);
-                    ctx.lineTo(x0R, y0);
-                    ctx.lineTo(x1R, y1);
-                    ctx.lineTo(x1L, y1);
-                    ctx.closePath();
-                    
-                    ctx.fillStyle = layers[i].color;
-                    ctx.fill();
-                    
-                    ctx.lineWidth = 2.5;
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.stroke();
-                }
+                const w0 = ((y0 - pyTop) / pyHeight) * pyMaxWidth;
+                const w1 = ((y1 - pyTop) / pyHeight) * pyMaxWidth;
                 
-                // PASS 2: Overlay values inside the slices
-                for (let i = 0; i < numLayers; i++) {
-                    const y0 = pyTop + i * layerHeight;
-                    const y1 = pyTop + (i + 1) * layerHeight;
-                    const textY = (y0 + y1) / 2;
-                    
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillStyle = '#ffffff';
-                    
-                    ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                    ctx.shadowBlur = 4;
-                    ctx.shadowOffsetX = 1;
-                    ctx.shadowOffsetY = 1;
-                    
-                    if (layers[i].hasComp) {
-                        ctx.font = `bold 12px 'Hanken Grotesk', sans-serif`;
-                        ctx.fillText(layers[i].value.toLocaleString(), centerX, textY - 6);
-                        ctx.font = `500 10px 'Hanken Grotesk', sans-serif`;
-                        ctx.fillStyle = '#f1f5f9';
-                        ctx.fillText(`vs ${layers[i].compValue.toLocaleString()}`, centerX, textY + 6);
-                    } else {
-                        ctx.font = `bold 13px 'Hanken Grotesk', sans-serif`;
-                        ctx.fillText(layers[i].value.toLocaleString(), centerX, textY);
-                    }
-                    
-                    ctx.shadowColor = 'transparent';
-                    ctx.shadowBlur = 0;
-                }
+                const x0L = centerX - w0 / 2;
+                const x0R = centerX + w0 / 2;
+                const x1L = centerX - w1 / 2;
+                const x1R = centerX + w1 / 2;
                 
-                ctx.restore();
-                return false; // Prevents Chart.js default bar rendering
+                ctx.beginPath();
+                ctx.moveTo(x0L, y0);
+                ctx.lineTo(x0R, y0);
+                ctx.lineTo(x1R, y1);
+                ctx.lineTo(x1L, y1);
+                ctx.closePath();
+                
+                ctx.fillStyle = layers[i].color;
+                ctx.fill();
+                
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
             }
-        });
-    }
+            
+            // PASS 2: Overlay values inside the slices
+            for (let i = 0; i < numLayers; i++) {
+                const y0 = pyTop + i * layerHeight;
+                const y1 = pyTop + (i + 1) * layerHeight;
+                const textY = (y0 + y1) / 2;
+                
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff';
+                
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 1;
+                
+                if (layers[i].hasComp) {
+                    ctx.font = `bold 12px 'Hanken Grotesk', sans-serif`;
+                    ctx.fillText(layers[i].value.toLocaleString(), centerX, textY - 6);
+                    ctx.font = `500 10px 'Hanken Grotesk', sans-serif`;
+                    ctx.fillStyle = '#f1f5f9';
+                    ctx.fillText(`vs ${layers[i].compValue.toLocaleString()}`, centerX, textY + 6);
+                } else {
+                    ctx.font = `bold 13px 'Hanken Grotesk', sans-serif`;
+                    ctx.fillText(layers[i].value.toLocaleString(), centerX, textY);
+                }
+                
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+            }
+            
+            ctx.restore();
+            return false; // Crucial: Prevents Chart.js default bar rendering
+        }
+    };
 
     // --- CHART 1: Fixed Geometric Pyramid Visualization ---
     const ctxFunnel = document.getElementById('funnelChart');
@@ -187,6 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
         new Chart(ctxFunnel, {
             type: 'bar',
             data: { labels: [''], datasets: [{ data: [0], backgroundColor: 'transparent', borderColor: 'transparent' }] },
+            plugins: [customPyramidPlugin], // Explicitly loads the plugin locally!
             options: {
                 responsive: true, 
                 maintainAspectRatio: false,
@@ -194,7 +191,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 plugins: { 
                     legend: { display: false },
                     tooltip: { enabled: false },
-                    fixedPyramid: {
+                    customPyramid: {
                         layers: [
                             { color: brandColor, value: orders, compValue: comp_orders, hasComp: hasComp },          // Top Apex (Orders)
                             { color: brandColor, value: c2o_vol, compValue: comp_c2o_vol, hasComp: hasComp },
@@ -350,8 +347,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
                 scales: {
                     x: { grid: { display: false } },
-                    y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Ad Sales (₹)' }, ticks: { callback: v => '₹' + (v/1000) + 'k' } },
-                    y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Ad Spend (₹)' }, ticks: { callback: v => '₹' + (v/1000) + 'k' }, grid: { drawOnChartArea: false } }
+                    y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Ad Sales (₹)', font: { size: 11 } }, ticks: { callback: v => '₹' + (v/1000) + 'k' } },
+                    y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Ad Spend (₹)', font: { size: 11 } }, ticks: { callback: v => '₹' + (v/1000) + 'k' }, grid: { drawOnChartArea: false } }
                 }
             }
         });
@@ -363,7 +360,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const opsData = {
             labels: dateLabels,
             datasets: [
-                { label: 'Avg Prep Time', data: curr.list.map(i => (i.prepTimeSum / i.count).toFixed(1)), borderColor: '#94a3b8', backgroundColor: '#94a3b8', tension: 0.3, yAxisID: 'y' },
+                { label: 'Avg Prep Time (mins)', data: curr.list.map(i => (i.prepTimeSum / i.count).toFixed(1)), borderColor: '#94a3b8', backgroundColor: '#94a3b8', tension: 0.3, yAxisID: 'y' },
                 { label: 'Online %', data: curr.list.map(i => (i.onlinePctSum / i.count).toFixed(1)), borderColor: '#FC8019', backgroundColor: '#FC8019', tension: 0.3, yAxisID: 'y1' }
             ]
         };
@@ -420,20 +417,27 @@ document.addEventListener("DOMContentLoaded", function () {
         const mixData = {
             labels: dateLabels,
             datasets: [
-                { label: 'Repeat (%)', data: curr.list.map(i => (i.repeatCustSum / i.count).toFixed(1)), backgroundColor: '#94a3b8', stack: 'curr', borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 } },
-                { label: 'New (%)', data: curr.list.map(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: '#FC8019', stack: 'curr', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } }
+                { label: 'Repeat Customers (%)', data: curr.list.map(i => (i.repeatCustSum / i.count).toFixed(1)), backgroundColor: '#94a3b8', stack: 'curr', borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 } },
+                { label: 'New Customers (%)', data: curr.list.map(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: '#FC8019', stack: 'curr', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } }
             ]
         };
 
         if (hasComp) {
             mixData.datasets.push({ label: 'Comp Repeat (%)', data: getCompData(i => (i.repeatCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 } });
-            mixData.datasets.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
+            mixData.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
         }
 
         new Chart(ctxCustomer, {
             type: 'bar', data: mixData,
             options: {
                 responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return context.dataset.label + ': ' + context.raw + '%'; }
+                        }
+                    }
+                },
                 scales: {
                     x: { stacked: true, grid: { display: false } },
                     y: { stacked: true, max: 100, ticks: { callback: v => v + '%' } }

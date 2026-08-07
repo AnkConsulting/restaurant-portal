@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const rawCompData = window.zomatoCompRawData || [];
     if (rawData.length === 0) return;
 
-    // Robust Date Parsing
     const parseDateString = (dStr) => {
         if (!dStr) return 0;
         const parts = dStr.split('-');
@@ -11,7 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return new Date(dStr).getTime();
     };
 
-    // STEP 1: Reusable Data Processor for Current and Comparison Periods
     const processData = (dataArray) => {
         if (!dataArray || dataArray.length === 0) return null;
         
@@ -71,12 +69,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- CHART 1: Concentric Radial Funnel (Nested Doughnut) ---
+    // --- CHART 1: Centered Pyramid / Horizontal Funnel Chart ---
     const ctxFunnel = document.getElementById('funnelChart');
     const legendContainer = document.getElementById('funnel-custom-legend');
     
     if (ctxFunnel && legendContainer) {
-        // 1. Calculate the exact integer volumes for Current Period
         const imp = curr.totals.imp;
         const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
         const menu = curr.totals.menu;
@@ -84,7 +81,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const c2o_vol = Math.round(m2c_vol * (curr.averages.c2o / 100)) || 0; 
         const orders = curr.totals.orders;
 
-        // 1B. Calculate the exact integer volumes for Comp Period
         const comp_imp = hasComp ? comp.totals.imp : 0;
         const comp_i2m_vol = hasComp ? Math.round(comp_imp * (comp.averages.i2m / 100)) : 0;
         const comp_menu = hasComp ? comp.totals.menu : 0;
@@ -92,70 +88,93 @@ document.addEventListener("DOMContentLoaded", function () {
         const comp_c2o_vol = hasComp ? Math.round(comp_m2c_vol * (comp.averages.c2o / 100)) : 0;
         const comp_orders = hasComp ? comp.totals.orders : 0;
 
-        // Max Value ensures rings don't stretch past the total impression boundary (360 degrees)
-        let maxVal = imp || 1; 
-        if (hasComp) maxVal = Math.max(imp, comp_imp) || 1;
+        // Establish the maximum width so all tiers perfectly center themselves
+        const maxVal = Math.max(imp, comp_imp) || 1; 
 
-        const brandColor = '#E23744'; // Zomato Red
-        const brandColorLight = '#f87171'; // Lighter Red
-        const grayColor = '#475569';  // Dark Gray
-        const grayColorLight = '#94a3b8'; // Lighter Gray
-        const trackColor = '#f8fafc'; // Faint Gray for empty track space
+        const brandColor = '#E23744'; 
+        const brandColorLight = '#f87171'; 
+        const grayColor = '#475569';  
+        const grayColorLight = '#94a3b8';
 
-        // Helper to dynamically build Chart.js layers 
-        const buildRing = (labelName, activeVal, color, isComp = false) => {
-            return {
-                label: isComp ? 'Comp ' + labelName : labelName,
-                data: [activeVal, Math.max(0, maxVal - activeVal)],
-                backgroundColor: isComp ? ['transparent', 'transparent'] : [color, trackColor],
-                
-                // FIX: Apply full border width and full white color to separate EVERY ring
-                borderWidth: isComp ? [2, 0] : 3, 
-                borderColor: isComp ? [color, 'transparent'] : '#ffffff', 
-                
-                borderDash: isComp ? [4, 4] : [],
-                borderRadius: isComp ? [0, 0] : [20, 0], 
-                weight: isComp ? 0.3 : 1, 
-                cutout: isComp ? '0%' : '20%' 
-            };
-        };
+        const funnelLabels = ['1. Impressions', '2. I2M Volume', '3. Menu Opens', '4. M2C Volume', '5. Checkout Initiated', '6. Orders'];
+        const currVols = [imp, i2m_vol, menu, m2c_vol, c2o_vol, orders];
+        const compVols = [comp_imp, comp_i2m_vol, comp_menu, comp_m2c_vol, comp_c2o_vol, comp_orders];
+        const bgColors = [grayColor, grayColorLight, grayColorLight, brandColorLight, brandColor, brandColor];
 
-        const datasets = [];
-        // Helper to add layers paired with their comparison ghost rings
-        const addLayer = (name, val, compVal, color) => {
-            if (hasComp) datasets.push(buildRing(name, compVal, color, true));
-            datasets.push(buildRing(name, val, color, false));
-        };
+        const datasets = [
+            {
+                // Current Transparent Padding (Centers the active bar)
+                data: currVols.map(v => (maxVal - v) / 2),
+                backgroundColor: 'transparent',
+                stack: 'curr'
+            },
+            {
+                // Current Solid Bar
+                label: 'Current Period',
+                data: currVols,
+                backgroundColor: bgColors,
+                borderWidth: 1,
+                borderColor: '#ffffff',
+                borderRadius: 4,
+                barPercentage: 0.9,
+                stack: 'curr'
+            }
+        ];
 
-        // Draw Chart Outside -> Inside
-        addLayer('Impressions', imp, comp_imp, grayColor);
-        addLayer('I2M Volume', i2m_vol, comp_i2m_vol, grayColorLight);
-        addLayer('Menu Opens', menu, comp_menu, grayColorLight);
-        addLayer('M2C Volume', m2c_vol, comp_m2c_vol, brandColorLight);
-        addLayer('Checkout Initiated', c2o_vol, comp_c2o_vol, brandColor);
-        addLayer('Orders', orders, comp_orders, brandColor);
+        if (hasComp) {
+            datasets.push({
+                // Comparison Transparent Padding
+                data: compVols.map(v => (maxVal - v) / 2),
+                backgroundColor: 'transparent',
+                stack: 'comp'
+            });
+            datasets.push({
+                // Comparison Ghost Bar
+                label: 'Previous Period',
+                data: compVols,
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                borderColor: bgColors,
+                borderDash: [4, 4],
+                borderRadius: 4,
+                barPercentage: 0.9,
+                stack: 'comp'
+            });
+        }
 
         new Chart(ctxFunnel, {
-            type: 'doughnut',
-            data: { labels: ['Volume', 'Drop-off'], datasets: datasets },
+            type: 'bar',
+            data: { labels: funnelLabels, datasets: datasets },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                rotation: -90, // Starts at 12 o'clock
-                circumference: 360,
+                indexAxis: 'y', // Flips it horizontal
+                responsive: true, 
+                maintainAspectRatio: false,
                 plugins: { 
                     legend: { display: false },
                     tooltip: {
-                        filter: (t) => t.dataIndex === 0,
+                        // Only show tooltips for the actual data layers (odd indices), skip the transparent padding (even indices)
+                        filter: (t) => t.datasetIndex % 2 !== 0, 
                         callbacks: { 
-                            title: () => null, 
                             label: (c) => ` ${c.dataset.label}: ${c.raw.toLocaleString()}` 
                         }
+                    }
+                },
+                scales: {
+                    x: { 
+                        stacked: true, 
+                        display: false // Hide the x-axis grid and numbers
+                    },
+                    y: { 
+                        stacked: true, 
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: { font: { family: "'Hanken Grotesk', sans-serif", size: 11, weight: 'bold' } }
                     }
                 }
             }
         });
 
-        // 2. Build the Rich HTML Legend 
+        // 2. Build the Rich HTML Legend (Unchanged!)
         const steps = [
             { icon: 'visibility', title: '1. Impressions', desc: 'People saw your product', vol: imp, compVol: comp_imp, pct: 100, color: grayColor },
             { icon: 'touch_app', title: '2. I2M Volume', desc: 'Clicked on restaurant', vol: i2m_vol, compVol: comp_i2m_vol, pct: curr.averages.i2m, color: grayColorLight },

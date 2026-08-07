@@ -71,12 +71,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- CHART 1: PURE CSS GEOMETRIC PYRAMID CHART ---
-    const pyramidContainer = document.getElementById('pyramidChart');
+    // --- CHART 1: Solid Centered Stepped Pyramid ---
+    const ctxFunnel = document.getElementById('funnelChart');
     const legendContainer = document.getElementById('funnel-custom-legend');
     
-    if (pyramidContainer && legendContainer) {
-        // 1. Calculate the exact integer volumes for Current Period
+    if (ctxFunnel && legendContainer) {
         const imp = curr.totals.imp;
         const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
         const menu = curr.totals.menu;
@@ -84,7 +83,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const c2o_vol = Math.round(m2c_vol * (curr.averages.c2o / 100)) || 0; 
         const orders = curr.totals.orders;
 
-        // 1B. Calculate the exact integer volumes for Comp Period
         const comp_imp = hasComp ? comp.totals.imp : 0;
         const comp_i2m_vol = hasComp ? Math.round(comp_imp * (comp.averages.i2m / 100)) : 0;
         const comp_menu = hasComp ? comp.totals.menu : 0;
@@ -92,36 +90,94 @@ document.addEventListener("DOMContentLoaded", function () {
         const comp_c2o_vol = hasComp ? Math.round(comp_m2c_vol * (comp.averages.c2o / 100)) : 0;
         const comp_orders = hasComp ? comp.totals.orders : 0;
 
-        const brandColor = '#E23744'; // Zomato Red
-        const brandColorLight = '#f87171'; // Lighter Red
-        const grayColor = '#475569';  // Dark Gray
-        const grayColorLight = '#94a3b8'; // Lighter Gray
+        // Ensure max width for perfect centering
+        const maxVal = Math.max(imp, comp_imp) || 1; 
 
-        // Define the sequence from Top (Orders) to Base (Impressions)
-        const levels = [
-            { name: '6. Orders', vol: orders, color: brandColor },
-            { name: '5. Checkout Initiated', vol: c2o_vol, color: brandColor },
-            { name: '4. M2C Volume', vol: m2c_vol, color: brandColorLight },
-            { name: '3. Menu Opens', vol: menu, color: grayColorLight },
-            { name: '2. I2M Volume', vol: i2m_vol, color: grayColorLight },
-            { name: '1. Impressions', vol: imp, color: grayColor }
+        const brandColor = '#E23744'; 
+        const brandColorLight = '#f87171'; 
+        const grayColor = '#475569';  
+        const grayColorLight = '#94a3b8';
+
+        // REVERSED ORDER: Orders at the top (index 0), Impressions at the base (index 5)
+        const pyramidLabels = ['6. Orders', '5. Checkout Initiated', '4. M2C Volume', '3. Menu Opens', '2. I2M Volume', '1. Impressions'];
+        const currVols = [orders, c2o_vol, m2c_vol, menu, i2m_vol, imp];
+        const compVols = [comp_orders, comp_c2o_vol, comp_m2c_vol, comp_menu, comp_i2m_vol, comp_imp];
+        const bgColors = [brandColor, brandColor, brandColorLight, grayColorLight, grayColorLight, grayColor];
+
+        const datasets = [
+            {
+                // Current Transparent Padding (Pushes the bar to the center)
+                data: currVols.map(v => (maxVal - v) / 2),
+                backgroundColor: 'transparent',
+                stack: 'curr'
+            },
+            {
+                // Current Solid Pyramid Slices
+                label: 'Current Period',
+                data: currVols,
+                backgroundColor: bgColors,
+                borderWidth: 2,
+                borderColor: '#ffffff', // Clean white slice lines
+                borderRadius: 4, 
+                barPercentage: 1.0,      // Removes gap between bars vertically
+                categoryPercentage: 1.0, // Stacks them tight like a true pyramid
+                stack: 'curr'
+            }
         ];
 
-        // Dynamically inject the CSS layers into the clipped Pyramid wrapper
-        let pyramidHTML = '';
-        levels.forEach((lvl, index) => {
-            // Apply a bottom margin to create the white separating gap between layers (except for the bottom layer)
-            const margin = index < levels.length - 1 ? 'mb-1.5' : '';
-            pyramidHTML += `
-                <div class="w-full flex-1 ${margin} transition-opacity duration-200 hover:opacity-85 cursor-pointer" 
-                     style="background-color: ${lvl.color};" 
-                     title="${lvl.name}: ${lvl.vol.toLocaleString()}">
-                </div>
-            `;
-        });
-        pyramidContainer.innerHTML = pyramidHTML;
+        if (hasComp) {
+            datasets.push({
+                // Comparison Transparent Padding
+                data: compVols.map(v => (maxVal - v) / 2),
+                backgroundColor: 'transparent',
+                stack: 'comp'
+            });
+            datasets.push({
+                // Comparison Ghost Pyramid Slices
+                label: 'Previous Period',
+                data: compVols,
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                borderColor: bgColors,
+                borderDash: [4, 4],
+                borderRadius: 4,
+                barPercentage: 0.9,
+                categoryPercentage: 1.0,
+                stack: 'comp'
+            });
+        }
 
-        // 2. Build the Rich HTML Legend (Unchanged!)
+        new Chart(ctxFunnel, {
+            type: 'bar',
+            data: { labels: pyramidLabels, datasets: datasets },
+            options: {
+                indexAxis: 'y', // Renders bars horizontally
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        filter: (t) => t.datasetIndex % 2 !== 0, // Only show tooltips for the actual data, not the padding
+                        callbacks: { 
+                            title: (t) => t[0].label,
+                            label: (c) => ` Volume: ${c.raw.toLocaleString()}` 
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        stacked: true, 
+                        display: false // Hide X-axis completely for clean infographic look
+                    },
+                    y: { 
+                        stacked: true, 
+                        display: false // Hide Y-axis completely, relying on the side legend instead
+                    }
+                }
+            }
+        });
+
+        // 2. Build the Rich HTML Legend (Unchanged)
         const steps = [
             { icon: 'visibility', title: '1. Impressions', desc: 'People saw your product', vol: imp, compVol: comp_imp, pct: 100, color: grayColor },
             { icon: 'touch_app', title: '2. I2M Volume', desc: 'Clicked on restaurant', vol: i2m_vol, compVol: comp_i2m_vol, pct: curr.averages.i2m, color: grayColorLight },

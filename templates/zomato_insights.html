@@ -417,7 +417,6 @@
                         <th class="py-4 px-4 font-semibold">Res ID</th>
                         <th class="py-4 px-4 font-semibold text-right">Orders</th>
                         <th class="py-4 px-4 font-semibold text-right">GMV</th>
-                        <th class="py-4 px-4 font-semibold text-right text-[#E23744]">Comm Value (CV)</th>
                         <th class="py-4 px-4 font-semibold text-right">Pre Disc AOV</th>
                         <th class="py-4 px-4 font-semibold text-right">Online %</th>
                         <th class="py-4 px-4 font-semibold text-right">Prep Time</th>
@@ -438,7 +437,6 @@
                         <td class="py-4 px-4 font-mono text-xs text-gray-400">{{ row.get('Res ID', '') }}</td>
                         <td class="py-4 px-4 text-right font-bold">{{ row.get('Orders', 0) }}</td>
                         <td class="py-4 px-4 text-right">₹{{ row.get('GMV', 0) }}</td>
-                        <td class="py-4 px-4 text-right text-[#E23744] font-bold">₹{{ row.get('CV', 0) }}</td>
                         <td class="py-4 px-4 text-right">₹{{ row.get('Pre discounted AOV', 0) }}</td>
                         <td class="py-4 px-4 text-right">{{ row.get('Online %', 0) }}%</td>
                         <td class="py-4 px-4 text-right">{{ row.get('Kitchen Prep Time', 0) }}m</td>
@@ -451,7 +449,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="16" class="py-8 text-center text-gray-500 italic">No Zomato Insights operational data found.</td>
+                        <td colspan="15" class="py-8 text-center text-gray-500 italic">No Zomato Insights operational data found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

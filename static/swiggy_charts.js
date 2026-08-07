@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
             ctx.save();
             ctx.clearRect(0, 0, chart.width, chart.height);
             
-            // PASS 1: Draw the geometric pyramid slices
+            // PASS 1: Draw the perfect geometric triangle
             for (let i = 0; i < numLayers; i++) {
                 const y0 = pyTop + i * layerHeight;
                 const y1 = pyTop + (i + 1) * layerHeight;
@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.stroke();
             }
             
-            // PASS 2: Overlay values inside the slices
+            // PASS 2: Overlay Clean Text inside the slices
             for (let i = 0; i < numLayers; i++) {
                 const y0 = pyTop + i * layerHeight;
                 const y1 = pyTop + (i + 1) * layerHeight;
@@ -130,28 +130,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#ffffff';
                 
+                // Shadow ensures text is perfectly readable even if it slightly overlaps edges on the tiny top slice
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 4;
                 ctx.shadowOffsetX = 1;
                 ctx.shadowOffsetY = 1;
                 
-                if (layers[i].hasComp) {
-                    ctx.font = `bold 12px 'Hanken Grotesk', sans-serif`;
-                    ctx.fillText(layers[i].value.toLocaleString(), centerX, textY - 6);
-                    ctx.font = `500 10px 'Hanken Grotesk', sans-serif`;
-                    ctx.fillStyle = '#f1f5f9';
-                    ctx.fillText(`vs ${layers[i].compValue.toLocaleString()}`, centerX, textY + 6);
-                } else {
-                    ctx.font = `bold 13px 'Hanken Grotesk', sans-serif`;
-                    ctx.fillText(layers[i].value.toLocaleString(), centerX, textY);
-                }
+                // Draw Layer Title
+                ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
+                ctx.fillText(layers[i].title, centerX, textY - 8);
+
+                // Draw Layer Volume
+                ctx.font = `bold 15px 'Hanken Grotesk', sans-serif`;
+                ctx.fillText(layers[i].value.toLocaleString(), centerX, textY + 8);
                 
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
             }
             
             ctx.restore();
-            return false; // Crucial: Prevents Chart.js default bar rendering
+            return false; // Prevents default bar rendering
         }
     };
 
@@ -192,13 +190,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     legend: { display: false },
                     tooltip: { enabled: false },
                     customPyramid: {
+                        // Exactly 5 layers, beautifully labeled, mapping directly to a Triangle
                         layers: [
-                            { color: brandColor, value: orders, compValue: comp_orders, hasComp: hasComp },          // Top Apex (Orders)
-                            { color: brandColor, value: c2o_vol, compValue: comp_c2o_vol, hasComp: hasComp },
-                            { color: brandColorLight, value: m2c_vol, compValue: comp_m2c_vol, hasComp: hasComp },
-                            { color: grayColorLight, value: menu, compValue: comp_menu, hasComp: hasComp },
-                            { color: grayColorMedium, value: i2m_vol, compValue: comp_i2m_vol, hasComp: hasComp },
-                            { color: grayColorDark, value: imp, compValue: comp_imp, hasComp: hasComp }               // Bottom Base (Impressions)
+                            { title: 'Checkout Initiated', color: brandColor, value: c2o_vol },      // Top Apex
+                            { title: 'M2C Volume', color: brandColorLight, value: m2c_vol },
+                            { title: 'Menu Opens', color: grayColorLight, value: menu },
+                            { title: 'I2M Volume', color: grayColorMedium, value: i2m_vol },
+                            { title: 'Impressions', color: grayColorDark, value: imp }               // Bottom Base
                         ]
                     }
                 },
@@ -209,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // 2. Build the Rich HTML Legend
+        // 2. Build the Rich HTML Legend (Maintains all 6 steps and comparison values for context)
         const steps = [
             { icon: 'visibility', title: '1. Impressions', desc: 'People saw your product', vol: imp, compVol: comp_imp, pct: 100, color: grayColorDark },
             { icon: 'touch_app', title: '2. I2M Volume', desc: 'Clicked on restaurant', vol: i2m_vol, compVol: comp_i2m_vol, pct: curr.averages.i2m, color: grayColorMedium },
@@ -424,7 +422,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (hasComp) {
             mixData.datasets.push({ label: 'Comp Repeat (%)', data: getCompData(i => (i.repeatCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 } });
-            mixData.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
+            mixData.datasets.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
         }
 
         new Chart(ctxCustomer, {

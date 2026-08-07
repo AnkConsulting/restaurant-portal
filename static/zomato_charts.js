@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const rawCompData = window.zomatoCompRawData || [];
     if (rawData.length === 0) return;
 
-    // Robust Date Parsing
     const parseDateString = (dStr) => {
         if (!dStr) return 0;
         const parts = dStr.split('-');
@@ -11,7 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return new Date(dStr).getTime();
     };
 
-    // STEP 1: Reusable Data Processor for Current and Comparison Periods
     const processData = (dataArray) => {
         if (!dataArray || dataArray.length === 0) return null;
         
@@ -71,7 +69,97 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- CHART 1: Solid Centered Stepped Pyramid ---
+    // --- CUSTOM PYRAMID PLUGIN REGISTRATION ---
+    if (!Chart.registry.plugins.get('fixedPyramid')) {
+        Chart.register({
+            id: 'fixedPyramid',
+            beforeDraw(chart) {
+                const pyramidConfig = chart.config.options.plugins.fixedPyramid;
+                if (!pyramidConfig || !pyramidConfig.layers) return;
+                
+                const { ctx, chartArea } = chart;
+                if (!chartArea) return;
+                const { top, bottom, left, right, width, height } = chartArea;
+                
+                const layers = pyramidConfig.layers;
+                const numLayers = layers.length;
+                
+                const pad = 10;
+                const pyTop = top + pad;
+                const pyBottom = bottom - pad;
+                const pyHeight = pyBottom - pyTop;
+                const layerHeight = pyHeight / numLayers;
+                const centerX = left + width / 2;
+                const pyMaxWidth = width - pad * 2;
+
+                ctx.save();
+                
+                // PASS 1: Draw the geometric pyramid slices
+                for (let i = 0; i < numLayers; i++) {
+                    const y0 = pyTop + i * layerHeight;
+                    const y1 = pyTop + (i + 1) * layerHeight;
+                    
+                    const w0 = ((y0 - pyTop) / pyHeight) * pyMaxWidth;
+                    const w1 = ((y1 - pyTop) / pyHeight) * pyMaxWidth;
+                    
+                    const x0L = centerX - w0 / 2;
+                    const x0R = centerX + w0 / 2;
+                    const x1L = centerX - w1 / 2;
+                    const x1R = centerX + w1 / 2;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x0L, y0);
+                    ctx.lineTo(x0R, y0);
+                    ctx.lineTo(x1R, y1);
+                    ctx.lineTo(x1L, y1);
+                    ctx.closePath();
+                    
+                    ctx.fillStyle = layers[i].color;
+                    ctx.fill();
+                    
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.stroke();
+                }
+                
+                // PASS 2: Overlay the text inside the slices
+                for (let i = 0; i < numLayers; i++) {
+                    const y0 = pyTop + i * layerHeight;
+                    const y1 = pyTop + (i + 1) * layerHeight;
+                    const textY = (y0 + y1) / 2;
+                    
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#ffffff';
+                    
+                    // Add text shadow to ensure perfect readability even on light layers
+                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                    ctx.shadowBlur = 4;
+                    ctx.shadowOffsetX = 1;
+                    ctx.shadowOffsetY = 1;
+                    
+                    if (layers[i].hasComp) {
+                        ctx.font = `bold 12px 'Hanken Grotesk', sans-serif`;
+                        ctx.fillText(layers[i].value.toLocaleString(), centerX, textY - 6);
+                        ctx.font = `500 10px 'Hanken Grotesk', sans-serif`;
+                        ctx.fillStyle = '#f1f5f9';
+                        ctx.fillText(`vs ${layers[i].compValue.toLocaleString()}`, centerX, textY + 6);
+                    } else {
+                        ctx.font = `bold 13px 'Hanken Grotesk', sans-serif`;
+                        ctx.fillText(layers[i].value.toLocaleString(), centerX, textY);
+                    }
+                    
+                    // Reset shadow for next draw
+                    ctx.shadowColor = 'transparent';
+                    ctx.shadowBlur = 0;
+                }
+                
+                ctx.restore();
+            }
+        });
+    }
+
+    // --- CHART 1: Fixed Geometric Pyramid Visualization ---
     const ctxFunnel = document.getElementById('funnelChart');
     const legendContainer = document.getElementById('funnel-custom-legend');
     
@@ -90,94 +178,41 @@ document.addEventListener("DOMContentLoaded", function () {
         const comp_c2o_vol = hasComp ? Math.round(comp_m2c_vol * (comp.averages.c2o / 100)) : 0;
         const comp_orders = hasComp ? comp.totals.orders : 0;
 
-        // Ensure max width for perfect centering
-        const maxVal = Math.max(imp, comp_imp) || 1; 
-
-        const brandColor = '#E23744'; 
+        const brandColor = '#E23744'; // Zomato Red
         const brandColorLight = '#f87171'; 
         const grayColor = '#475569';  
         const grayColorLight = '#94a3b8';
 
-        // REVERSED ORDER: Orders at the top (index 0), Impressions at the base (index 5)
-        const pyramidLabels = ['6. Orders', '5. Checkout Initiated', '4. M2C Volume', '3. Menu Opens', '2. I2M Volume', '1. Impressions'];
-        const currVols = [orders, c2o_vol, m2c_vol, menu, i2m_vol, imp];
-        const compVols = [comp_orders, comp_c2o_vol, comp_m2c_vol, comp_menu, comp_i2m_vol, comp_imp];
-        const bgColors = [brandColor, brandColor, brandColorLight, grayColorLight, grayColorLight, grayColor];
-
-        const datasets = [
-            {
-                // Current Transparent Padding (Pushes the bar to the center)
-                data: currVols.map(v => (maxVal - v) / 2),
-                backgroundColor: 'transparent',
-                stack: 'curr'
-            },
-            {
-                // Current Solid Pyramid Slices
-                label: 'Current Period',
-                data: currVols,
-                backgroundColor: bgColors,
-                borderWidth: 2,
-                borderColor: '#ffffff', // Clean white slice lines
-                borderRadius: 4, 
-                barPercentage: 1.0,      // Removes gap between bars vertically
-                categoryPercentage: 1.0, // Stacks them tight like a true pyramid
-                stack: 'curr'
-            }
-        ];
-
-        if (hasComp) {
-            datasets.push({
-                // Comparison Transparent Padding
-                data: compVols.map(v => (maxVal - v) / 2),
-                backgroundColor: 'transparent',
-                stack: 'comp'
-            });
-            datasets.push({
-                // Comparison Ghost Pyramid Slices
-                label: 'Previous Period',
-                data: compVols,
-                backgroundColor: 'transparent',
-                borderWidth: 2,
-                borderColor: bgColors,
-                borderDash: [4, 4],
-                borderRadius: 4,
-                barPercentage: 0.9,
-                categoryPercentage: 1.0,
-                stack: 'comp'
-            });
-        }
-
         new Chart(ctxFunnel, {
-            type: 'bar',
-            data: { labels: pyramidLabels, datasets: datasets },
+            type: 'bar', // Used merely to initialize the canvas container
+            data: { labels: [''], datasets: [{ data: [0], backgroundColor: 'transparent', borderColor: 'transparent', pointRadius: 0 }] },
             options: {
-                indexAxis: 'y', // Renders bars horizontally
                 responsive: true, 
                 maintainAspectRatio: false,
+                events: [], // Disable hover so it acts purely as a crisp infographic
                 plugins: { 
                     legend: { display: false },
-                    tooltip: {
-                        filter: (t) => t.datasetIndex % 2 !== 0, // Only show tooltips for the actual data, not the padding
-                        callbacks: { 
-                            title: (t) => t[0].label,
-                            label: (c) => ` Volume: ${c.raw.toLocaleString()}` 
-                        }
+                    tooltip: { enabled: false },
+                    // Inject the custom layer data (Top to Bottom mapping)
+                    fixedPyramid: {
+                        layers: [
+                            { color: brandColor, value: orders, compValue: comp_orders, hasComp: hasComp },           // Top Apex (Orders)
+                            { color: brandColor, value: c2o_vol, compValue: comp_c2o_vol, hasComp: hasComp },
+                            { color: brandColorLight, value: m2c_vol, compValue: comp_m2c_vol, hasComp: hasComp },
+                            { color: grayColorLight, value: menu, compValue: comp_menu, hasComp: hasComp },
+                            { color: grayColorLight, value: i2m_vol, compValue: comp_i2m_vol, hasComp: hasComp },
+                            { color: grayColor, value: imp, compValue: comp_imp, hasComp: hasComp }                 // Bottom Base (Impressions)
+                        ]
                     }
                 },
                 scales: {
-                    x: { 
-                        stacked: true, 
-                        display: false // Hide X-axis completely for clean infographic look
-                    },
-                    y: { 
-                        stacked: true, 
-                        display: false // Hide Y-axis completely, relying on the side legend instead
-                    }
+                    x: { display: false },
+                    y: { display: false }
                 }
             }
         });
 
-        // 2. Build the Rich HTML Legend (Unchanged)
+        // 2. Build the Rich HTML Legend
         const steps = [
             { icon: 'visibility', title: '1. Impressions', desc: 'People saw your product', vol: imp, compVol: comp_imp, pct: 100, color: grayColor },
             { icon: 'touch_app', title: '2. I2M Volume', desc: 'Clicked on restaurant', vol: i2m_vol, compVol: comp_i2m_vol, pct: curr.averages.i2m, color: grayColorLight },

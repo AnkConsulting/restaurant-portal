@@ -336,13 +336,23 @@
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
         <!-- Chart 1 -->
         <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-1">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-center mb-4 shrink-0">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">1. Customer Conversion Funnel</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-1', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
                     <span class="material-symbols-outlined text-[20px]">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full flex-1"><canvas id="funnelChart"></canvas></div>
+            <!-- Two Column Layout for Radial Chart + Rich Legend -->
+            <div class="relative w-full flex-1 flex flex-col md:flex-row items-center md:items-start gap-6 overflow-hidden">
+                <!-- Left: Concentric Radial Chart -->
+                <div class="w-full md:w-1/2 h-full relative flex items-center justify-center min-h-[250px]">
+                    <canvas id="funnelChart"></canvas>
+                </div>
+                <!-- Right: Custom Rich HTML Legend -->
+                <div class="w-full md:w-1/2 h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-4" id="funnel-custom-legend">
+                    <!-- JavaScript will dynamically inject the legend items here -->
+                </div>
+            </div>
         </div>
         
         <!-- Chart 2 -->
@@ -474,17 +484,23 @@
     </section>
 </main>
 
-<!-- GLOBAL FULLSCREEN CHART MODAL -->
+<!-- GLOBAL FULLSCREEN CHART MODAL WITH UPDATED TWO-COLUMN LAYOUT -->
 <div id="fullscreen-chart-modal" class="fixed inset-0 bg-black/70 z-[9999] hidden items-center justify-center p-6 backdrop-blur-sm" onclick="closeFullscreenModal()">
     <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-6xl h-[85vh] flex flex-col p-6 relative" onclick="event.stopPropagation()">
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex justify-between items-center mb-4 shrink-0">
             <h3 id="fullscreen-modal-title" class="font-title-md text-[18px] font-bold text-on-surface uppercase tracking-wide">Chart View</h3>
             <button type="button" onclick="closeFullscreenModal()" class="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center">
                 <span class="material-symbols-outlined text-[24px]">fullscreen_exit</span>
             </button>
         </div>
-        <div class="relative w-full flex-1">
-            <canvas id="fullscreenModalCanvas"></canvas>
+        <!-- Dynamic Body for Canvas + Optional Legend -->
+        <div id="fullscreen-modal-body" class="relative w-full flex-1 flex flex-col md:flex-row items-center md:items-start gap-6 overflow-hidden">
+            <div id="fullscreen-canvas-container" class="w-full h-full relative flex items-center justify-center min-h-[250px]">
+                <canvas id="fullscreenModalCanvas"></canvas>
+            </div>
+            <div id="fullscreen-modal-legend" class="w-full md:w-1/2 h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-4 hidden">
+                <!-- Javascript will inject the custom legend here if it exists -->
+            </div>
         </div>
     </div>
 </div>
@@ -511,7 +527,7 @@
 </script>
 
 <script src="/static/script.js"></script>
-<script src="/static/zomato_charts.js?v=2"></script>
+<script src="/static/zomato_charts.js?v=4"></script>
 
 <script>
     let activeModalChart = null;
@@ -523,6 +539,7 @@
 
         const titleEl = card.querySelector('h3');
         const canvas = card.querySelector('canvas');
+        const customLegend = card.querySelector('[id$="-custom-legend"]'); // Check if card has a custom HTML legend attached
         if (!canvas) return;
 
         const sourceChart = Chart.getChart(canvas);
@@ -531,9 +548,24 @@
         const modal = document.getElementById('fullscreen-chart-modal');
         const modalTitle = document.getElementById('fullscreen-modal-title');
         const modalCanvas = document.getElementById('fullscreenModalCanvas');
+        const modalLegend = document.getElementById('fullscreen-modal-legend');
+        const canvasContainer = document.getElementById('fullscreen-canvas-container');
 
         if (modalTitle && titleEl) {
             modalTitle.innerText = titleEl.innerText;
+        }
+
+        // Handle Custom Legend Injection for Fullscreen Modal
+        if (customLegend) {
+            modalLegend.innerHTML = customLegend.innerHTML;
+            modalLegend.classList.remove('hidden');
+            canvasContainer.classList.remove('w-full');
+            canvasContainer.classList.add('md:w-1/2');
+        } else {
+            modalLegend.innerHTML = '';
+            modalLegend.classList.add('hidden');
+            canvasContainer.classList.remove('md:w-1/2');
+            canvasContainer.classList.add('w-full');
         }
 
         modal.classList.remove('hidden');
@@ -816,7 +848,7 @@
 
     function zomatoSetMonth(m, e) {
         e.stopPropagation();
-        swiggyMonth = m; // NOTE: Intentionally matching the original code's variable structure or keeping it zomato
+        swiggyMonth = m; 
         zomatoMonth = m;
         document.getElementById('custom-month-dropdown').classList.add('hidden');
         zomatoRenderGrid();

@@ -102,37 +102,36 @@ document.addEventListener("DOMContentLoaded", function () {
         const grayColorLight = '#94a3b8'; // Lighter Gray
         const trackColor = '#f8fafc'; // Faint Gray for empty track space
 
-        // Helper to dynamically build Chart.js layers (Supports transparent ghost rings!)
-        const buildRing = (labelName, activeVal, color, isComp = false) => {
+        // Helper to dynamically build Chart.js layers 
+        const buildRing = (labelName, activeVal, color, isComp = false, isOuter = false) => {
             return {
                 label: isComp ? 'Comp ' + labelName : labelName,
                 data: [activeVal, Math.max(0, maxVal - activeVal)],
-                // Comp is transparent, Current is solid colored
                 backgroundColor: isComp ? ['transparent', 'transparent'] : [color, trackColor],
-                // We only apply the border to the active value slice, NOT the empty track!
                 borderWidth: isComp ? [2, 0] : [2, 0],
-                borderColor: isComp ? [color, 'transparent'] : ['#ffffff', 'transparent'],
+                // Outer ring gets white border, inner rings get borders matching their fill
+                borderColor: isComp ? [color, 'transparent'] : (isOuter ? ['#ffffff', 'transparent'] : [color, 'transparent']),
                 borderDash: isComp ? [4, 4] : [],
-                borderRadius: isComp ? [0, 0] : [20, 0], // Rounded caps for current, flat for dash
-                weight: isComp ? 0.3 : 1, // Comp rings are 30% thickness so they look like faint borders
-                cutout: isComp ? '0%' : '20%' // spacing
+                borderRadius: isComp ? [0, 0] : [20, 0], 
+                weight: isComp ? 0.3 : 1, 
+                cutout: isComp ? '0%' : '20%' 
             };
         };
 
         const datasets = [];
         // Helper to add layers paired with their comparison ghost rings
-        const addLayer = (name, val, compVal, color) => {
-            if (hasComp) datasets.push(buildRing(name, compVal, color, true));
-            datasets.push(buildRing(name, val, color, false));
+        const addLayer = (name, val, compVal, color, isOuter = false) => {
+            if (hasComp) datasets.push(buildRing(name, compVal, color, true, isOuter));
+            datasets.push(buildRing(name, val, color, false, isOuter));
         };
 
         // Draw Chart Outside -> Inside
-        addLayer('Impressions', imp, comp_imp, grayColor);
-        addLayer('I2M Volume', i2m_vol, comp_i2m_vol, grayColorLight);
-        addLayer('Menu Opens', menu, comp_menu, grayColorLight);
-        addLayer('M2C Volume', m2c_vol, comp_m2c_vol, brandColorLight);
-        addLayer('Checkout Initiated', c2o_vol, comp_c2o_vol, brandColor);
-        addLayer('Orders', orders, comp_orders, brandColor); // Core
+        addLayer('Impressions', imp, comp_imp, grayColor, true); // isOuter = true
+        addLayer('I2M Volume', i2m_vol, comp_i2m_vol, grayColorLight, false);
+        addLayer('Menu Opens', menu, comp_menu, grayColorLight, false);
+        addLayer('M2C Volume', m2c_vol, comp_m2c_vol, brandColorLight, false);
+        addLayer('Checkout Initiated', c2o_vol, comp_c2o_vol, brandColor, false);
+        addLayer('Orders', orders, comp_orders, brandColor, false); // Core
 
         new Chart(ctxFunnel, {
             type: 'doughnut',
@@ -154,7 +153,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // 2. Build the Rich HTML Legend (Now includes Comp Data + Delta Colors)
+        // 2. Build the Rich HTML Legend 
         const steps = [
             { icon: 'visibility', title: '1. Impressions', desc: 'People saw your product', vol: imp, compVol: comp_imp, pct: 100, color: grayColor },
             { icon: 'touch_app', title: '2. I2M Volume', desc: 'Clicked on restaurant', vol: i2m_vol, compVol: comp_i2m_vol, pct: curr.averages.i2m, color: grayColorLight },

@@ -417,7 +417,6 @@
                         <th class="py-4 px-4 font-semibold">Res ID</th>
                         <th class="py-4 px-4 font-semibold text-right">Orders</th>
                         <th class="py-4 px-4 font-semibold text-right">GMV</th>
-                        <th class="py-4 px-4 font-semibold text-right text-[#FC8019]">Comm Value (CV)</th>
                         <th class="py-4 px-4 font-semibold text-right">Pre Disc AOV</th>
                         <th class="py-4 px-4 font-semibold text-right">Online %</th>
                         <th class="py-4 px-4 font-semibold text-right">Prep Time</th>
@@ -438,7 +437,6 @@
                         <td class="py-4 px-4 font-mono text-xs text-gray-400">{{ row.get('Res ID', '') }}</td>
                         <td class="py-4 px-4 text-right font-bold">{{ row.get('Orders', 0) }}</td>
                         <td class="py-4 px-4 text-right">₹{{ row.get('GMV', 0) }}</td>
-                        <td class="py-4 px-4 text-right text-[#FC8019] font-bold">₹{{ row.get('CV', 0) }}</td>
                         <td class="py-4 px-4 text-right">₹{{ row.get('Pre discounted AOV', 0) }}</td>
                         <td class="py-4 px-4 text-right">{{ row.get('Online %', 0) }}%</td>
                         <td class="py-4 px-4 text-right">{{ row.get('Kitchen Prep Time', 0) }}m</td>
@@ -451,7 +449,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="16" class="py-8 text-center text-gray-500 italic">No Swiggy Insights operational data found.</td>
+                        <td colspan="15" class="py-8 text-center text-gray-500 italic">No Swiggy Insights operational data found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -747,7 +745,6 @@
     let swiggySelStart = swiggyParseIso(document.getElementById('start-date-input')?.value);
     let swiggySelEnd = swiggyParseIso(document.getElementById('end-date-input')?.value);
     
-    // NEW: Capture the max available date from your backend
     let swiggyMaxDate = swiggyParseIso(document.getElementById('max-available-date')?.value);
 
     function swiggyInitCalendar() {
@@ -774,7 +771,6 @@
 
         for (let i = 0; i < firstDay; i++) { grid.innerHTML += `<div></div>`; }
 
-        // Fallback to today's date if the backend doesn't provide a max_available_date
         let fallbackMax = new Date();
         fallbackMax.setHours(0, 0, 0, 0);
 
@@ -783,7 +779,6 @@
             let isSelected = false;
             let isBetween = false;
             
-            // NEW: Check if this specific day exceeds our max available date limit
             let isDisabled = swiggyMaxDate ? d.getTime() > swiggyMaxDate.getTime() : d.getTime() > fallbackMax.getTime();
 
             if (swiggySelStart && swiggySelEnd) {
@@ -796,11 +791,9 @@
             let classes = "w-8 h-8 flex items-center justify-center rounded-full mx-auto ";
             
             if (isDisabled) {
-                // Disabled State: Faint gray text, no pointer cursor, no click event
                 classes += "text-gray-300 cursor-not-allowed";
                 grid.innerHTML += `<div class="${classes}">${day}</div>`;
             } else {
-                // Active State: Normal hover and click events
                 classes += "cursor-pointer transition-colors ";
                 if (isSelected) classes += "bg-[#2563eb] text-white font-bold shadow-md";
                 else if (isBetween) classes += "bg-blue-100 text-[#2563eb] font-medium";

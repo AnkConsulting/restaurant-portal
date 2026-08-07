@@ -19,12 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
         dataArray.forEach(row => {
             const date = row['Report Period'] || row['Report Date'] || 'Unknown';
             if (!dailyData[date]) {
-                dailyData[date] = { 
-                    date: date, timestamp: parseDateString(date), 
-                    gmv: 0, orders: 0, adSpend: 0, adSales: 0, 
-                    prepTimeSum: 0, onlinePctSum: 0, count: 0, discount: 0,
-                    newCustSum: 0, repeatCustSum: 0 
-                };
+                dailyData[date] = { date: date, timestamp: parseDateString(date), gmv: 0, orders: 0, adSpend: 0, adSales: 0, prepTimeSum: 0, onlinePctSum: 0, count: 0, discount: 0, newCustSum: 0, repeatCustSum: 0 };
             }
             dailyData[date].gmv += Number(row['GMV'] || 0);
             dailyData[date].orders += Number(row['Orders'] || 0);
@@ -69,145 +64,223 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- PURE HTML/CSS CUSTOM PYRAMID REPLACEMENT ---
-    const imp = curr.totals.imp;
-    const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
-    const menu = curr.totals.menu;
-    const m2c_vol = Math.round(menu * (curr.averages.m2c / 100)) || 0; 
-    const c2o_vol = Math.round(m2c_vol * (curr.averages.c2o / 100)) || 0; 
-    const orders = curr.totals.orders;
-
-    const comp_imp = hasComp ? comp.totals.imp : 0;
-    const comp_i2m_vol = hasComp ? Math.round(comp_imp * (comp.averages.i2m / 100)) : 0;
-    const comp_menu = hasComp ? comp.totals.menu : 0;
-    const comp_m2c_vol = hasComp ? Math.round(comp_menu * (comp.averages.m2c / 100)) : 0;
-    const comp_c2o_vol = hasComp ? Math.round(comp_m2c_vol * (comp.averages.c2o / 100)) : 0;
-    const comp_orders = hasComp ? comp.totals.orders : 0;
-
-    // Build the 6 Layers (From Top to Bottom)
-    const layers = [
-        { icon: 'local_mall', title: 'Orders', color: '#c2410c', vol: orders, compVol: comp_orders },
-        { icon: 'credit_card', title: 'Checkout Initiated', color: '#ea580c', vol: c2o_vol, compVol: comp_c2o_vol },
-        { icon: 'shopping_cart', title: 'M2C Volume', color: '#FC8019', vol: m2c_vol, compVol: comp_m2c_vol },
-        { icon: 'menu_book', title: 'Menu Opens', color: '#fb923c', vol: menu, compVol: comp_menu },
-        { icon: 'touch_app', title: 'I2M Volume', color: '#64748b', vol: i2m_vol, compVol: comp_i2m_vol },
-        { icon: 'campaign', title: 'Impressions', color: '#334155', vol: imp, compVol: comp_imp }
-    ];
-
-    // LEFT COLUMN: SCROLLABLE LIST WITH VALUES
-    let leftColHTML = `<div class="flex flex-col h-full overflow-y-auto custom-scrollbar pr-2 pb-2">`;
-    
-    const overallRate = imp > 0 ? ((orders / imp) * 100).toFixed(1) : 0;
-    let compOverallHTML = '';
-    if (hasComp && comp_imp > 0) {
-        const compRate = ((comp_orders / comp_imp) * 100).toFixed(1);
-        const diff = (overallRate - compRate).toFixed(1);
-        const isUp = diff >= 0;
-        const colorCls = isUp ? 'text-[#10b981]' : 'text-error';
-        const arrow = isUp ? '↑' : '↓';
-        compOverallHTML = `<div class="text-[10px] mt-1 font-medium ${colorCls}">${arrow} ${Math.abs(diff)}% vs Prev</div>`;
-    }
-
-    leftColHTML += `
-        <div class="bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] rounded-xl p-3 mb-3 shrink-0">
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Overall Conversion</p>
-            <p class="text-xl font-bold text-gray-800 leading-none">${overallRate}%</p>
-            <p class="text-[9px] text-gray-500 mt-1">${orders.toLocaleString()} / ${imp.toLocaleString()} views</p>
-            ${compOverallHTML}
-        </div>
-    `;
-
-    layers.forEach((layer) => {
-        let compText = hasComp ? `<div class="text-[10px] text-gray-400 mt-0.5 whitespace-nowrap">vs ${layer.compVol.toLocaleString()}</div>` : '';
-        leftColHTML += `
-            <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded-lg border border-gray-100 shrink-0">
-                <div class="w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0 mt-0.5" style="background-color: ${layer.color}">
-                    <span class="material-symbols-outlined text-[13px]">${layer.icon}</span>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-[10px] font-bold text-gray-800 truncate">${layer.title}</p>
-                    <p class="text-[12px] font-bold leading-tight mt-0.5" style="color: ${layer.color}">${layer.vol.toLocaleString()}</p>
-                    ${compText}
-                </div>
-            </div>
-        `;
-    });
-    leftColHTML += `</div>`;
-
-    // CENTER PYRAMID & RIGHT DROPOFFS
-    let slicesHTML = '';
-    let dropOffsHTML = '';
-
-    layers.forEach((layer, i) => {
-        const isLast = i === layers.length - 1;
-        const borderBottom = isLast ? '' : 'border-b-[2px] border-white';
-        
-        // Solid Pyramid Slice
-        slicesHTML += `
-            <div class="w-full flex flex-col items-center justify-center ${borderBottom} relative transition-all" style="height: 16.666%; background-color: ${layer.color};">
-                <span class="text-white/90 text-[10px] font-medium tracking-wide drop-shadow-md px-1 truncate leading-tight">${layer.title}</span>
-                <span class="text-white text-[12px] font-bold drop-shadow-md leading-tight">${layer.vol.toLocaleString()}</span>
-            </div>
-        `;
-
-        if (!isLast) {
-            const currentLayer = layer; // Top
-            const prevLayer = layers[i+1]; // Bottom (Wider) base it came from
-            const dropOffPct = prevLayer.vol > 0 ? (((prevLayer.vol - currentLayer.vol) / prevLayer.vol) * 100).toFixed(1) : 0;
+    // --- PURE TRIANGLE PLUGIN ---
+    const customPyramidPlugin = {
+        id: 'customPyramid',
+        beforeDraw(chart, args, options) {
+            if (!options || !options.layers) return;
+            const { ctx, chartArea } = chart;
+            if (!chartArea) return;
+            const { top, bottom, left, width } = chartArea;
             
-            let compDropHTML = '';
-            if (hasComp) {
-                const compDropPct = prevLayer.compVol > 0 ? (((prevLayer.compVol - currentLayer.compVol) / prevLayer.compVol) * 100).toFixed(1) : 0;
-                const diff = (dropOffPct - compDropPct).toFixed(1);
-                // Lower dropoff is better (green)
-                const colorCls = diff <= 0 ? 'text-[#10b981]' : 'text-error'; 
-                const arrow = diff <= 0 ? '↓' : '↑';
-                compDropHTML = `<span class="text-[9px] ${colorCls} ml-1 font-medium bg-gray-50 px-1 py-0.5 rounded shadow-sm">${arrow} ${Math.abs(diff)}% vs prev</span>`;
+            const layers = options.layers;
+            const numLayers = layers.length;
+            
+            const padY = 15;
+            const pyTop = top + padY;
+            const pyBottom = bottom - padY;
+            const pyHeight = pyBottom - pyTop;
+            const layerHeight = pyHeight / numLayers;
+            
+            // Push triangle to the left (30% of width) so the right text has plenty of room
+            const centerX = left + (width * 0.30); 
+            const pyMaxWidth = width * 0.50;
+
+            ctx.save();
+            ctx.clearRect(0, 0, chart.width, chart.height);
+            
+            // 1. Draw Perfect Geometric Triangle Slices
+            for (let i = 0; i < numLayers; i++) {
+                const y0 = pyTop + i * layerHeight;
+                const y1 = pyTop + (i + 1) * layerHeight;
+                
+                const w0 = (i / numLayers) * pyMaxWidth;
+                const w1 = ((i + 1) / numLayers) * pyMaxWidth;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX - w0 / 2, y0);
+                ctx.lineTo(centerX + w0 / 2, y0);
+                ctx.lineTo(centerX + w1 / 2, y1);
+                ctx.lineTo(centerX - w1 / 2, y1);
+                ctx.closePath();
+                
+                ctx.fillStyle = layers[i].color;
+                ctx.fill();
+                
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
             }
+            
+            // 2. Draw Dropoff Dashed Lines & Right-Side Text
+            for (let i = 0; i < numLayers - 1; i++) {
+                const currentLayer = layers[i];   // Top slice
+                const prevLayer = layers[i+1];    // Bottom slice (base)
+                const dropOffPct = prevLayer.vol > 0 ? (((prevLayer.vol - currentLayer.vol) / prevLayer.vol) * 100).toFixed(1) : 0;
+                
+                const lineY = pyTop + (i + 1) * layerHeight;
+                const startX = centerX;
+                const endX = centerX + (pyMaxWidth / 2) + 15; 
+                
+                ctx.beginPath();
+                ctx.setLineDash([4, 4]);
+                ctx.moveTo(startX, lineY);
+                ctx.lineTo(endX, lineY);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = '#94a3b8';
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.beginPath();
+                ctx.arc(endX + 6, lineY, 3, 0, 2 * Math.PI);
+                ctx.fillStyle = '#ef4444';
+                ctx.fill();
+                
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#64748b';
+                ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
+                ctx.fillText('Drop-off:', endX + 14, lineY);
+                
+                const textW = ctx.measureText('Drop-off: ').width;
+                ctx.fillStyle = '#1e293b';
+                ctx.font = `bold 12px 'Hanken Grotesk', sans-serif`;
+                ctx.fillText(`${dropOffPct}%`, endX + 14 + textW, lineY);
 
-            const topPos = (i + 1) * 16.666;
+                if (options.hasComp) {
+                    const compDropPct = prevLayer.compVol > 0 ? (((prevLayer.compVol - currentLayer.compVol) / prevLayer.compVol) * 100).toFixed(1) : 0;
+                    const diff = (dropOffPct - compDropPct).toFixed(1);
+                    const isBetter = diff <= 0;
+                    const colorCls = isBetter ? '#10b981' : '#ef4444';
+                    const arrow = isBetter ? '↓' : '↑';
+                    
+                    ctx.fillStyle = colorCls;
+                    ctx.font = `600 10px 'Hanken Grotesk', sans-serif`;
+                    ctx.fillText(`${arrow} ${Math.abs(diff)}% vs prev`, endX + 14, lineY + 16);
+                }
+            }
+            
+            // 3. Draw Text In Center of Triangle Slices
+            for (let i = 0; i < numLayers; i++) {
+                const y0 = pyTop + i * layerHeight;
+                const y1 = pyTop + (i + 1) * layerHeight;
+                const textY = (y0 + y1) / 2;
+                
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff';
+                
+                // Shadow allows top text to bleed outside tiny triangle cleanly
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 1;
+                
+                ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
+                ctx.fillText(layers[i].title, centerX, textY - 8);
 
-            // Absolute positioned dashed line pointing to dropoff stats
-            dropOffsHTML += `
-                <div class="absolute w-full flex items-center z-20" style="top: ${topPos}%; left: -5px; transform: translateY(-50%);">
-                    <div class="w-[15px] border-t border-dashed border-gray-400"></div>
-                    <div class="pl-1.5 flex flex-col">
-                        <span class="text-[10px] text-gray-500 font-medium whitespace-nowrap">
-                            Drop-off: <span class="font-bold text-gray-800 text-[11px]">${dropOffPct}%</span>
-                        </span>
-                        ${compDropHTML}
+                ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
+                ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY + 8);
+                
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+            }
+            
+            ctx.restore();
+            return false;
+        }
+    };
+
+    const ctxFunnel = document.getElementById('funnelChart');
+    const legendContainer = document.getElementById('funnel-custom-legend');
+    const canvasContainer = ctxFunnel ? ctxFunnel.parentElement : null;
+    
+    if (ctxFunnel && legendContainer && canvasContainer) {
+        // DYNAMIC LAYOUT: Swap the flex order so Legend is Left (35%), Canvas is Right (65%)
+        canvasContainer.parentElement.style.flexDirection = 'row-reverse';
+        canvasContainer.className = "w-[65%] h-full relative flex items-center justify-center min-h-[300px]";
+        legendContainer.className = "w-[35%] h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-2 pl-2";
+
+        const imp = curr.totals.imp;
+        const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
+        const menu = curr.totals.menu;
+        const m2c_vol = Math.round(menu * (curr.averages.m2c / 100)) || 0; 
+        const c2o_vol = Math.round(m2c_vol * (curr.averages.c2o / 100)) || 0; 
+        const orders = curr.totals.orders;
+
+        const comp_imp = hasComp ? comp.totals.imp : 0;
+        const comp_i2m_vol = hasComp ? Math.round(comp_imp * (comp.averages.i2m / 100)) : 0;
+        const comp_menu = hasComp ? comp.totals.menu : 0;
+        const comp_m2c_vol = hasComp ? Math.round(comp_menu * (comp.averages.m2c / 100)) : 0;
+        const comp_c2o_vol = hasComp ? Math.round(comp_m2c_vol * (comp.averages.c2o / 100)) : 0;
+        const comp_orders = hasComp ? comp.totals.orders : 0;
+
+        const brandColor = '#FC8019'; 
+
+        // EXACTLY 5 LAYERS: From Checkout to Impressions
+        const layers = [
+            { icon: 'credit_card', title: 'Checkout', desc: 'Started checkout', color: '#ea580c', vol: c2o_vol, compVol: comp_c2o_vol },
+            { icon: 'shopping_cart', title: 'M2C', desc: 'Added to cart', color: '#f97316', vol: m2c_vol, compVol: comp_m2c_vol },
+            { icon: 'menu_book', title: 'Menu Opens', desc: 'Viewed menu details', color: '#fb923c', vol: menu, compVol: comp_menu },
+            { icon: 'touch_app', title: 'I2M Volume', desc: 'Clicked on restaurant', color: '#64748b', vol: i2m_vol, compVol: comp_i2m_vol },
+            { icon: 'campaign', title: 'Impressions', desc: 'Saw your content or ad', color: '#334155', vol: imp, compVol: comp_imp }
+        ];
+
+        new Chart(ctxFunnel, {
+            type: 'bar',
+            data: { labels: [''], datasets: [{ data: [0] }] },
+            plugins: [customPyramidPlugin], // Loads native canvas triangle!
+            options: {
+                responsive: true, 
+                maintainAspectRatio: false,
+                events: [], 
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: { enabled: false },
+                    customPyramid: { layers: layers, hasComp: hasComp }
+                },
+                scales: { x: { display: false }, y: { display: false } }
+            }
+        });
+
+        // 2. Build the Connected Left Sidebar
+        const overallRate = imp > 0 ? ((orders / imp) * 100).toFixed(1) : 0;
+        let compOverallHTML = '';
+        if (hasComp && comp_imp > 0) {
+            const compRate = ((comp_orders / comp_imp) * 100).toFixed(1);
+            const diff = (overallRate - compRate).toFixed(1);
+            const isUp = diff >= 0;
+            const colorCls = isUp ? 'text-[#10b981]' : 'text-error';
+            const arrow = isUp ? '↑' : '↓';
+            compOverallHTML = `<div class="text-[10px] mt-1 font-medium ${colorCls}">${arrow} ${Math.abs(diff)}% vs Prev</div>`;
+        }
+
+        let leftColHTML = `
+            <div class="bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] rounded-xl p-3 mb-4 shrink-0">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Conversion Rate</p>
+                <p class="text-xl font-bold text-gray-800 leading-none" style="color: ${brandColor}">${overallRate}%</p>
+                <p class="text-[9px] text-gray-500 mt-1">${orders.toLocaleString()} orders</p>
+                ${compOverallHTML}
+            </div>
+            <div class="flex flex-col relative pl-2 pt-2">
+                <div class="absolute left-[22px] top-6 bottom-4 w-[2px] bg-gray-100 z-0 rounded-full"></div>
+        `;
+
+        layers.forEach((layer, index) => {
+            leftColHTML += `
+                <div class="flex items-center gap-3 mb-5 relative z-10">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm" style="background-color: ${layer.color}">
+                        <span class="material-symbols-outlined text-[15px]">${layer.icon}</span>
+                    </div>
+                    <div class="flex-1 min-w-0 bg-white/90 py-0.5 pr-2">
+                        <p class="text-[12px] font-bold text-gray-800 truncate leading-tight">${layer.title}</p>
+                        <p class="text-[10px] text-gray-500 truncate">${layer.desc}</p>
                     </div>
                 </div>
             `;
-        }
-    });
-
-    const card1 = document.getElementById('chart-card-1');
-    if (card1) {
-        card1.classList.remove('p-5');
-        card1.classList.add('p-4');
-        card1.innerHTML = `
-            <div class="flex justify-between items-start mb-2 shrink-0 px-2">
-                <div>
-                    <h3 class="font-title-md text-[16px] font-bold text-gray-800 tracking-wide">Sales Funnel Overview</h3>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Track customer journey from impressions to orders.</p>
-                </div>
-            </div>
-            <div class="flex-1 w-full flex flex-row overflow-hidden pt-2 gap-4 px-2">
-                <div class="w-[35%] h-full relative">
-                    ${leftColHTML}
-                </div>
-                
-                <div class="w-[65%] h-full flex flex-row items-center py-2 relative">
-                    <div class="w-[55%] h-full relative filter drop-shadow-md overflow-hidden rounded-t-sm" style="clip-path: polygon(30% 0%, 70% 0%, 0% 100%, 100% 100%);">
-                        ${slicesHTML}
-                    </div>
-                    <div class="w-[45%] h-full relative">
-                        ${dropOffsHTML}
-                    </div>
-                </div>
-            </div>
-        `;
+        });
+        leftColHTML += `</div>`;
+        legendContainer.innerHTML = leftColHTML;
     }
 
     // --- CHART 2: Revenue & Volume Trends ---

@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- PURE TRIANGLE PLUGIN W/ WIDER BASE ---
+    // --- PURE TRIANGLE PLUGIN W/ MASSIVE BASE ---
     const customPyramidPlugin = {
         id: 'customPyramid',
         beforeDraw(chart, args, options) {
@@ -82,9 +82,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const pyHeight = pyBottom - pyTop;
             const layerHeight = pyHeight / numLayers;
             
-            // MATH UPDATE: Increased width to 65% and perfectly centered it at 38%
-            const centerX = left + (width * 0.38); 
-            const pyMaxWidth = width * 0.65;
+            // MATH UPDATE: Shifted center to 40% and made width a massive 70%.
+            // This centers the pyramid perfectly while leaving a safe 20% right-margin for text.
+            const centerX = left + (width * 0.40); 
+            const pyMaxWidth = width * 0.70;
 
             ctx.save();
             ctx.clearRect(0, 0, chart.width, chart.height);
@@ -120,7 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 
                 const lineY = pyTop + (i + 1) * layerHeight;
                 const startX = centerX;
-                // Fixed text anchor 15px off the right edge of the pyramid base
+                // Hard anchored text 15px off the right edge of the massive base
                 const endX = centerX + (pyMaxWidth / 2) + 15; 
                 
                 ctx.beginPath();
@@ -196,33 +197,32 @@ document.addEventListener("DOMContentLoaded", function () {
     const canvasContainer = ctxFunnel ? ctxFunnel.parentElement : null;
     
     if (ctxFunnel && legendContainer && canvasContainer) {
-        // LAYOUT UPDATE: Expanded Canvas to 68% to fit the wider pyramid safely
+        // LAYOUT UPDATE: Pure 2-column layout. Canvas takes 75%, Legend takes 25%.
         canvasContainer.parentElement.style.flexDirection = 'row-reverse';
-        canvasContainer.className = "w-[68%] h-full relative flex items-center justify-center min-h-[300px]";
-        legendContainer.className = "w-[32%] h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-2 pl-2";
+        canvasContainer.className = "w-[75%] h-full relative flex items-center justify-center min-h-[300px]";
+        legendContainer.className = "w-[25%] h-full flex flex-col justify-center items-center pr-4 pl-2";
 
         const imp = curr.totals.imp;
         const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
         const menu = curr.totals.menu;
         const m2c_vol = Math.round(menu * (curr.averages.m2c / 100)) || 0; 
-        const c2o_vol = Math.round(m2c_vol * (curr.averages.c2o / 100)) || 0; 
         const orders = curr.totals.orders;
 
         const comp_imp = hasComp ? comp.totals.imp : 0;
         const comp_i2m_vol = hasComp ? Math.round(comp_imp * (comp.averages.i2m / 100)) : 0;
         const comp_menu = hasComp ? comp.totals.menu : 0;
         const comp_m2c_vol = hasComp ? Math.round(comp_menu * (comp.averages.m2c / 100)) : 0;
-        const comp_c2o_vol = hasComp ? Math.round(comp_m2c_vol * (comp.averages.c2o / 100)) : 0;
         const comp_orders = hasComp ? comp.totals.orders : 0;
 
         const brandColor = '#E23744'; 
 
+        // EXACTLY 5 LAYERS: Orders at the top, Impressions at the bottom
         const layers = [
-            { icon: 'credit_card', title: 'Checkout', desc: 'Started checkout', color: '#e11d48', vol: c2o_vol, compVol: comp_c2o_vol },
-            { icon: 'shopping_cart', title: 'M2C', desc: 'Added to cart', color: '#f43f5e', vol: m2c_vol, compVol: comp_m2c_vol },
-            { icon: 'menu_book', title: 'Menu Opens', desc: 'Viewed menu details', color: '#fb7185', vol: menu, compVol: comp_menu },
-            { icon: 'touch_app', title: 'I2M Volume', desc: 'Clicked on restaurant', color: '#64748b', vol: i2m_vol, compVol: comp_i2m_vol },
-            { icon: 'campaign', title: 'Impressions', desc: 'Saw your content or ad', color: '#334155', vol: imp, compVol: comp_imp }
+            { title: 'Orders', color: '#e11d48', vol: orders, compVol: comp_orders },
+            { title: 'M2C Volume', color: '#f43f5e', vol: m2c_vol, compVol: comp_m2c_vol },
+            { title: 'Menu Opens', color: '#fb7185', vol: menu, compVol: comp_menu },
+            { title: 'I2M Volume', color: '#64748b', vol: i2m_vol, compVol: comp_i2m_vol },
+            { title: 'Impressions', color: '#334155', vol: imp, compVol: comp_imp }
         ];
 
         new Chart(ctxFunnel, {
@@ -250,34 +250,19 @@ document.addEventListener("DOMContentLoaded", function () {
             const isUp = diff >= 0;
             const colorCls = isUp ? 'text-[#10b981]' : 'text-error';
             const arrow = isUp ? '↑' : '↓';
-            compOverallHTML = `<div class="text-[10px] mt-1 font-medium ${colorCls}">${arrow} ${Math.abs(diff)}% vs Prev</div>`;
+            compOverallHTML = `<div class="text-[11px] mt-2 font-medium ${colorCls}">${arrow} ${Math.abs(diff)}% vs Prev</div>`;
         }
 
+        // PURE SCORECARD: No more list items, just the clean Conversion Rate card.
         let leftColHTML = `
-            <div class="bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] rounded-xl p-3 mb-4 shrink-0">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Conversion Rate</p>
-                <p class="text-xl font-bold text-gray-800 leading-none" style="color: ${brandColor}">${overallRate}%</p>
-                <p class="text-[9px] text-gray-500 mt-1">${orders.toLocaleString()} orders</p>
+            <div class="bg-white border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.06)] rounded-2xl p-5 w-full shrink-0">
+                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Conversion Rate</p>
+                <p class="text-4xl font-bold text-gray-800 leading-none mb-1.5" style="color: ${brandColor}">${overallRate}%</p>
+                <p class="text-[12px] text-gray-500">${orders.toLocaleString()} orders</p>
                 ${compOverallHTML}
             </div>
-            <div class="flex flex-col relative pl-2 pt-2">
-                <div class="absolute left-[22px] top-6 bottom-4 w-[2px] bg-gray-100 z-0 rounded-full"></div>
         `;
 
-        layers.forEach((layer) => {
-            leftColHTML += `
-                <div class="flex items-center gap-3 mb-5 relative z-10">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm" style="background-color: ${layer.color}">
-                        <span class="material-symbols-outlined text-[15px]">${layer.icon}</span>
-                    </div>
-                    <div class="flex-1 min-w-0 bg-white/90 py-0.5 pr-2">
-                        <p class="text-[12px] font-bold text-gray-800 truncate leading-tight">${layer.title}</p>
-                        <p class="text-[10px] text-gray-500 truncate">${layer.desc}</p>
-                    </div>
-                </div>
-            `;
-        });
-        leftColHTML += `</div>`;
         legendContainer.innerHTML = leftColHTML;
     }
 

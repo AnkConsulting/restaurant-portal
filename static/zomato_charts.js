@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- PURE TRIANGLE PLUGIN ---
+    // --- PURE TRIANGLE PLUGIN W/ WIDER BASE ---
     const customPyramidPlugin = {
         id: 'customPyramid',
         beforeDraw(chart, args, options) {
@@ -82,9 +82,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const pyHeight = pyBottom - pyTop;
             const layerHeight = pyHeight / numLayers;
             
-            // Push triangle to the left (30% of width) so the right text has plenty of room
-            const centerX = left + (width * 0.30); 
-            const pyMaxWidth = width * 0.50;
+            // MATH UPDATE: Increased width to 65% and perfectly centered it at 38%
+            const centerX = left + (width * 0.38); 
+            const pyMaxWidth = width * 0.65;
 
             ctx.save();
             ctx.clearRect(0, 0, chart.width, chart.height);
@@ -112,14 +112,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.stroke();
             }
             
-            // 2. Draw Dropoff Dashed Lines & Right-Side Text
+            // 2. Draw Dropoff Dashed Lines & Safely Anchored Right-Side Text
             for (let i = 0; i < numLayers - 1; i++) {
-                const currentLayer = layers[i];   // Top slice
-                const prevLayer = layers[i+1];    // Bottom slice (base)
+                const currentLayer = layers[i];   
+                const prevLayer = layers[i+1];    
                 const dropOffPct = prevLayer.vol > 0 ? (((prevLayer.vol - currentLayer.vol) / prevLayer.vol) * 100).toFixed(1) : 0;
                 
                 const lineY = pyTop + (i + 1) * layerHeight;
                 const startX = centerX;
+                // Fixed text anchor 15px off the right edge of the pyramid base
                 const endX = centerX + (pyMaxWidth / 2) + 15; 
                 
                 ctx.beginPath();
@@ -170,7 +171,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#ffffff';
                 
-                // Shadow allows top text to bleed outside tiny triangle cleanly
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 4;
                 ctx.shadowOffsetX = 1;
@@ -196,10 +196,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const canvasContainer = ctxFunnel ? ctxFunnel.parentElement : null;
     
     if (ctxFunnel && legendContainer && canvasContainer) {
-        // DYNAMIC LAYOUT: Swap the flex order so Legend is Left (35%), Canvas is Right (65%)
+        // LAYOUT UPDATE: Expanded Canvas to 68% to fit the wider pyramid safely
         canvasContainer.parentElement.style.flexDirection = 'row-reverse';
-        canvasContainer.className = "w-[65%] h-full relative flex items-center justify-center min-h-[300px]";
-        legendContainer.className = "w-[35%] h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-2 pl-2";
+        canvasContainer.className = "w-[68%] h-full relative flex items-center justify-center min-h-[300px]";
+        legendContainer.className = "w-[32%] h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-2 pl-2";
 
         const imp = curr.totals.imp;
         const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
@@ -217,7 +217,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const brandColor = '#E23744'; 
 
-        // EXACTLY 5 LAYERS: From Checkout to Impressions
         const layers = [
             { icon: 'credit_card', title: 'Checkout', desc: 'Started checkout', color: '#e11d48', vol: c2o_vol, compVol: comp_c2o_vol },
             { icon: 'shopping_cart', title: 'M2C', desc: 'Added to cart', color: '#f43f5e', vol: m2c_vol, compVol: comp_m2c_vol },
@@ -229,7 +228,7 @@ document.addEventListener("DOMContentLoaded", function () {
         new Chart(ctxFunnel, {
             type: 'bar',
             data: { labels: [''], datasets: [{ data: [0] }] },
-            plugins: [customPyramidPlugin], // Loads native canvas triangle!
+            plugins: [customPyramidPlugin], 
             options: {
                 responsive: true, 
                 maintainAspectRatio: false,
@@ -243,7 +242,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // 2. Build the Connected Left Sidebar
         const overallRate = imp > 0 ? ((orders / imp) * 100).toFixed(1) : 0;
         let compOverallHTML = '';
         if (hasComp && comp_imp > 0) {
@@ -266,7 +264,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="absolute left-[22px] top-6 bottom-4 w-[2px] bg-gray-100 z-0 rounded-full"></div>
         `;
 
-        layers.forEach((layer, index) => {
+        layers.forEach((layer) => {
             leftColHTML += `
                 <div class="flex items-center gap-3 mb-5 relative z-10">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm" style="background-color: ${layer.color}">

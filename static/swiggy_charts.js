@@ -103,15 +103,16 @@ document.addEventListener("DOMContentLoaded", function () {
         const trackColor = '#f8fafc'; // Faint Gray for empty track space
 
         // Helper to dynamically build Chart.js layers 
-        const buildRing = (labelName, activeVal, color, isComp = false, isOuter = false) => {
+        const buildRing = (labelName, activeVal, color, isComp = false) => {
             return {
                 label: isComp ? 'Comp ' + labelName : labelName,
                 data: [activeVal, Math.max(0, maxVal - activeVal)],
                 backgroundColor: isComp ? ['transparent', 'transparent'] : [color, trackColor],
-                borderWidth: isComp ? [2, 0] : [2, 0],
-                // If it's the outermost Impression ring, it keeps the white border. 
-                // All other inner rings get a border matching their fill color to eliminate white gaps.
-                borderColor: isComp ? [color, 'transparent'] : (isOuter ? ['#ffffff', 'transparent'] : [color, 'transparent']),
+                
+                // FIX: Apply full border width and full white color to separate EVERY ring
+                borderWidth: isComp ? [2, 0] : 3, 
+                borderColor: isComp ? [color, 'transparent'] : '#ffffff', 
+                
                 borderDash: isComp ? [4, 4] : [],
                 borderRadius: isComp ? [0, 0] : [20, 0], 
                 weight: isComp ? 0.3 : 1, 
@@ -121,18 +122,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const datasets = [];
         // Helper to add layers paired with their comparison ghost rings
-        const addLayer = (name, val, compVal, color, isOuter = false) => {
-            if (hasComp) datasets.push(buildRing(name, compVal, color, true, isOuter));
-            datasets.push(buildRing(name, val, color, false, isOuter));
+        const addLayer = (name, val, compVal, color) => {
+            if (hasComp) datasets.push(buildRing(name, compVal, color, true));
+            datasets.push(buildRing(name, val, color, false));
         };
 
         // Draw Chart Outside -> Inside
-        addLayer('Impressions', imp, comp_imp, grayColor, true); // isOuter = true
-        addLayer('I2M Volume', i2m_vol, comp_i2m_vol, grayColorLight, false);
-        addLayer('Menu Opens', menu, comp_menu, grayColorLight, false);
-        addLayer('M2C Volume', m2c_vol, comp_m2c_vol, brandColorLight, false);
-        addLayer('Checkout Initiated', c2o_vol, comp_c2o_vol, brandColor, false);
-        addLayer('Orders', orders, comp_orders, brandColor, false); // Core
+        addLayer('Impressions', imp, comp_imp, grayColor);
+        addLayer('I2M Volume', i2m_vol, comp_i2m_vol, grayColorLight);
+        addLayer('Menu Opens', menu, comp_menu, grayColorLight);
+        addLayer('M2C Volume', m2c_vol, comp_m2c_vol, brandColorLight);
+        addLayer('Checkout Initiated', c2o_vol, comp_c2o_vol, brandColor);
+        addLayer('Orders', orders, comp_orders, brandColor);
 
         new Chart(ctxFunnel, {
             type: 'doughnut',
@@ -154,7 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // 2. Build the Rich HTML Legend
+        // 2. Build the Rich HTML Legend 
         const steps = [
             { icon: 'visibility', title: '1. Impressions', desc: 'People saw your product', vol: imp, compVol: comp_imp, pct: 100, color: grayColor },
             { icon: 'touch_app', title: '2. I2M Volume', desc: 'Clicked on restaurant', vol: i2m_vol, compVol: comp_i2m_vol, pct: curr.averages.i2m, color: grayColorLight },
@@ -369,7 +370,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (hasComp) {
             mixData.datasets.push({ label: 'Comp Repeat (%)', data: getCompData(i => (i.repeatCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 } });
-            mixData.datasets.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
+            mixData.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
         }
 
         new Chart(ctxCustomer, {

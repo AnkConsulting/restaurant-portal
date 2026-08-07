@@ -69,228 +69,158 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- BULLETPROOF LOCAL PYRAMID PLUGIN ---
-    const customPyramidPlugin = {
-        id: 'customPyramid',
-        beforeDraw(chart, args, options) {
-            if (!options || !options.layers) return;
-            const { ctx, chartArea } = chart;
-            if (!chartArea) return;
-            const { top, bottom, left, right, width, height } = chartArea;
-            
-            const layers = options.layers;
-            const numLayers = layers.length;
-            
-            const pad = 10;
-            const pyTop = top + pad;
-            const pyBottom = bottom - pad;
-            const pyHeight = pyBottom - pyTop;
-            const layerHeight = pyHeight / numLayers;
-            const centerX = left + width / 2;
-            const pyMaxWidth = width - pad * 2;
+    // --- CHART 1: PURE HTML/CSS CUSTOM FUNNEL (Replaces Chart.js entirely) ---
+    const imp = curr.totals.imp;
+    const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
+    const menu = curr.totals.menu;
+    const m2c_vol = Math.round(menu * (curr.averages.m2c / 100)) || 0; 
+    const c2o_vol = Math.round(m2c_vol * (curr.averages.c2o / 100)) || 0; 
+    const orders = curr.totals.orders;
 
-            ctx.save();
-            ctx.clearRect(0, 0, chart.width, chart.height);
-            
-            // PASS 1: Draw the perfect geometric triangle
-            for (let i = 0; i < numLayers; i++) {
-                const y0 = pyTop + i * layerHeight;
-                const y1 = pyTop + (i + 1) * layerHeight;
-                
-                const w0 = ((y0 - pyTop) / pyHeight) * pyMaxWidth;
-                const w1 = ((y1 - pyTop) / pyHeight) * pyMaxWidth;
-                
-                const x0L = centerX - w0 / 2;
-                const x0R = centerX + w0 / 2;
-                const x1L = centerX - w1 / 2;
-                const x1R = centerX + w1 / 2;
-                
-                ctx.beginPath();
-                ctx.moveTo(x0L, y0);
-                ctx.lineTo(x0R, y0);
-                ctx.lineTo(x1R, y1);
-                ctx.lineTo(x1L, y1);
-                ctx.closePath();
-                
-                ctx.fillStyle = layers[i].color;
-                ctx.fill();
-                
-                ctx.lineWidth = 2.5;
-                ctx.strokeStyle = '#ffffff';
-                ctx.stroke();
-            }
-            
-            // PASS 2: Overlay Clean Text inside the slices
-            for (let i = 0; i < numLayers; i++) {
-                const y0 = pyTop + i * layerHeight;
-                const y1 = pyTop + (i + 1) * layerHeight;
-                const textY = (y0 + y1) / 2;
-                
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#ffffff';
-                
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 4;
-                ctx.shadowOffsetX = 1;
-                ctx.shadowOffsetY = 1;
-                
-                // Draw Layer Title
-                ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
-                ctx.fillText(layers[i].title, centerX, textY - 8);
+    const comp_imp = hasComp ? comp.totals.imp : 0;
+    const comp_i2m_vol = hasComp ? Math.round(comp_imp * (comp.averages.i2m / 100)) : 0;
+    const comp_menu = hasComp ? comp.totals.menu : 0;
+    const comp_m2c_vol = hasComp ? Math.round(comp_menu * (comp.averages.m2c / 100)) : 0;
+    const comp_c2o_vol = hasComp ? Math.round(comp_m2c_vol * (comp.averages.c2o / 100)) : 0;
+    const comp_orders = hasComp ? comp.totals.orders : 0;
 
-                // Draw Layer Volume
-                ctx.font = `bold 15px 'Hanken Grotesk', sans-serif`;
-                ctx.fillText(layers[i].value.toLocaleString(), centerX, textY + 8);
-                
-                ctx.shadowColor = 'transparent';
-                ctx.shadowBlur = 0;
-            }
-            
-            ctx.restore();
-            return false; // Prevents default bar rendering
-        }
-    };
+    const overallRate = imp > 0 ? ((orders / imp) * 100).toFixed(1) : 0;
+    let compOverallHTML = '';
+    if (hasComp && comp_imp > 0) {
+        const compRate = ((comp_orders / comp_imp) * 100).toFixed(1);
+        const diff = (overallRate - compRate).toFixed(1);
+        const isUp = diff >= 0;
+        const colorCls = isUp ? 'text-[#10b981]' : 'text-error';
+        const arrow = isUp ? '↑' : '↓';
+        compOverallHTML = `<p class="text-[10px] mt-1.5 font-medium ${colorCls}">${arrow} ${Math.abs(diff)}% <span class="text-gray-400 font-normal">vs Previous</span></p>`;
+    }
 
-    // --- CHART 1: Fixed Geometric Pyramid Visualization ---
-    const ctxFunnel = document.getElementById('funnelChart');
-    const legendContainer = document.getElementById('funnel-custom-legend');
-    
-    if (ctxFunnel && legendContainer) {
-        const imp = curr.totals.imp;
-        const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
-        const menu = curr.totals.menu;
-        const m2c_vol = Math.round(menu * (curr.averages.m2c / 100)) || 0; 
-        const c2o_vol = Math.round(m2c_vol * (curr.averages.c2o / 100)) || 0; 
-        const orders = curr.totals.orders;
+    const brandColor = '#E23744'; 
 
-        const comp_imp = hasComp ? comp.totals.imp : 0;
-        const comp_i2m_vol = hasComp ? Math.round(comp_imp * (comp.averages.i2m / 100)) : 0;
-        const comp_menu = hasComp ? comp.totals.menu : 0;
-        const comp_m2c_vol = hasComp ? Math.round(comp_menu * (comp.averages.m2c / 100)) : 0;
-        const comp_c2o_vol = hasComp ? Math.round(comp_m2c_vol * (comp.averages.c2o / 100)) : 0;
-        const comp_orders = hasComp ? comp.totals.orders : 0;
+    let leftColHTML = `
+        <div class="bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] rounded-xl p-3 mb-4 shrink-0">
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0" style="color: ${brandColor}">
+                    <span class="material-symbols-outlined text-[18px]">pie_chart</span>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 mb-0.5 uppercase tracking-wide">Overall Conversion</p>
+                    <p class="text-2xl font-bold leading-none" style="color: ${brandColor}">${overallRate}%</p>
+                    <p class="text-[10px] text-gray-400 mt-1">${orders.toLocaleString()} of ${imp.toLocaleString()} views</p>
+                    ${compOverallHTML}
+                </div>
+            </div>
+        </div>
+    `;
 
-        const brandColor = '#E23744';      // Zomato Red
-        const brandColorLight = '#f87171'; 
-        const grayColorLight = '#94A3B8';
-        const grayColorMedium = '#64748B';
-        const grayColorDark = '#475569';  
+    const leftSteps = [
+        { icon: 'local_mall', title: 'Orders', desc: 'Completed purchases' },
+        { icon: 'credit_card', title: 'Checkout Initiated', desc: 'Started checkout process' },
+        { icon: 'shopping_cart', title: 'Add to Cart', desc: 'M2C Volume' },
+        { icon: 'menu_book', title: 'Menu Opens', desc: 'Viewed menu details' },
+        { icon: 'touch_app', title: 'I2M Volume', desc: 'Clicked on restaurant' },
+        { icon: 'campaign', title: 'Impressions', desc: 'Saw your content or ad' }
+    ];
 
-        new Chart(ctxFunnel, {
-            type: 'bar',
-            data: { labels: [''], datasets: [{ data: [0], backgroundColor: 'transparent', borderColor: 'transparent' }] },
-            plugins: [customPyramidPlugin], // Explicitly loads the plugin locally!
-            options: {
-                responsive: true, 
-                maintainAspectRatio: false,
-                events: [], 
-                plugins: { 
-                    legend: { display: false },
-                    tooltip: { enabled: false },
-                    customPyramid: {
-                        // Exactly 5 layers, beautifully labeled, mapping directly to a Triangle
-                        layers: [
-                            { title: 'Checkout Initiated', color: brandColor, value: c2o_vol },      // Top Apex
-                            { title: 'M2C Volume', color: brandColorLight, value: m2c_vol },
-                            { title: 'Menu Opens', color: grayColorLight, value: menu },
-                            { title: 'I2M Volume', color: grayColorMedium, value: i2m_vol },
-                            { title: 'Impressions', color: grayColorDark, value: imp }               // Bottom Base
-                        ]
-                    }
-                },
-                scales: {
-                    x: { display: false },
-                    y: { display: false }
-                }
-            }
-        });
-
-        // 2. Build the Rich HTML Legend (Maintains all 6 steps and comparison values for context)
-        const steps = [
-            { icon: 'visibility', title: '1. Impressions', desc: 'People saw your product', vol: imp, compVol: comp_imp, pct: 100, color: grayColorDark },
-            { icon: 'touch_app', title: '2. I2M Volume', desc: 'Clicked on restaurant', vol: i2m_vol, compVol: comp_i2m_vol, pct: curr.averages.i2m, color: grayColorMedium },
-            { icon: 'menu_book', title: '3. Menu Opens', desc: 'Viewed menu details', vol: menu, compVol: comp_menu, pct: imp ? ((menu/imp)*100).toFixed(1) : 0, color: grayColorLight },
-            { icon: 'shopping_cart', title: '4. M2C Volume', desc: 'Added to cart', vol: m2c_vol, compVol: comp_m2c_vol, pct: curr.averages.m2c, color: brandColorLight },
-            { icon: 'credit_card', title: '5. Checkout Initiated', desc: 'Started checkout', vol: c2o_vol, compVol: comp_c2o_vol, pct: curr.averages.c2o, color: brandColor },
-            { icon: 'check_circle', title: '6. Orders', desc: 'Successfully purchased', vol: orders, compVol: comp_orders, pct: imp ? ((orders/imp)*100).toFixed(1) : 0, color: brandColor }
-        ];
-
-        let legendHTML = '';
-        steps.forEach((step, index) => {
-            let dropOffHTML = '';
-            if (index > 0) {
-                const prevVol = steps[index-1].vol;
-                const dropOffPct = prevVol > 0 ? (((prevVol - step.vol) / prevVol) * 100).toFixed(1) : 0;
-                
-                let compDropHTML = '';
-                if (hasComp) {
-                    const prevCompVol = steps[index-1].compVol;
-                    const compDropPct = prevCompVol > 0 ? (((prevCompVol - step.compVol) / prevCompVol) * 100).toFixed(1) : 0;
-                    compDropHTML = `<span class="text-[9px] text-gray-300 ml-1">Comp: ${compDropPct}%</span>`;
-                }
-
-                dropOffHTML = `
-                    <div class="flex items-center gap-2 ml-4 my-1">
-                        <span class="material-symbols-outlined text-gray-300 text-[16px]">arrow_downward</span>
-                        <div class="h-px border-t border-dashed border-gray-200 flex-1"></div>
-                        <span class="text-[11px] text-gray-400 font-medium">Drop-off: ${dropOffPct}% ${compDropHTML}</span>
-                    </div>
-                `;
-            }
-
-            let compVolHTML = '';
-            if (hasComp) {
-                let diff = step.vol - step.compVol;
-                let diffStr = diff >= 0 ? '+' + diff.toLocaleString() : diff.toLocaleString();
-                let colorCls = diff >= 0 ? 'text-[#10b981]' : 'text-error';
-                compVolHTML = `<p class="text-[10px] text-gray-400 mt-0.5">Comp: ${step.compVol.toLocaleString()} <span class="${colorCls}">(${diffStr})</span></p>`;
-            }
-
-            legendHTML += `
-                ${dropOffHTML}
-                <div class="flex items-center justify-between group hover:bg-gray-50 p-1.5 rounded-lg transition-colors">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded flex items-center justify-center text-white shadow-sm" style="background-color: ${step.color}">
-                            <span class="material-symbols-outlined text-[18px]">${step.icon}</span>
-                        </div>
-                        <div>
-                            <p class="text-sm font-bold text-gray-800 leading-tight">${step.title}</p>
-                            <p class="text-[10px] text-gray-500">${step.desc}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm font-bold text-gray-800">${step.pct}%</p>
-                        <p class="text-[11px] text-gray-500 font-medium">${step.vol.toLocaleString()}</p>
-                        ${compVolHTML}
-                    </div>
+    leftSteps.forEach((step, i) => {
+        leftColHTML += `
+            <div class="flex items-center gap-3 mb-1.5 shrink-0">
+                <div class="w-7 h-7 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[14px]" style="color: ${brandColor}">${step.icon}</span>
+                </div>
+                <div>
+                    <p class="text-[12px] font-bold text-gray-800 leading-tight">${step.title}</p>
+                    <p class="text-[9px] text-gray-500">${step.desc}</p>
+                </div>
+            </div>
+        `;
+        if (i < leftSteps.length - 1) {
+            leftColHTML += `
+                <div class="pl-3.5 mb-1.5 shrink-0">
+                    <span class="material-symbols-outlined text-[14px] text-gray-300 block">keyboard_arrow_down</span>
                 </div>
             `;
-        });
-
-        let compOverallHTML = '';
-        if (hasComp) {
-            let compRate = comp_imp ? ((comp_orders/comp_imp)*100).toFixed(1) : 0;
-            compOverallHTML = `<p class="text-[11px] text-gray-400 mt-1">Comp Rate: <span class="font-bold">${compRate}%</span> (${comp_orders.toLocaleString()} / ${comp_imp.toLocaleString()})</p>`;
         }
+    });
 
-        legendHTML += `
-            <div class="mt-4 p-3 rounded-xl border border-gray-100 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col justify-center">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-gray-400 text-[24px]">monitoring</span>
-                    <div>
-                        <p class="text-[11px] text-gray-500 font-medium">Overall Conversion Rate</p>
-                        <div class="flex items-end gap-2">
-                            <p class="text-lg font-bold leading-none" style="color: ${brandColor}">${imp ? ((orders/imp)*100).toFixed(1) : 0}%</p>
-                            <p class="text-[10px] text-gray-400 mb-0.5">${orders.toLocaleString()} out of ${imp.toLocaleString()} views</p>
-                        </div>
-                    </div>
+    const layers = [
+        { title: 'Orders', color: '#be123c', vol: orders, compVol: comp_orders },
+        { title: 'Checkout', color: '#e11d48', vol: c2o_vol, compVol: comp_c2o_vol },
+        { title: 'Add to Cart', color: '#f43f5e', vol: m2c_vol, compVol: comp_m2c_vol },
+        { title: 'Menu Opens', color: '#fb7185', vol: menu, compVol: comp_menu },
+        { title: 'I2M', color: '#64748b', vol: i2m_vol, compVol: comp_i2m_vol },
+        { title: 'Impressions', color: '#334155', vol: imp, compVol: comp_imp }
+    ];
+
+    let slicesHTML = '';
+    let dropOffsHTML = '';
+
+    layers.forEach((layer, i) => {
+        const isLast = i === layers.length - 1;
+        const borderBottom = isLast ? '' : 'border-b-[3px] border-white';
+        
+        slicesHTML += `
+            <div class="w-full flex items-center justify-center ${borderBottom}" style="height: 16.666%; background-color: ${layer.color};">
+                <div class="text-center">
+                    <div class="text-white/90 text-[10px] font-medium leading-tight tracking-wide drop-shadow-md">${layer.title}</div>
+                    <div class="text-white text-[13px] font-bold leading-tight drop-shadow-md">${layer.vol.toLocaleString()}</div>
                 </div>
-                ${compOverallHTML}
             </div>
         `;
 
-        legendContainer.innerHTML = legendHTML;
+        if (!isLast) {
+            const currentLayer = layer;
+            const prevLayer = layers[i+1]; 
+            const dropOffPct = prevLayer.vol > 0 ? (((prevLayer.vol - currentLayer.vol) / prevLayer.vol) * 100).toFixed(1) : 0;
+            
+            let compText = '';
+            if (hasComp) {
+                const compDropPct = prevLayer.compVol > 0 ? (((prevLayer.compVol - currentLayer.compVol) / prevLayer.compVol) * 100).toFixed(1) : 0;
+                compText = `<span class="text-[9px] text-gray-400 block -mt-0.5">vs ${compDropPct}%</span>`;
+            }
+
+            const topPos = (i + 1) * 16.666;
+
+            dropOffsHTML += `
+                <div class="absolute flex items-center" style="top: ${topPos}%; left: 50%; right: -150px; transform: translateY(-50%); z-index: 0;">
+                    <div class="flex-1 border-t border-dashed border-gray-300"></div>
+                    <div class="pl-2 flex items-center gap-1.5 bg-white shrink-0">
+                        <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-gray-500 font-medium">Drop-off: <span class="font-bold text-gray-800">${dropOffPct}%</span></span>
+                            ${compText}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    });
+
+    const card1 = document.getElementById('chart-card-1');
+    if (card1) {
+        card1.classList.remove('p-5');
+        card1.classList.add('p-4');
+        card1.innerHTML = `
+            <div class="flex justify-between items-start mb-2 shrink-0 px-2">
+                <div>
+                    <h3 class="font-title-md text-[16px] font-bold text-gray-800 tracking-wide">Sales Funnel Overview</h3>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Track customer journey from impressions to orders.</p>
+                </div>
+            </div>
+            <div class="flex-1 w-full flex flex-row overflow-hidden pt-2">
+                <div class="w-[35%] flex flex-col px-2 h-full overflow-y-auto custom-scrollbar">
+                    ${leftColHTML}
+                </div>
+                <div class="w-[65%] flex items-center justify-center pr-[130px] pl-[20px] py-4">
+                    <div class="w-full max-w-[280px] h-[90%] relative">
+                        ${dropOffsHTML}
+                        <div class="w-full h-full flex flex-col relative z-10 filter drop-shadow-lg" style="clip-path: polygon(50% 0%, 0% 100%, 100% 100%);">
+                            ${slicesHTML}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     // --- CHART 2: Revenue & Volume Trends ---
@@ -421,7 +351,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (hasComp) {
             mixData.datasets.push({ label: 'Comp Repeat (%)', data: getCompData(i => (i.repeatCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 } });
-            mixData.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#E23744', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
+            mixData.datasets.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#E23744', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
         }
 
         new Chart(ctxCustomer, {

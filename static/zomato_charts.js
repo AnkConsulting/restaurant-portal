@@ -76,14 +76,16 @@ document.addEventListener("DOMContentLoaded", function () {
             const layers = options.layers;
             const numLayers = layers.length;
             
-            const padY = 5; 
+            // HEIGHT IS PRESERVED: 0 padding ensures it uses full height
+            const padY = 0; 
             const pyTop = top + padY;
             const pyBottom = bottom - padY;
             const pyHeight = pyBottom - pyTop;
             const layerHeight = pyHeight / numLayers;
             
-            const centerX = left + (width * 0.38); 
-            const pyMaxWidth = width * 0.76;
+            // WIDTH INCREASED: Widen to 88% and perfectly shift center to 44% to touch left edge!
+            const centerX = left + (width * 0.44); 
+            const pyMaxWidth = width * 0.88;
 
             ctx.save();
             ctx.clearRect(0, 0, chart.width, chart.height);
@@ -174,7 +176,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.shadowOffsetX = 1;
                 ctx.shadowOffsetY = 1;
                 
-                // TEXT SWAP: Value on top, Title on bottom
+                // DATA FIRST: Value on top, Title on bottom
                 ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
                 ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY - 8);
 
@@ -200,8 +202,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 const canvasContainer = document.getElementById('fullscreen-canvas-container');
                 const modalLegend = document.getElementById('fullscreen-modal-legend');
                 if (canvasContainer && modalLegend) {
-                    canvasContainer.className = "w-[78%] h-full relative flex items-center justify-center min-h-[300px]";
-                    modalLegend.className = "w-[22%] h-full flex flex-col justify-center items-center pr-2 pl-2";
+                    canvasContainer.className = "w-[80%] h-full relative flex items-center justify-center min-h-[300px]";
+                    modalLegend.className = "w-[20%] h-full flex flex-col justify-center items-center pr-2 pl-2";
                 }
             }
         };
@@ -214,8 +216,9 @@ document.addEventListener("DOMContentLoaded", function () {
     
     if (ctxFunnel && legendContainer && canvasContainer) {
         canvasContainer.parentElement.style.flexDirection = 'row-reverse';
-        canvasContainer.className = "w-[78%] h-full relative flex items-center justify-center min-h-[300px]";
-        legendContainer.className = "w-[22%] h-full flex flex-col justify-center items-center pr-2 pl-2";
+        // Updated container split to give pyramid 80% of width
+        canvasContainer.className = "w-[80%] h-full relative flex items-center justify-center min-h-[300px]";
+        legendContainer.className = "w-[20%] h-full flex flex-col justify-center items-center pr-2 pl-2";
 
         const imp = curr.totals.imp;
         const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 

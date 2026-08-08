@@ -82,13 +82,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const pyHeight = pyBottom - pyTop;
             const layerHeight = pyHeight / numLayers;
             
-            const centerX = left + (width * 0.44); 
-            const pyMaxWidth = width * 0.88;
+            const centerX = left + (width * 0.40); 
+            const pyMaxWidth = width * 0.80;
 
             ctx.save();
             ctx.clearRect(0, 0, chart.width, chart.height);
             
-            // 1. Draw Perfect Geometric Triangle Slices
             for (let i = 0; i < numLayers; i++) {
                 const y0 = pyTop + i * layerHeight;
                 const y1 = pyTop + (i + 1) * layerHeight;
@@ -111,29 +110,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.stroke();
             }
             
-            // 2. Draw Short Dropoff Dashed Lines & Safely Anchored Right-Side Text
             for (let i = 0; i < numLayers - 1; i++) {
                 const currentLayer = layers[i];   
                 const prevLayer = layers[i+1];    
                 const dropOffPct = prevLayer.vol > 0 ? (((prevLayer.vol - currentLayer.vol) / prevLayer.vol) * 100).toFixed(1) : 0;
                 
                 const lineY = pyTop + (i + 1) * layerHeight;
-                const currentW = ((i + 1) / numLayers) * pyMaxWidth;
-                
-                const startX = centerX + (currentW / 2);
-                const endX = centerX + (pyMaxWidth / 2) + 5; 
+                const startX = centerX;
+                const endX = centerX + (pyMaxWidth / 2) + 10; 
                 
                 ctx.beginPath();
                 ctx.setLineDash([4, 4]);
                 ctx.moveTo(startX, lineY);
                 ctx.lineTo(endX, lineY);
-                ctx.lineWidth = 1.5;
-                ctx.strokeStyle = '#cbd5e1'; 
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = '#94a3b8';
                 ctx.stroke();
                 ctx.setLineDash([]);
                 
                 ctx.beginPath();
-                ctx.arc(endX + 4, lineY, 3, 0, 2 * Math.PI);
+                ctx.arc(endX + 6, lineY, 3, 0, 2 * Math.PI);
                 ctx.fillStyle = '#ef4444';
                 ctx.fill();
                 
@@ -141,12 +137,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#64748b';
                 ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
-                ctx.fillText('Drop-off:', endX + 12, lineY);
+                ctx.fillText('Drop-off:', endX + 14, lineY);
                 
                 const textW = ctx.measureText('Drop-off: ').width;
                 ctx.fillStyle = '#1e293b';
                 ctx.font = `bold 12px 'Hanken Grotesk', sans-serif`;
-                ctx.fillText(`${dropOffPct}%`, endX + 12 + textW, lineY);
+                ctx.fillText(`${dropOffPct}%`, endX + 14 + textW, lineY);
 
                 if (options.hasComp) {
                     const compDropPct = prevLayer.compVol > 0 ? (((prevLayer.compVol - currentLayer.compVol) / prevLayer.compVol) * 100).toFixed(1) : 0;
@@ -157,11 +153,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     
                     ctx.fillStyle = colorCls;
                     ctx.font = `600 10px 'Hanken Grotesk', sans-serif`;
-                    ctx.fillText(`vs ${compDropPct}% (${arrow} ${Math.abs(diff).toFixed(1)}%)`, endX + 12, lineY + 15);
+                    ctx.fillText(`${arrow} ${Math.abs(diff)}% vs prev`, endX + 14, lineY + 16);
                 }
             }
             
-            // 3. Draw Text In Center of Triangle Slices
             for (let i = 0; i < numLayers; i++) {
                 const y0 = pyTop + i * layerHeight;
                 const y1 = pyTop + (i + 1) * layerHeight;
@@ -169,32 +164,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff';
                 
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 4;
                 ctx.shadowOffsetX = 1;
                 ctx.shadowOffsetY = 1;
                 
-                if (options.hasComp) {
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
-                    ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY - 11);
+                ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
+                ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY - 8);
 
-                    ctx.fillStyle = '#e2e8f0'; 
-                    ctx.font = `600 10px 'Hanken Grotesk', sans-serif`;
-                    ctx.fillText(`vs ${layers[i].compVol.toLocaleString()}`, centerX, textY + 2);
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
-                    ctx.fillText(layers[i].title, centerX, textY + 15);
-                } else {
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
-                    ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY - 8);
-
-                    ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
-                    ctx.fillText(layers[i].title, centerX, textY + 8);
-                }
+                ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
+                ctx.fillText(layers[i].title, centerX, textY + 8);
                 
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
@@ -205,7 +186,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
     
-    Chart.register(customPyramidPlugin);
+    if (!Chart.registry.plugins.get('customPyramid')) {
+        Chart.register(customPyramidPlugin);
+    }
 
     if (window.toggleMaximize && !window.funnelTogglePatched) {
         const originalToggle = window.toggleMaximize;
@@ -215,8 +198,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 const canvasContainer = document.getElementById('fullscreen-canvas-container');
                 const modalLegend = document.getElementById('fullscreen-modal-legend');
                 if (canvasContainer && modalLegend) {
-                    canvasContainer.className = "w-[80%] h-full relative flex items-center justify-center min-h-[300px]";
-                    modalLegend.className = "w-[20%] h-full flex flex-col justify-center items-center pr-2 pl-2";
+                    canvasContainer.className = "w-full md:w-[80%] h-1/2 md:h-full relative flex items-center justify-center min-h-[300px]";
+                    modalLegend.className = "w-full md:w-[20%] h-1/2 md:h-full flex flex-col justify-center items-center px-2 md:pr-2 md:pl-2 pb-4 md:pb-0";
                 }
             }
         };
@@ -228,9 +211,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const canvasContainer = ctxFunnel ? ctxFunnel.parentElement : null;
     
     if (ctxFunnel && legendContainer && canvasContainer) {
-        canvasContainer.parentElement.style.flexDirection = 'row-reverse';
-        canvasContainer.className = "w-[80%] h-full relative flex items-center justify-center min-h-[300px]";
-        legendContainer.className = "w-[20%] h-full flex flex-col justify-center items-center pr-2 pl-2";
+        // MOBILE RESPONSIVE UPDATE: flex-col on small screens, flex-row-reverse on medium+
+        canvasContainer.parentElement.className = "flex-1 w-full flex flex-col md:flex-row-reverse overflow-hidden pt-2 gap-4 px-2";
+        canvasContainer.className = "w-full md:w-[80%] h-[300px] md:h-full relative flex items-center justify-center min-h-[300px]";
+        legendContainer.className = "w-full md:w-[20%] h-auto md:h-full flex flex-col justify-center items-center px-2 md:pr-2 md:pl-2 pb-4 md:pb-0";
 
         const imp = curr.totals.imp;
         const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
@@ -270,7 +254,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // 2. Build the Advanced Scorecard with Explicit Comparison Data
         const overallRate = imp > 0 ? ((orders / imp) * 100).toFixed(1) : 0;
         let compOverallHTML = '';
         if (hasComp && comp_imp > 0) {
@@ -279,24 +262,14 @@ document.addEventListener("DOMContentLoaded", function () {
             const isUp = diff >= 0;
             const colorCls = isUp ? 'text-[#10b981]' : 'text-error';
             const arrow = isUp ? '↑' : '↓';
-            
-            compOverallHTML = `
-                <div class="mt-3 pt-3 border-t border-gray-100">
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Previous Period</p>
-                    <div class="flex items-center gap-2 mb-0.5">
-                        <span class="text-lg font-bold text-gray-700 leading-none">${compRate}%</span>
-                        <span class="text-[11px] font-medium ${colorCls} bg-gray-50 px-1.5 py-0.5 rounded">${arrow} ${Math.abs(diff).toFixed(1)}%</span>
-                    </div>
-                    <p class="text-[10px] text-gray-500">${comp_orders.toLocaleString()} orders</p>
-                </div>
-            `;
+            compOverallHTML = `<div class="text-[11px] mt-2 font-medium ${colorCls}">${arrow} ${Math.abs(diff)}% vs Prev</div>`;
         }
 
         let leftColHTML = `
-            <div class="bg-white border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.06)] rounded-2xl p-5 w-full shrink-0">
+            <div class="bg-white border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.06)] rounded-2xl p-4 w-full shrink-0 max-w-sm">
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Conversion Rate</p>
-                <p class="text-4xl font-bold text-gray-800 leading-none mb-1.5" style="color: ${brandColor}">${overallRate}%</p>
-                <p class="text-[12px] text-gray-500">${orders.toLocaleString()} orders</p>
+                <p class="text-3xl font-bold text-gray-800 leading-none mb-1.5" style="color: ${brandColor}">${overallRate}%</p>
+                <p class="text-[11px] text-gray-500">${orders.toLocaleString()} orders</p>
                 ${compOverallHTML}
             </div>
         `;

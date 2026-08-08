@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- GLOBALLY REGISTERED PYRAMID PLUGIN (Fixes Fullscreen Bug) ---
+    // --- GLOBALLY REGISTERED PYRAMID PLUGIN ---
     const customPyramidPlugin = {
         id: 'customPyramid',
         beforeDraw(chart, args, options) {
@@ -76,15 +76,16 @@ document.addEventListener("DOMContentLoaded", function () {
             const layers = options.layers;
             const numLayers = layers.length;
             
-            // MATH UPDATE: Taller (padY=5), Shifted Left (36%), Wider (72%)
             const padY = 5; 
             const pyTop = top + padY;
             const pyBottom = bottom - padY;
             const pyHeight = pyBottom - pyTop;
             const layerHeight = pyHeight / numLayers;
             
-            const centerX = left + (width * 0.36); 
-            const pyMaxWidth = width * 0.72;
+            // MATH UPDATE: Canvas is now wider overall, so we can make the pyramid base massive (76% of canvas).
+            // This naturally forces the top slice to be wide enough to hold the text!
+            const centerX = left + (width * 0.38); 
+            const pyMaxWidth = width * 0.76;
 
             ctx.save();
             ctx.clearRect(0, 0, chart.width, chart.height);
@@ -120,8 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 
                 const lineY = pyTop + (i + 1) * layerHeight;
                 const startX = centerX;
-                // Fixed text anchor to the right edge of the massive base
-                const endX = centerX + (pyMaxWidth / 2) + 15; 
+                const endX = centerX + (pyMaxWidth / 2) + 10; 
                 
                 ctx.beginPath();
                 ctx.setLineDash([4, 4]);
@@ -176,10 +176,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.shadowOffsetX = 1;
                 ctx.shadowOffsetY = 1;
                 
-                ctx.font = `500 12px 'Hanken Grotesk', sans-serif`;
+                // Slightly tuned font size to guarantee "Orders" stays perfectly within the top box bounds
+                ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
                 ctx.fillText(layers[i].title, centerX, textY - 8);
 
-                ctx.font = `bold 15px 'Hanken Grotesk', sans-serif`;
+                ctx.font = `bold 13px 'Hanken Grotesk', sans-serif`;
                 ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY + 8);
                 
                 ctx.shadowColor = 'transparent';
@@ -191,10 +192,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
     
-    // Register the custom plugin globally so the fullscreen modal inherits it!
     Chart.register(customPyramidPlugin);
 
-    // --- OVERRIDE FULLSCREEN MODAL LAYOUT TO MATCH 75/25 RATIO ---
     if (window.toggleMaximize && !window.funnelTogglePatched) {
         const originalToggle = window.toggleMaximize;
         window.toggleMaximize = function(cardId, event) {
@@ -203,9 +202,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 const canvasContainer = document.getElementById('fullscreen-canvas-container');
                 const modalLegend = document.getElementById('fullscreen-modal-legend');
                 if (canvasContainer && modalLegend) {
-                    // Force the 75/25 aspect ratio on the fullscreen modal
-                    canvasContainer.className = "w-[75%] h-full relative flex items-center justify-center min-h-[300px]";
-                    modalLegend.className = "w-[25%] h-full flex flex-col justify-center items-center pr-4 pl-2";
+                    canvasContainer.className = "w-[78%] h-full relative flex items-center justify-center min-h-[300px]";
+                    modalLegend.className = "w-[22%] h-full flex flex-col justify-center items-center pr-2 pl-2";
                 }
             }
         };
@@ -217,10 +215,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const canvasContainer = ctxFunnel ? ctxFunnel.parentElement : null;
     
     if (ctxFunnel && legendContainer && canvasContainer) {
-        // LAYOUT UPDATE: Pure 2-column layout. Canvas takes 75%, Legend takes 25%.
+        // LAYOUT UPDATE: Canvas now gets 78% of the width, allowing the pyramid base to be much larger!
         canvasContainer.parentElement.style.flexDirection = 'row-reverse';
-        canvasContainer.className = "w-[75%] h-full relative flex items-center justify-center min-h-[300px]";
-        legendContainer.className = "w-[25%] h-full flex flex-col justify-center items-center pr-4 pl-2";
+        canvasContainer.className = "w-[78%] h-full relative flex items-center justify-center min-h-[300px]";
+        legendContainer.className = "w-[22%] h-full flex flex-col justify-center items-center pr-2 pl-2";
 
         const imp = curr.totals.imp;
         const i2m_vol = Math.round(imp * (curr.averages.i2m / 100)) || 0; 
@@ -236,7 +234,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const brandColor = '#FC8019'; 
 
-        // EXACTLY 5 LAYERS: Orders at the top, Impressions at the bottom
         const layers = [
             { title: 'Orders', color: '#ea580c', vol: orders, compVol: comp_orders },
             { title: 'M2C Volume', color: '#f97316', vol: m2c_vol, compVol: comp_m2c_vol },
@@ -245,7 +242,6 @@ document.addEventListener("DOMContentLoaded", function () {
             { title: 'Impressions', color: '#334155', vol: imp, compVol: comp_imp }
         ];
 
-        // Do not explicitly pass plugins: [] array here anymore, it's global!
         new Chart(ctxFunnel, {
             type: 'bar',
             data: { labels: [''], datasets: [{ data: [0] }] },
@@ -273,12 +269,11 @@ document.addEventListener("DOMContentLoaded", function () {
             compOverallHTML = `<div class="text-[11px] mt-2 font-medium ${colorCls}">${arrow} ${Math.abs(diff)}% vs Prev</div>`;
         }
 
-        // PURE SCORECARD: No more list items, just the clean Conversion Rate card.
         let leftColHTML = `
-            <div class="bg-white border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.06)] rounded-2xl p-5 w-full shrink-0">
-                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Conversion Rate</p>
-                <p class="text-4xl font-bold text-gray-800 leading-none mb-1.5" style="color: ${brandColor}">${overallRate}%</p>
-                <p class="text-[12px] text-gray-500">${orders.toLocaleString()} orders</p>
+            <div class="bg-white border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.06)] rounded-2xl p-4 w-full shrink-0">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Conversion Rate</p>
+                <p class="text-3xl font-bold text-gray-800 leading-none mb-1.5" style="color: ${brandColor}">${overallRate}%</p>
+                <p class="text-[11px] text-gray-500">${orders.toLocaleString()} orders</p>
                 ${compOverallHTML}
             </div>
         `;

@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- PURE TRIANGLE PLUGIN W/ MASSIVE BASE ---
+    // --- GLOBALLY REGISTERED PYRAMID PLUGIN (Fixes Fullscreen Bug) ---
     const customPyramidPlugin = {
         id: 'customPyramid',
         beforeDraw(chart, args, options) {
@@ -76,16 +76,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const layers = options.layers;
             const numLayers = layers.length;
             
-            const padY = 15;
+            // MATH UPDATE: Taller (padY=5), Shifted Left (36%), Wider (72%)
+            const padY = 5; 
             const pyTop = top + padY;
             const pyBottom = bottom - padY;
             const pyHeight = pyBottom - pyTop;
             const layerHeight = pyHeight / numLayers;
             
-            // MATH UPDATE: Shifted center to 40% and made width a massive 70%.
-            // This centers the pyramid perfectly while leaving a safe 20% right-margin for text.
-            const centerX = left + (width * 0.40); 
-            const pyMaxWidth = width * 0.70;
+            const centerX = left + (width * 0.36); 
+            const pyMaxWidth = width * 0.72;
 
             ctx.save();
             ctx.clearRect(0, 0, chart.width, chart.height);
@@ -121,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 
                 const lineY = pyTop + (i + 1) * layerHeight;
                 const startX = centerX;
-                // Hard anchored text 15px off the right edge of the massive base
+                // Fixed text anchor to the right edge of the massive base
                 const endX = centerX + (pyMaxWidth / 2) + 15; 
                 
                 ctx.beginPath();
@@ -177,10 +176,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.shadowOffsetX = 1;
                 ctx.shadowOffsetY = 1;
                 
-                ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
+                ctx.font = `500 12px 'Hanken Grotesk', sans-serif`;
                 ctx.fillText(layers[i].title, centerX, textY - 8);
 
-                ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
+                ctx.font = `bold 15px 'Hanken Grotesk', sans-serif`;
                 ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY + 8);
                 
                 ctx.shadowColor = 'transparent';
@@ -191,6 +190,27 @@ document.addEventListener("DOMContentLoaded", function () {
             return false;
         }
     };
+    
+    // Register the custom plugin globally so the fullscreen modal inherits it!
+    Chart.register(customPyramidPlugin);
+
+    // --- OVERRIDE FULLSCREEN MODAL LAYOUT TO MATCH 75/25 RATIO ---
+    if (window.toggleMaximize && !window.funnelTogglePatched) {
+        const originalToggle = window.toggleMaximize;
+        window.toggleMaximize = function(cardId, event) {
+            originalToggle(cardId, event);
+            if (cardId === 'chart-card-1') {
+                const canvasContainer = document.getElementById('fullscreen-canvas-container');
+                const modalLegend = document.getElementById('fullscreen-modal-legend');
+                if (canvasContainer && modalLegend) {
+                    // Force the 75/25 aspect ratio on the fullscreen modal
+                    canvasContainer.className = "w-[75%] h-full relative flex items-center justify-center min-h-[300px]";
+                    modalLegend.className = "w-[25%] h-full flex flex-col justify-center items-center pr-4 pl-2";
+                }
+            }
+        };
+        window.funnelTogglePatched = true;
+    }
 
     const ctxFunnel = document.getElementById('funnelChart');
     const legendContainer = document.getElementById('funnel-custom-legend');
@@ -225,10 +245,10 @@ document.addEventListener("DOMContentLoaded", function () {
             { title: 'Impressions', color: '#334155', vol: imp, compVol: comp_imp }
         ];
 
+        // Do not explicitly pass plugins: [] array here anymore, it's global!
         new Chart(ctxFunnel, {
             type: 'bar',
             data: { labels: [''], datasets: [{ data: [0] }] },
-            plugins: [customPyramidPlugin], 
             options: {
                 responsive: true, 
                 maintainAspectRatio: false,

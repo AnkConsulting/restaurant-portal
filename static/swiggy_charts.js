@@ -82,8 +82,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const pyHeight = pyBottom - pyTop;
             const layerHeight = pyHeight / numLayers;
             
-            // MATH UPDATE: Canvas is now wider overall, so we can make the pyramid base massive (76% of canvas).
-            // This naturally forces the top slice to be wide enough to hold the text!
             const centerX = left + (width * 0.38); 
             const pyMaxWidth = width * 0.76;
 
@@ -176,12 +174,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.shadowOffsetX = 1;
                 ctx.shadowOffsetY = 1;
                 
-                // Slightly tuned font size to guarantee "Orders" stays perfectly within the top box bounds
-                ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
-                ctx.fillText(layers[i].title, centerX, textY - 8);
+                // TEXT SWAP: Value on top, Title on bottom
+                ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
+                ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY - 8);
 
-                ctx.font = `bold 13px 'Hanken Grotesk', sans-serif`;
-                ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY + 8);
+                ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
+                ctx.fillText(layers[i].title, centerX, textY + 8);
                 
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
@@ -215,7 +213,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const canvasContainer = ctxFunnel ? ctxFunnel.parentElement : null;
     
     if (ctxFunnel && legendContainer && canvasContainer) {
-        // LAYOUT UPDATE: Canvas now gets 78% of the width, allowing the pyramid base to be much larger!
         canvasContainer.parentElement.style.flexDirection = 'row-reverse';
         canvasContainer.className = "w-[78%] h-full relative flex items-center justify-center min-h-[300px]";
         legendContainer.className = "w-[22%] h-full flex flex-col justify-center items-center pr-2 pl-2";

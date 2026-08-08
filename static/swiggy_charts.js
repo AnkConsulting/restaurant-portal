@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.stroke();
             }
             
-            // 2. Draw Short Dropoff Dashed Lines & Safely Anchored Right-Side Text
+            // 2. Draw Dropoff Dashed Lines & Safely Anchored Right-Side Text
             for (let i = 0; i < numLayers - 1; i++) {
                 const currentLayer = layers[i];   
                 const prevLayer = layers[i+1];    
@@ -120,7 +120,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 const lineY = pyTop + (i + 1) * layerHeight;
                 const currentW = ((i + 1) / numLayers) * pyMaxWidth;
                 
-                // NEW: Start the dashed line EXACTLY at the right edge of the pyramid
                 const startX = centerX + (currentW / 2);
                 const endX = centerX + (pyMaxWidth / 2) + 5; 
                 
@@ -129,7 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.moveTo(startX, lineY);
                 ctx.lineTo(endX, lineY);
                 ctx.lineWidth = 1.5;
-                ctx.strokeStyle = '#cbd5e1'; // Subtler dashed line
+                ctx.strokeStyle = '#cbd5e1'; 
                 ctx.stroke();
                 ctx.setLineDash([]);
                 
@@ -158,8 +157,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     
                     ctx.fillStyle = colorCls;
                     ctx.font = `600 10px 'Hanken Grotesk', sans-serif`;
-                    // Shows the previous drop-off percentage and the difference!
-                    ctx.fillText(`vs ${compDropPct}% (${arrow} ${Math.abs(diff)}%)`, endX + 12, lineY + 15);
+                    ctx.fillText(`vs ${compDropPct}% (${arrow} ${Math.abs(diff).toFixed(1)}%)`, endX + 12, lineY + 15);
                 }
             }
             
@@ -182,7 +180,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
                     ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY - 11);
 
-                    // Add previous period value right under current volume
                     ctx.fillStyle = '#e2e8f0'; 
                     ctx.font = `600 10px 'Hanken Grotesk', sans-serif`;
                     ctx.fillText(`vs ${layers[i].compVol.toLocaleString()}`, centerX, textY + 2);
@@ -273,6 +270,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
+        // 2. Build the Advanced Scorecard with Explicit Comparison Data
         const overallRate = imp > 0 ? ((orders / imp) * 100).toFixed(1) : 0;
         let compOverallHTML = '';
         if (hasComp && comp_imp > 0) {
@@ -281,14 +279,24 @@ document.addEventListener("DOMContentLoaded", function () {
             const isUp = diff >= 0;
             const colorCls = isUp ? 'text-[#10b981]' : 'text-error';
             const arrow = isUp ? '↑' : '↓';
-            compOverallHTML = `<div class="text-[11px] mt-2 font-medium ${colorCls}">${arrow} ${Math.abs(diff)}% vs Prev</div>`;
+            
+            compOverallHTML = `
+                <div class="mt-3 pt-3 border-t border-gray-100">
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Previous Period</p>
+                    <div class="flex items-center gap-2 mb-0.5">
+                        <span class="text-lg font-bold text-gray-700 leading-none">${compRate}%</span>
+                        <span class="text-[11px] font-medium ${colorCls} bg-gray-50 px-1.5 py-0.5 rounded">${arrow} ${Math.abs(diff).toFixed(1)}%</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500">${comp_orders.toLocaleString()} orders</p>
+                </div>
+            `;
         }
 
         let leftColHTML = `
-            <div class="bg-white border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.06)] rounded-2xl p-4 w-full shrink-0">
+            <div class="bg-white border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.06)] rounded-2xl p-5 w-full shrink-0">
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Conversion Rate</p>
-                <p class="text-3xl font-bold text-gray-800 leading-none mb-1.5" style="color: ${brandColor}">${overallRate}%</p>
-                <p class="text-[11px] text-gray-500">${orders.toLocaleString()} orders</p>
+                <p class="text-4xl font-bold text-gray-800 leading-none mb-1.5" style="color: ${brandColor}">${overallRate}%</p>
+                <p class="text-[12px] text-gray-500">${orders.toLocaleString()} orders</p>
                 ${compOverallHTML}
             </div>
         `;

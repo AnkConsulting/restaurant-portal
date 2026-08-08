@@ -120,7 +120,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 const lineY = pyTop + (i + 1) * layerHeight;
                 const currentW = ((i + 1) / numLayers) * pyMaxWidth;
                 
-                // Line starts EXACTLY at the slanted edge of the pyramid
                 const startX = centerX + (currentW / 2);
                 const endX = centerX + (pyMaxWidth / 2) + 5; 
                 
@@ -406,7 +405,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (hasComp) {
             discountData.datasets.push({ label: 'Comp GMV', data: getCompData(i => i.gmv), backgroundColor: 'transparent', borderColor: '#e2e8f0', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y', order: 2 });
-            discountData.datasets.push({ label: 'Comp Discount', data: getCompData(i => i.discount), type: 'line', borderColor: '#FC8019', backgroundColor: 'transparent', borderDash: [5, 5], borderWidth: 2, tension: 0.4, yAxisID: 'y', order: 1 });
+            discountData.datasets.push({ label: 'Comp Discount', data: getCompData(i => i.discount), type: 'line', borderColor: '#FC8019', backgroundColor: 'transparent', borderDash: [5, 5], borderRadius: 4, yAxisID: 'y', order: 1 });
         }
 
         new Chart(ctxDiscount, {
@@ -421,7 +420,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- CHART 6: Customer Mix (New vs Repeat) ---
+    // --- CHART 6: Customer Mix (New vs Repeat) - FIXED SYNTAX ---
     const ctxCustomer = document.getElementById('customerMixChart');
     if (ctxCustomer) {
         const mixData = {

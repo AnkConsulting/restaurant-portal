@@ -41,7 +41,6 @@
     </script>
     <style type="text/tailwindcss">
         @layer utilities {
-            /* Upgraded Cards with Dark Mode Support */
             .elevation-1 { @apply bg-white dark:bg-slate-800 border border-surface-container-high dark:border-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.02)]; }
             .elevation-2 { @apply bg-white dark:bg-slate-800 shadow-[0_8px_24px_rgba(0,0,0,0.06)]; }
             .card-radius { @apply rounded-[16px]; }
@@ -53,7 +52,6 @@
     </style>
 
     <script>
-        // 1. Instant Viewport & Theme Pre-Loader (Prevents Screen Flicker)
         (function() {
             const savedTheme = localStorage.getItem('rda_theme') || 'light';
             if (savedTheme === 'dark') {
@@ -73,7 +71,6 @@
             }
         })();
 
-        // 2. Theme Switcher Logic
         function toggleTheme() {
             const isDark = document.documentElement.classList.contains('dark');
             if (isDark) {
@@ -103,7 +100,6 @@
             }
         }
 
-        // 3. View Mode Switcher Logic
         function toggleViewMode() {
             const currentMode = localStorage.getItem('rda_view_mode') || 'desktop';
             const newMode = (currentMode === 'desktop') ? 'mobile' : 'desktop';
@@ -230,7 +226,7 @@
         </div>
         
         {% if is_admin %}
-            <img alt="User Logo" class="w-8 h-8 md:w-10 md:h-10 object-contain rounded-full border border-surface-container-high bg-white p-0.5" src="/static/ank-logo.png"/>
+            <img alt="User Logo" class="w-8 h-8 md:w-10 md:h-10 object-contain rounded-full border border-surface-container-high dark:border-slate-700 bg-white p-0.5" src="/static/ank-logo.png"/>
         {% else %}
             <div id="avatar-initials" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#004ac6] text-white flex items-center justify-center text-xs md:text-sm font-bold shadow-sm"></div>
         {% endif %}
@@ -241,56 +237,58 @@
     
     <form method="get" action="/" id="filter-form" class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-8 relative z-[80]">
         
-        <div class="relative w-full xl:w-auto z-[100]" id="date-dropdown-container">
-            <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
-            <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
-            <input type="hidden" id="max-available-date" value="{{ max_available_date }}">
+        <div class="flex flex-col md:flex-row items-center gap-3 w-full xl:w-auto relative z-[90]">
+            <div class="relative w-full md:w-auto z-[100]" id="date-dropdown-container">
+                <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
+                <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
+                <input type="hidden" id="max-available-date" value="{{ max_available_date }}">
 
-            <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white dark:bg-slate-800 border border-[#c3c6d7] dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none group min-w-full md:min-w-[280px]">
-                <div class="flex items-center gap-3">
-                  <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-[20px]">calendar_today</span>
-                  <span id="custom-cal-label" class="text-sm font-medium text-gray-700 dark:text-gray-200"></span>
-                </div>
-                <span class="material-symbols-outlined text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">expand_more</span>
-            </button>
-          
-            <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-visible font-['Hanken_Grotesk'] w-[300px] sm:w-80 z-[110] dropdown-menu-custom" onclick="event.stopPropagation()">
-                <div class="p-4">
-                  <div class="flex items-center justify-between mb-4 relative">
-                    <button type="button" onclick="navigateCalendar(-1, 0)" class="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors flex items-center dark:text-gray-300">
-                      <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-[20px]">chevron_left</span>
-                    </button>
-                    <div class="flex gap-1 sm:gap-2 font-bold text-gray-900 dark:text-white text-sm items-center">
-                      <div class="relative">
-                          <button type="button" onclick="toggleMonthDropdown(event)" class="hover:bg-gray-100 dark:hover:bg-slate-700 px-1 sm:px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
-                              <span id="month-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
-                          </button>
-                          <div id="month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white dark:bg-slate-800 border border-outline-variant dark:border-slate-700 rounded-lg shadow-xl z-[120] w-28 sm:w-32 max-h-48 overflow-y-auto custom-scrollbar dark:text-white"></div>
+                <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white dark:bg-slate-800 border border-[#c3c6d7] dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none group min-w-full md:min-w-[280px]">
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-[20px]">calendar_today</span>
+                      <span id="custom-cal-label" class="text-sm font-medium text-gray-700 dark:text-gray-200"></span>
+                    </div>
+                    <span class="material-symbols-outlined text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">expand_more</span>
+                </button>
+              
+                <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-visible font-['Hanken_Grotesk'] w-[300px] sm:w-80 z-[110] dropdown-menu-custom" onclick="event.stopPropagation()">
+                    <div class="p-4">
+                      <div class="flex items-center justify-between mb-4 relative">
+                        <button type="button" onclick="navigateCalendar(-1, 0)" class="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors flex items-center dark:text-gray-300">
+                          <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-[20px]">chevron_left</span>
+                        </button>
+                        <div class="flex gap-1 sm:gap-2 font-bold text-gray-900 dark:text-white text-sm items-center">
+                          <div class="relative">
+                              <button type="button" onclick="toggleMonthDropdown(event)" class="hover:bg-gray-100 dark:hover:bg-slate-700 px-1 sm:px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                                  <span id="month-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+                              </button>
+                              <div id="month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white dark:bg-slate-800 border border-outline-variant dark:border-slate-700 rounded-lg shadow-xl z-[120] w-28 sm:w-32 max-h-48 overflow-y-auto custom-scrollbar dark:text-white"></div>
+                          </div>
+                          <div class="relative">
+                              <button type="button" onclick="toggleYearDropdown(event)" class="hover:bg-gray-100 dark:hover:bg-slate-700 px-1 sm:px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                                  <span id="year-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+                              </button>
+                              <div id="year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white dark:bg-slate-800 border border-outline-variant dark:border-slate-700 rounded-lg shadow-xl z-[120] w-20 sm:w-24 max-h-48 overflow-y-auto custom-scrollbar dark:text-white"></div>
+                          </div>
+                        </div>
+                        <button type="button" onclick="navigateCalendar(1, 0)" class="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors flex items-center dark:text-gray-300">
+                          <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-[20px]">chevron_right</span>
+                        </button>
                       </div>
-                      <div class="relative">
-                          <button type="button" onclick="toggleYearDropdown(event)" class="hover:bg-gray-100 dark:hover:bg-slate-700 px-1 sm:px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
-                              <span id="year-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
-                          </button>
-                          <div id="year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white dark:bg-slate-800 border border-outline-variant dark:border-slate-700 rounded-lg shadow-xl z-[120] w-20 sm:w-24 max-h-48 overflow-y-auto custom-scrollbar dark:text-white"></div>
+
+                      <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">
+                        <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+                      </div>
+
+                      <div class="grid grid-cols-7 gap-1 text-center text-sm dark:text-gray-200" id="calendar-days-grid"></div>
+
+                      <div class="mt-6 pt-4 border-t border-gray-50 dark:border-slate-700 flex items-center justify-between">
+                        <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors px-2 sm:px-4 py-2">Cancel</button>
+                        <button type="button" onclick="applyDateSelection()" class="bg-[#2563eb] text-white text-sm font-bold px-4 sm:px-6 py-2 rounded-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100 dark:shadow-none">
+                          Apply Range
+                        </button>
                       </div>
                     </div>
-                    <button type="button" onclick="navigateCalendar(1, 0)" class="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors flex items-center dark:text-gray-300">
-                      <span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-[20px]">chevron_right</span>
-                    </button>
-                  </div>
-
-                  <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">
-                    <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
-                  </div>
-
-                  <div class="grid grid-cols-7 gap-1 text-center text-sm dark:text-gray-200" id="calendar-days-grid"></div>
-
-                  <div class="mt-6 pt-4 border-t border-gray-50 dark:border-slate-700 flex items-center justify-between">
-                    <button type="button" onclick="toggleCustomDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors px-2 sm:px-4 py-2">Cancel</button>
-                    <button type="button" onclick="applyDateSelection()" class="bg-[#2563eb] text-white text-sm font-bold px-4 sm:px-6 py-2 rounded-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100 dark:shadow-none">
-                      Apply Range
-                    </button>
-                  </div>
                 </div>
             </div>
         </div>
@@ -344,150 +342,4 @@
                     <span id="platform-trigger-text" class="truncate">{{ selected_platform if selected_platform else 'All Platforms' }}</span>
                     <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500 text-[20px]">expand_more</span>
                 </div>
-                <div id="platform-menu" class="hidden absolute z-[100] mt-1 w-full right-0 bg-white dark:bg-slate-800 border border-outline-variant dark:border-slate-700 rounded-lg shadow-lg overflow-visible dropdown-menu-custom" onclick="event.stopPropagation()">
-                    <ul id="platform-list" class="max-h-60 overflow-y-auto custom-scrollbar text-sm dark:text-slate-200 py-1">
-                        <li onclick="submitCustomDropdown('platform-input', '')" class="px-4 py-2 hover:bg-surface-container-high dark:hover:bg-slate-700 cursor-pointer transition-colors">All Platforms</li>
-                        {% for p in platforms %}
-                        <li onclick="submitCustomDropdown('platform-input', '{{ p }}')" class="px-4 py-2 hover:bg-surface-container-high dark:hover:bg-slate-700 cursor-pointer transition-colors">{{ p }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-
-            <button type="button" onclick="exportMainCSV()" class="w-full sm:w-auto xl:w-auto h-10 px-5 flex items-center justify-center gap-2 bg-[#F1F5F9] dark:bg-slate-800 border border-outline-variant dark:border-slate-700 rounded-lg font-semibold text-sm hover:bg-gray-200 dark:hover:bg-slate-700 hover:border-[#004ac6] transition-all shadow-sm group dark:text-white">
-                <span class="material-symbols-outlined text-[18px] text-[#004ac6] dark:text-[#2563eb] group-hover:scale-110 transition-transform">download</span>
-                Export CSV
-            </button>
-        </div>
-    </form>
-
-    <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-8 relative z-10">
-        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[11px] md:text-[12px] text-gray-500 uppercase tracking-widest truncate">Total GMV</span>
-            <div id="kpi-gmv" class="text-xl md:text-[26px] font-bold text-on-surface dark:text-white mt-2 truncate">{{ total_gmv }}</div>
-        </div>
-
-        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[11px] md:text-[12px] text-gray-500 uppercase tracking-widest truncate">Orders</span>
-            <div id="kpi-orders" class="text-xl md:text-[26px] font-bold text-primary dark:text-[#2563eb] mt-2 truncate">{{ total_orders }}</div>
-        </div>
-
-        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[11px] md:text-[12px] text-gray-500 uppercase tracking-widest truncate">Pre-Disc AOV</span>
-            <div id="kpi-aov" class="text-xl md:text-[26px] font-bold text-on-surface dark:text-white mt-2 truncate">{{ avg_aov }}</div>
-        </div>
-
-        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[11px] md:text-[12px] text-gray-500 uppercase tracking-widest truncate">Ad Sales</span>
-            <div id="kpi-ads" class="text-xl md:text-[26px] font-bold text-[#FC8019] mt-2 truncate">{{ sales_ads }}</div>
-        </div>
-
-        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col justify-between col-span-2 md:col-span-1 lg:col-span-1">
-            <span class="font-label-sm text-[11px] md:text-[12px] text-gray-500 uppercase tracking-widest truncate">Discounts</span>
-            <div id="kpi-discount" class="text-xl md:text-[26px] font-bold text-error mt-2 truncate">{{ discount_given }}</div>
-        </div>
-    </section>
-
-    <section class="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6 mb-8 relative z-10" id="charts-container">
-        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col h-[400px] md:h-[450px]">
-            <div class="flex justify-between items-start mb-2">
-                <h3 id="donut-chart-title" class="font-title-md text-[14px] md:text-[16px] font-bold text-on-surface dark:text-white uppercase tracking-wide">Orders by Platform</h3>
-                <div class="flex bg-surface-bright dark:bg-slate-700 p-1 rounded-lg border border-surface-container-high dark:border-slate-600 text-[11px] font-medium shadow-sm">
-                    <button type="button" onclick="switchDonutMetric('sales', this)" class="donut-btn px-2.5 py-1 rounded bg-white dark:bg-slate-600 text-primary dark:text-[#2563eb] shadow-sm transition-all">Sales</button>
-                    <button type="button" onclick="switchDonutMetric('gmv', this)" class="donut-btn px-2.5 py-1 rounded text-on-surface-variant dark:text-gray-300 hover:text-on-surface transition-all">GMV</button>
-                    <button type="button" onclick="switchDonutMetric('orders', this)" class="donut-btn px-2.5 py-1 rounded text-on-surface-variant dark:text-gray-300 hover:text-on-surface transition-all">Orders</button>
-                    <button type="button" onclick="switchDonutMetric('ads', this)" class="donut-btn px-2.5 py-1 rounded text-on-surface-variant dark:text-gray-300 hover:text-on-surface transition-all">Ads</button>
-                    <button type="button" onclick="switchDonutMetric('discount', this)" class="donut-btn px-2.5 py-1 rounded text-on-surface-variant dark:text-gray-300 hover:text-on-surface transition-all">Discount</button>
-                </div>
-            </div>
-            <div class="relative w-full flex-1 flex justify-center items-center">
-                <canvas id="platformDonutChart"></canvas>
-            </div>
-        </div>
-
-        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col h-[400px] md:h-[450px]">
-            <div class="flex justify-between items-start mb-2">
-                <h3 id="trend-chart-title" class="font-title-md text-[14px] md:text-[16px] font-bold text-on-surface dark:text-white uppercase tracking-wide">Daily Sales Trend</h3>
-                <div class="flex bg-surface-bright dark:bg-slate-700 p-1 rounded-lg border border-surface-container-high dark:border-slate-600 text-[11px] font-medium shadow-sm">
-                    <button type="button" onclick="switchTrendMetric('sales', this)" class="trend-btn px-2.5 py-1 rounded bg-white dark:bg-slate-600 text-primary dark:text-[#2563eb] shadow-sm transition-all">Sales</button>
-                    <button type="button" onclick="switchTrendMetric('gmv', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant dark:text-gray-300 hover:text-on-surface transition-all">GMV</button>
-                    <button type="button" onclick="switchTrendMetric('orders', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant dark:text-gray-300 hover:text-on-surface transition-all">Orders</button>
-                    <button type="button" onclick="switchTrendMetric('ads', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant dark:text-gray-300 hover:text-on-surface transition-all">Ads</button>
-                    <button type="button" onclick="switchTrendMetric('discount', this)" class="trend-btn px-2.5 py-1 rounded text-on-surface-variant dark:text-gray-300 hover:text-on-surface transition-all">Discount</button>
-                </div>
-            </div>
-            <div class="relative w-full flex-1">
-                <canvas id="salesTrendChart"></canvas>
-            </div>
-        </div>
-    </section>
-
-    <section class="elevation-1 card-radius overflow-hidden mb-12 relative z-10">
-        <div class="px-4 md:px-6 py-4 border-b border-surface-container-high dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-wrap justify-between items-center gap-4">
-            <h2 class="font-title-md text-[14px] md:text-[16px] font-bold text-on-surface dark:text-white uppercase tracking-wide">Daily Operational Report</h2>
-        </div>
-        <div class="overflow-x-auto w-full">
-            <table class="w-full text-left border-collapse whitespace-nowrap min-w-[1000px]">
-                <thead>
-                    <tr class="bg-[#F1F5F9] dark:bg-slate-700 font-label-sm text-[12px] text-gray-600 dark:text-gray-300 uppercase tracking-widest border-b border-surface-container-high dark:border-slate-600">
-                        <th class="py-4 px-4 font-semibold">Restaurant Name</th>
-                        <th class="py-4 px-4 font-semibold">Report Period</th>
-                        <th class="py-4 px-4 font-semibold">Location</th>
-                        <th class="py-4 px-4 font-semibold">Res ID</th>
-                        <th class="py-4 px-4 font-semibold">Platform</th>
-                        <th class="py-4 px-4 font-semibold text-right">Orders</th>
-                        <th class="py-4 px-4 font-semibold text-right">Sales</th>
-                        <th class="py-4 px-4 font-semibold text-right">GMV</th>
-                        <th class="py-4 px-4 font-semibold text-right">Ads Sales</th>
-                        <th class="py-4 px-4 font-semibold text-right">Discount</th>
-                    </tr>
-                </thead>
-                <tbody id="data-table-body" class="font-body-md text-sm text-on-surface dark:text-slate-200">
-                    {% for row in table_data %}
-                    <tr class="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
-                        <td class="py-4 px-4 font-medium">{{ row.get('Restaurant Name', '') }}</td>
-                        <td class="py-4 px-4 text-gray-500 dark:text-gray-400">{{ row.get('Report Period', '') }}</td>
-                        <td class="py-4 px-4">{{ row.get('Location', '') }}</td>
-                        <td class="py-4 px-4 font-mono text-xs text-gray-400 dark:text-gray-500">{{ row.get('Res ID', '') }}</td>
-                        <td class="py-4 px-4 font-semibold {{ 'text-[#FC8019]' if row.get('Platform', '').lower() == 'swiggy' else 'text-[#E23744]' if row.get('Platform', '').lower() == 'zomato' else '' }}">{{ row.get('Platform', '') }}</td>
-                        <td class="py-4 px-4 text-right font-bold">{{ "{:,}".format(row.get('Delivered orders', 0)|int) }}</td>
-                        <td class="py-4 px-4 text-right">₹{{ "{:,.2f}".format(row.get('Sales', 0)) }}</td>
-                        <td class="py-4 px-4 text-right">₹{{ "{:,.2f}".format(row.get('GMV', 0)) }}</td>
-                        <td class="py-4 px-4 text-right">₹{{ "{:,.2f}".format(row.get('Sales from Ads', 0)) }}</td>
-                        <td class="py-4 px-4 text-right text-error font-medium">₹{{ "{:,.2f}".format(row.get('Discount given', 0)) }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="10" class="py-8 text-center text-gray-500 italic">No operational data found for the selected filter.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </section>
-</main>
-
-<script>
-    window.INITIAL_CHART_DATA = {{ chart_data | tojson | safe }};
-    
-    function exportMainCSV() {
-        const brand = document.getElementById('brand-input') ? document.getElementById('brand-input').value : '';
-        const outlet = document.getElementById('outlet-input').value;
-        const platform = document.getElementById('platform-input').value;
-        const startDate = document.getElementById('start-date-input').value;
-        const endDate = document.getElementById('end-date-input').value;
-        
-        const params = new URLSearchParams();
-        if (brand) params.append('brand', brand);
-        if (outlet) params.append('outlet', outlet);
-        if (platform) params.append('platform', platform);
-        if (startDate) params.append('start_date', startDate);
-        if (endDate) params.append('end_date', endDate);
-        
-        window.location.href = '/export?' + params.toString();
-    }
-</script>
-<script src="/static/script.js"></script>
-
-</body>
-</html>
+                <div id="platform-menu" class="hidden absolute z-[100] mt-1 w-full right-0 bg

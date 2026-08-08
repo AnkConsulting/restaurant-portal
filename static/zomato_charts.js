@@ -76,14 +76,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const layers = options.layers;
             const numLayers = layers.length;
             
-            // HEIGHT IS PRESERVED: 0 padding ensures it uses full height
             const padY = 0; 
             const pyTop = top + padY;
             const pyBottom = bottom - padY;
             const pyHeight = pyBottom - pyTop;
             const layerHeight = pyHeight / numLayers;
             
-            // WIDTH INCREASED: Widen to 88% and perfectly shift center to 44% to touch left edge!
             const centerX = left + (width * 0.44); 
             const pyMaxWidth = width * 0.88;
 
@@ -113,27 +111,30 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.stroke();
             }
             
-            // 2. Draw Dropoff Dashed Lines & Safely Anchored Right-Side Text
+            // 2. Draw Short Dropoff Dashed Lines & Safely Anchored Right-Side Text
             for (let i = 0; i < numLayers - 1; i++) {
                 const currentLayer = layers[i];   
                 const prevLayer = layers[i+1];    
                 const dropOffPct = prevLayer.vol > 0 ? (((prevLayer.vol - currentLayer.vol) / prevLayer.vol) * 100).toFixed(1) : 0;
                 
                 const lineY = pyTop + (i + 1) * layerHeight;
-                const startX = centerX;
-                const endX = centerX + (pyMaxWidth / 2) + 10; 
+                const currentW = ((i + 1) / numLayers) * pyMaxWidth;
+                
+                // NEW: Start the dashed line EXACTLY at the right edge of the pyramid
+                const startX = centerX + (currentW / 2);
+                const endX = centerX + (pyMaxWidth / 2) + 5; 
                 
                 ctx.beginPath();
                 ctx.setLineDash([4, 4]);
                 ctx.moveTo(startX, lineY);
                 ctx.lineTo(endX, lineY);
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = '#cbd5e1'; // Subtler dashed line
                 ctx.stroke();
                 ctx.setLineDash([]);
                 
                 ctx.beginPath();
-                ctx.arc(endX + 6, lineY, 3, 0, 2 * Math.PI);
+                ctx.arc(endX + 4, lineY, 3, 0, 2 * Math.PI);
                 ctx.fillStyle = '#ef4444';
                 ctx.fill();
                 
@@ -141,12 +142,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#64748b';
                 ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
-                ctx.fillText('Drop-off:', endX + 14, lineY);
+                ctx.fillText('Drop-off:', endX + 12, lineY);
                 
                 const textW = ctx.measureText('Drop-off: ').width;
                 ctx.fillStyle = '#1e293b';
                 ctx.font = `bold 12px 'Hanken Grotesk', sans-serif`;
-                ctx.fillText(`${dropOffPct}%`, endX + 14 + textW, lineY);
+                ctx.fillText(`${dropOffPct}%`, endX + 12 + textW, lineY);
 
                 if (options.hasComp) {
                     const compDropPct = prevLayer.compVol > 0 ? (((prevLayer.compVol - currentLayer.compVol) / prevLayer.compVol) * 100).toFixed(1) : 0;
@@ -157,7 +158,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     
                     ctx.fillStyle = colorCls;
                     ctx.font = `600 10px 'Hanken Grotesk', sans-serif`;
-                    ctx.fillText(`${arrow} ${Math.abs(diff)}% vs prev`, endX + 14, lineY + 16);
+                    // Shows the previous drop-off percentage and the difference!
+                    ctx.fillText(`vs ${compDropPct}% (${arrow} ${Math.abs(diff)}%)`, endX + 12, lineY + 15);
                 }
             }
             
@@ -169,19 +171,33 @@ document.addEventListener("DOMContentLoaded", function () {
                 
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#ffffff';
                 
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 4;
                 ctx.shadowOffsetX = 1;
                 ctx.shadowOffsetY = 1;
                 
-                // DATA FIRST: Value on top, Title on bottom
-                ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
-                ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY - 8);
+                if (options.hasComp) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
+                    ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY - 11);
 
-                ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
-                ctx.fillText(layers[i].title, centerX, textY + 8);
+                    // Add previous period value right under current volume
+                    ctx.fillStyle = '#e2e8f0'; 
+                    ctx.font = `600 10px 'Hanken Grotesk', sans-serif`;
+                    ctx.fillText(`vs ${layers[i].compVol.toLocaleString()}`, centerX, textY + 2);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
+                    ctx.fillText(layers[i].title, centerX, textY + 15);
+                } else {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
+                    ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY - 8);
+
+                    ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
+                    ctx.fillText(layers[i].title, centerX, textY + 8);
+                }
                 
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
@@ -216,7 +232,6 @@ document.addEventListener("DOMContentLoaded", function () {
     
     if (ctxFunnel && legendContainer && canvasContainer) {
         canvasContainer.parentElement.style.flexDirection = 'row-reverse';
-        // Updated container split to give pyramid 80% of width
         canvasContainer.className = "w-[80%] h-full relative flex items-center justify-center min-h-[300px]";
         legendContainer.className = "w-[20%] h-full flex flex-col justify-center items-center pr-2 pl-2";
 

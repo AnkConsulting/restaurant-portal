@@ -2,7 +2,7 @@
 <html class="light" lang="en">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=1280" name="viewport"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Zomato Insights - RDA Portal</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -43,7 +43,7 @@
             .elevation-1 { @apply bg-white border border-surface-container-high shadow-[0_4px_12px_rgba(0,0,0,0.02)]; }
             .elevation-2 { @apply bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)]; }
             .card-radius { @apply rounded-[16px]; }
-            .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+            .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
             .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
             .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c3c6d7; border-radius: 20px; }
         }
@@ -51,23 +51,23 @@
 </head>
 <body class="bg-background text-on-surface font-body-md min-h-screen">
 
-<header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
-    <div class="flex items-center gap-6">
+<header class="fixed top-0 w-full z-[100] bg-surface-bright shadow-sm flex justify-between items-center px-4 md:px-margin-desktop py-4 mx-auto border-b border-surface-container-high">
+    <div class="flex items-center gap-4 md:gap-6">
         <div class="flex items-center gap-3">
-            <img alt="Logo" class="w-10 h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
-            <h1 class="font-headline-lg text-[22px] font-bold text-gray-800 tracking-tight hidden md:block border-r border-gray-300 pr-6">RDA Portal</h1>
+            <img alt="Logo" class="w-8 h-8 md:w-10 md:h-10 object-contain rounded-md" src="/static/ank-logo.png"/>
+            <h1 class="font-headline-lg text-[18px] md:text-[22px] font-bold text-gray-800 tracking-tight hidden md:block border-r border-gray-300 pr-6">RDA Portal</h1>
         </div>
         
         <div class="relative font-['Hanken_Grotesk'] z-[110]" id="module-switcher-container">
-          <button onclick="zomatoToggleDropdown('module-menu', event)" class="flex items-center gap-3 px-4 py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-red-200 transition-all group focus:outline-none">
+          <button onclick="zomatoToggleDropdown('module-menu', event)" class="flex items-center gap-2 md:gap-3 px-3 py-1.5 md:px-4 md:py-2 bg-white border border-[#e6e8ea] rounded-lg shadow-sm hover:border-red-200 transition-all group focus:outline-none">
             <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-[#E23744] text-[20px]">storefront</span>
-              <span class="font-bold text-[#E23744] text-sm">Zomato Insights</span>
+              <span class="material-symbols-outlined text-[#E23744] text-[18px] md:text-[20px]">storefront</span>
+              <span class="font-bold text-[#E23744] text-xs md:text-sm">Zomato Insights</span>
             </div>
-            <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors text-[20px]">expand_more</span>
+            <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors text-[18px] md:text-[20px]">expand_more</span>
           </button>
 
-          <div id="module-menu" class="hidden dropdown-menu-custom absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50" onclick="event.stopPropagation()">
+          <div id="module-menu" class="hidden dropdown-menu-custom absolute top-full left-0 mt-2 w-64 md:w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50" onclick="event.stopPropagation()">
             <div class="p-4">
               <div class="mb-4">
                 <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Core Analytics</h4>
@@ -91,12 +91,12 @@
         </div>
     </div>
 
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2 md:gap-4">
         <div class="relative group">
-            <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-gray-500">
-                <span class="material-symbols-outlined">settings</span>
+            <button class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-gray-500">
+                <span class="material-symbols-outlined text-[20px] md:text-[24px]">settings</span>
             </button>
-            <div class="absolute right-0 mt-2 w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
+            <div class="absolute right-0 mt-2 w-64 md:w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
                 <h4 class="font-title-md text-[18px] font-semibold text-on-surface mb-4">Theme Settings</h4>
                 <div class="mt-4 pt-4 border-t border-outline-variant">
                     <a href="/logout" class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-red-50 rounded-lg transition-colors duration-200 group no-underline">
@@ -107,7 +107,7 @@
             </div>
         </div>
         
-        <div class="md:flex flex-col items-end">
+        <div class="hidden md:flex flex-col items-end">
             <span class="font-label-sm text-[12px] tracking-wider text-gray-500 uppercase">Welcome,</span>
             <span id="user-display-name" class="font-title-md text-[16px] font-semibold text-on-surface">
                 {% if is_admin %}
@@ -125,22 +125,22 @@
         </div>
         
         {% if is_admin %}
-            <img alt="User Logo" class="w-10 h-10 object-contain rounded-full border border-surface-container-high bg-white p-0.5" src="/static/ank-logo.png"/>
+            <img alt="User Logo" class="w-8 h-8 md:w-10 md:h-10 object-contain rounded-full border border-surface-container-high bg-white p-0.5" src="/static/ank-logo.png"/>
         {% else %}
-            <div id="avatar-initials" class="w-10 h-10 rounded-full bg-[#E23744] text-white flex items-center justify-center font-bold shadow-sm"></div>
+            <div id="avatar-initials" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#E23744] text-white flex items-center justify-center text-xs md:text-sm font-bold shadow-sm"></div>
         {% endif %}
     </div>
 </header>
 
-<main id="main-content" class="pt-[88px] pb-12 px-margin-desktop max-w-[1440px] mx-auto transition-opacity duration-300">
-    <form method="get" action="/zomato-insights" id="filter-form" class="flex flex-wrap items-center justify-between gap-4 mb-8">
-        <div class="flex items-center gap-3 flex-wrap">
+<main id="main-content" class="pt-[80px] md:pt-[100px] pb-12 px-4 md:px-margin-desktop max-w-[1600px] mx-auto transition-opacity duration-300">
+    <form method="get" action="/zomato-insights" id="filter-form" class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-8">
+        <div class="flex flex-col md:flex-row items-center gap-3 w-full xl:w-auto">
             <div class="relative w-full md:w-auto z-40" id="date-dropdown-container">
                 <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
                 <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
                 <input type="hidden" id="max-available-date" value="{{ max_available_date }}">
 
-                <button type="button" onclick="zomatoToggleDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-red-500 focus:outline-none group min-w-[280px]">
+                <button type="button" onclick="zomatoToggleDropdown('calendar-menu', event)" class="w-full h-10 px-4 flex items-center justify-between bg-white border border-[#c3c6d7] rounded-lg hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-red-500 focus:outline-none group min-w-full md:min-w-[280px]">
                     <div class="flex items-center gap-3">
                       <span class="material-symbols-outlined text-gray-500 text-[20px]">calendar_today</span>
                       <span id="custom-cal-label" class="text-sm font-medium text-gray-700"></span>
@@ -148,24 +148,24 @@
                     <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors">expand_more</span>
                 </button>
               
-                <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
+                <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-[300px] sm:w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-4">
                       <div class="flex items-center justify-between mb-4 relative">
                         <button type="button" onclick="zomatoNavigate(-1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
                           <span class="material-symbols-outlined text-gray-500 text-[20px]">chevron_left</span>
                         </button>
-                        <div class="flex gap-2 font-bold text-gray-900 text-sm items-center">
+                        <div class="flex gap-1 sm:gap-2 font-bold text-gray-900 text-sm items-center">
                           <div class="relative">
-                              <button type="button" onclick="zomatoToggleMonthMenu(event)" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                              <button type="button" onclick="zomatoToggleMonthMenu(event)" class="hover:bg-gray-100 px-1 sm:px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
                                   <span id="custom-month-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
                               </button>
-                              <div id="custom-month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-32 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                              <div id="custom-month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-28 sm:w-32 max-h-48 overflow-y-auto custom-scrollbar"></div>
                           </div>
                           <div class="relative">
-                              <button type="button" onclick="zomatoToggleYearMenu(event)" class="hover:bg-gray-100 px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
+                              <button type="button" onclick="zomatoToggleYearMenu(event)" class="hover:bg-gray-100 px-1 sm:px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
                                   <span id="custom-year-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
                               </button>
-                              <div id="custom-year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-24 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                              <div id="custom-year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-20 sm:w-24 max-h-48 overflow-y-auto custom-scrollbar"></div>
                           </div>
                         </div>
                         <button type="button" onclick="zomatoNavigate(1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
@@ -180,8 +180,8 @@
                       <div class="grid grid-cols-7 gap-1 text-center text-sm" id="custom-cal-grid"></div>
 
                       <div class="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
-                        <button type="button" onclick="zomatoToggleDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2">Cancel</button>
-                        <button type="button" onclick="zomatoApplyDate()" class="bg-[#E23744] text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-red-700 transition-all active:scale-95 shadow-lg shadow-red-100">
+                        <button type="button" onclick="zomatoToggleDropdown('calendar-menu', event)" class="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors px-2 sm:px-4 py-2">Cancel</button>
+                        <button type="button" onclick="zomatoApplyDate()" class="bg-[#E23744] text-white text-sm font-bold px-4 sm:px-6 py-2 rounded-lg hover:bg-red-700 transition-all active:scale-95 shadow-lg shadow-red-100">
                           Apply Range
                         </button>
                       </div>
@@ -189,7 +189,7 @@
                 </div>
             </div>
 
-            <div class="relative min-w-[240px] w-full md:w-auto z-40" id="compare-dropdown-container">
+            <div class="relative w-full md:min-w-[240px] md:w-auto z-40" id="compare-dropdown-container">
                 <input type="hidden" name="compare" id="compare-input" value="{{ compare_mode if compare_mode else 'none' }}">
                 <div onclick="zomatoToggleDropdown('compare-menu', event)" class="w-full h-10 bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-gray-700 font-medium hover:border-[#E23744] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="compare-trigger-text" class="truncate">
@@ -213,9 +213,9 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-4 flex-1 justify-end z-[50]">
+        <div class="flex flex-col sm:flex-row items-center gap-3 xl:gap-4 w-full xl:w-auto xl:flex-1 justify-end z-[50]">
             {% if is_admin %}
-            <div class="relative min-w-[220px] w-full md:w-auto" id="brand-dropdown-container">
+            <div class="relative w-full sm:w-1/3 xl:min-w-[220px] xl:w-auto" id="brand-dropdown-container">
                 <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
                 <div onclick="zomatoToggleDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-on-surface hover:border-[#E23744] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
@@ -237,7 +237,7 @@
             <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
             {% endif %}
 
-            <div class="relative min-w-[220px] w-full md:w-auto" id="outlet-dropdown-container">
+            <div class="relative w-full sm:w-1/3 xl:min-w-[220px] xl:w-auto" id="outlet-dropdown-container">
                 <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
                 <div onclick="zomatoToggleDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 text-sm text-on-surface hover:border-[#E23744] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
@@ -256,93 +256,93 @@
                 </div>
             </div>
 
-            <button type="button" onclick="zomatoExportCSV()" class="h-[46px] px-5 flex items-center justify-center gap-2 bg-[#F1F5F9] border border-outline-variant rounded-lg font-semibold text-sm hover:bg-gray-200 hover:border-[#E23744] transition-all shadow-sm group">
-                <span class="material-symbols-outlined text-[20px] text-[#E23744] group-hover:scale-110 transition-transform">download</span>
+            <button type="button" onclick="zomatoExportCSV()" class="w-full sm:w-1/3 xl:w-auto h-10 px-5 flex items-center justify-center gap-2 bg-[#F1F5F9] border border-outline-variant rounded-lg font-semibold text-sm hover:bg-gray-200 hover:border-[#E23744] transition-all shadow-sm group">
+                <span class="material-symbols-outlined text-[18px] text-[#E23744] group-hover:scale-110 transition-transform">download</span>
                 Export CSV
             </button>
         </div>
     </form>
 
-    <section class="grid grid-cols-5 gap-6 mb-8">
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Zomato GMV</span>
-            <div class="text-[26px] font-bold text-on-surface mt-2">{{ total_gmv }}</div>
+    <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-8">
+        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[11px] md:text-[12px] text-gray-500 uppercase tracking-widest truncate">Zomato GMV</span>
+            <div class="text-xl md:text-[26px] font-bold text-on-surface mt-2 truncate">{{ total_gmv }}</div>
             {% if comp_data and comp_data.gmv and comp_data.gmv.show %}
-            <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.gmv.is_positive else 'text-error' }}">
-                <span class="material-symbols-outlined text-[16px]">{{ 'arrow_upward' if comp_data.gmv.is_positive else 'arrow_downward' }}</span>
+            <div class="flex items-center gap-1 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.gmv.is_positive else 'text-error' }} truncate">
+                <span class="material-symbols-outlined text-[14px] md:text-[16px]">{{ 'arrow_upward' if comp_data.gmv.is_positive else 'arrow_downward' }}</span>
                 <span>{{ comp_data.gmv.pct }}%</span>
-                <span class="text-gray-400 font-normal ml-1">vs {{ comp_data.label }}</span>
+                <span class="text-gray-400 font-normal ml-1 hidden sm:inline">vs {{ comp_data.label }}</span>
             </div>
             {% endif %}
         </div>
 
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Orders</span>
-            <div class="text-[26px] font-bold text-[#E23744] mt-2">{{ total_orders }}</div>
+        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[11px] md:text-[12px] text-gray-500 uppercase tracking-widest truncate">Orders</span>
+            <div class="text-xl md:text-[26px] font-bold text-[#E23744] mt-2 truncate">{{ total_orders }}</div>
             {% if comp_data and comp_data.orders and comp_data.orders.show %}
-            <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.orders.is_positive else 'text-error' }}">
-                <span class="material-symbols-outlined text-[16px]">{{ 'arrow_upward' if comp_data.orders.is_positive else 'arrow_downward' }}</span>
+            <div class="flex items-center gap-1 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.orders.is_positive else 'text-error' }} truncate">
+                <span class="material-symbols-outlined text-[14px] md:text-[16px]">{{ 'arrow_upward' if comp_data.orders.is_positive else 'arrow_downward' }}</span>
                 <span>{{ comp_data.orders.pct }}%</span>
-                <span class="text-gray-400 font-normal ml-1">vs {{ comp_data.label }}</span>
+                <span class="text-gray-400 font-normal ml-1 hidden sm:inline">vs {{ comp_data.label }}</span>
             </div>
             {% endif %}
         </div>
 
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Pre-Disc AOV</span>
-            <div class="text-[26px] font-bold text-on-surface mt-2">{{ avg_aov }}</div>
+        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[11px] md:text-[12px] text-gray-500 uppercase tracking-widest truncate">Pre-Disc AOV</span>
+            <div class="text-xl md:text-[26px] font-bold text-on-surface mt-2 truncate">{{ avg_aov }}</div>
             {% if comp_data and comp_data.aov and comp_data.aov.show %}
-            <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.aov.is_positive else 'text-error' }}">
-                <span class="material-symbols-outlined text-[16px]">{{ 'arrow_upward' if comp_data.aov.is_positive else 'arrow_downward' }}</span>
+            <div class="flex items-center gap-1 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.aov.is_positive else 'text-error' }} truncate">
+                <span class="material-symbols-outlined text-[14px] md:text-[16px]">{{ 'arrow_upward' if comp_data.aov.is_positive else 'arrow_downward' }}</span>
                 <span>{{ comp_data.aov.pct }}%</span>
-                <span class="text-gray-400 font-normal ml-1">vs {{ comp_data.label }}</span>
+                <span class="text-gray-400 font-normal ml-1 hidden sm:inline">vs {{ comp_data.label }}</span>
             </div>
             {% endif %}
         </div>
 
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Ad Sales</span>
-            <div class="text-[26px] font-bold text-blue-600 mt-2">{{ sales_ads }}</div>
+        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col justify-between">
+            <span class="font-label-sm text-[11px] md:text-[12px] text-gray-500 uppercase tracking-widest truncate">Ad Sales</span>
+            <div class="text-xl md:text-[26px] font-bold text-blue-600 mt-2 truncate">{{ sales_ads }}</div>
             {% if comp_data and comp_data.ads and comp_data.ads.show %}
-            <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.ads.is_positive else 'text-error' }}">
-                <span class="material-symbols-outlined text-[16px]">{{ 'arrow_upward' if comp_data.ads.is_positive else 'arrow_downward' }}</span>
+            <div class="flex items-center gap-1 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.ads.is_positive else 'text-error' }} truncate">
+                <span class="material-symbols-outlined text-[14px] md:text-[16px]">{{ 'arrow_upward' if comp_data.ads.is_positive else 'arrow_downward' }}</span>
                 <span>{{ comp_data.ads.pct }}%</span>
-                <span class="text-gray-400 font-normal ml-1">vs {{ comp_data.label }}</span>
+                <span class="text-gray-400 font-normal ml-1 hidden sm:inline">vs {{ comp_data.label }}</span>
             </div>
             {% endif %}
         </div>
 
-        <div class="elevation-1 card-radius p-5 flex flex-col justify-between">
-            <span class="font-label-sm text-[12px] text-gray-500 uppercase tracking-widest">Discounts</span>
-            <div class="text-[26px] font-bold text-error mt-2">{{ discount_given }}</div>
+        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col justify-between col-span-2 md:col-span-1 lg:col-span-1">
+            <span class="font-label-sm text-[11px] md:text-[12px] text-gray-500 uppercase tracking-widest truncate">Discounts</span>
+            <div class="text-xl md:text-[26px] font-bold text-error mt-2 truncate">{{ discount_given }}</div>
             {% if comp_data and comp_data.discount and comp_data.discount.show %}
-            <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.discount.is_positive else 'text-error' }}">
-                <span class="material-symbols-outlined text-[16px]">{{ 'arrow_upward' if comp_data.discount.is_positive else 'arrow_downward' }}</span>
+            <div class="flex items-center gap-1 mt-2 text-xs font-semibold {{ 'text-[#10b981]' if comp_data.discount.is_positive else 'text-error' }} truncate">
+                <span class="material-symbols-outlined text-[14px] md:text-[16px]">{{ 'arrow_upward' if comp_data.discount.is_positive else 'arrow_downward' }}</span>
                 <span>{{ comp_data.discount.pct }}%</span>
-                <span class="text-gray-400 font-normal ml-1">vs {{ comp_data.label }}</span>
+                <span class="text-gray-400 font-normal ml-1 hidden sm:inline">vs {{ comp_data.label }}</span>
             </div>
             {% endif %}
         </div>
     </section>
 
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="charts-container">
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-1">
-            <div class="flex justify-between items-center mb-4 shrink-0">
-                <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">1. Customer Conversion Funnel</h3>
+    <section class="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6 mb-8" id="charts-container">
+        <div class="elevation-1 card-radius p-4 md:p-5 bg-white flex flex-col min-h-[420px] md:h-[450px]" id="chart-card-1">
+            <div class="flex justify-between items-center mb-4 shrink-0 px-2">
+                <h3 class="font-title-md text-[14px] md:text-[16px] font-bold text-on-surface uppercase tracking-wide">1. Customer Conversion Funnel</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-1', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
                     <span class="material-symbols-outlined text-[20px]">fullscreen</span>
                 </button>
             </div>
-            <div class="relative w-full flex-1 flex flex-col md:flex-row items-center md:items-start gap-6 overflow-hidden">
-                <div class="w-full md:w-1/2 h-full relative flex items-center justify-center min-h-[250px]">
+            <div class="relative w-full flex-1 flex flex-col md:flex-row-reverse items-center justify-center gap-4 overflow-hidden pt-2" id="canvas-wrapper-1">
+                <div class="w-full md:w-[80%] h-[300px] md:h-full relative flex items-center justify-center">
                     <canvas id="funnelChart"></canvas>
                 </div>
-                <div class="w-full md:w-1/2 h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-4" id="funnel-custom-legend">
+                <div class="w-full md:w-[20%] h-auto md:h-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center px-2 pb-4 md:pb-0" id="funnel-custom-legend">
                     </div>
             </div>
         </div>
         
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-2">
+        <div class="elevation-1 card-radius p-4 md:p-5 bg-white flex flex-col h-[350px] md:h-[450px]" id="chart-card-2">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">2. Revenue & Volume Trends</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-2', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
@@ -352,7 +352,7 @@
             <div class="relative w-full flex-1"><canvas id="trendChart"></canvas></div>
         </div>
         
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-3">
+        <div class="elevation-1 card-radius p-4 md:p-5 bg-white flex flex-col h-[350px] md:h-[450px]" id="chart-card-3">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">3. Advertising ROI</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-3', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
@@ -362,7 +362,7 @@
             <div class="relative w-full flex-1"><canvas id="adsChart"></canvas></div>
         </div>
         
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-4">
+        <div class="elevation-1 card-radius p-4 md:p-5 bg-white flex flex-col h-[350px] md:h-[450px]" id="chart-card-4">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">4. Operational Efficiency</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-4', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
@@ -372,7 +372,7 @@
             <div class="relative w-full flex-1"><canvas id="opsChart"></canvas></div>
         </div>
 
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-5">
+        <div class="elevation-1 card-radius p-4 md:p-5 bg-white flex flex-col h-[350px] md:h-[450px]" id="chart-card-5">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">5. Discount Impact on GMV</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-5', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
@@ -382,7 +382,7 @@
             <div class="relative w-full flex-1"><canvas id="discountChart"></canvas></div>
         </div>
 
-        <div class="elevation-1 card-radius p-5 bg-white flex flex-col h-[420px]" id="chart-card-6">
+        <div class="elevation-1 card-radius p-4 md:p-5 bg-white flex flex-col h-[350px] md:h-[450px]" id="chart-card-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-title-md text-[14px] font-bold text-on-surface uppercase tracking-wide">6. Customer Mix (New vs Repeat)</h3>
                 <button type="button" onclick="toggleMaximize('chart-card-6', event)" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors flex items-center justify-center">
@@ -394,11 +394,11 @@
     </section>
 
     <section class="elevation-1 card-radius overflow-hidden mb-12">
-        <div class="px-6 py-4 border-b border-surface-container-high bg-white flex flex-wrap justify-between items-center gap-4">
-            <h2 class="font-title-md text-[16px] font-bold text-on-surface uppercase tracking-wide">Zomato Insights Performance Records</h2>
+        <div class="px-4 md:px-6 py-4 border-b border-surface-container-high bg-white flex flex-wrap justify-between items-center gap-4">
+            <h2 class="font-title-md text-[14px] md:text-[16px] font-bold text-on-surface uppercase tracking-wide">Zomato Insights Performance Records</h2>
             
             <div class="flex items-center gap-2 text-sm text-gray-600">
-                <span>Rows per page:</span>
+                <span class="hidden sm:inline">Rows per page:</span>
                 <select id="rows-per-page" onchange="zomatoChangeRowsPerPage()" class="bg-white border border-outline-variant rounded-md pl-3 pr-8 py-1.5 text-sm focus:outline-none focus:border-[#E23744] cursor-pointer">
                     <option value="20">20</option>
                     <option value="50">50</option>
@@ -407,8 +407,8 @@
                 </select>
             </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse whitespace-nowrap" id="zomato-table">
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse whitespace-nowrap min-w-[1200px]" id="zomato-table">
                 <thead>
                     <tr class="bg-[#F1F5F9] font-label-sm text-[12px] text-gray-600 uppercase tracking-widest border-b border-surface-container-high">
                         <th class="py-4 px-4 font-semibold">Restaurant Name</th>
@@ -456,26 +456,26 @@
             </table>
         </div>
 
-        <div class="px-6 py-4 bg-white border-t border-surface-container-high flex items-center justify-between">
+        <div class="px-4 md:px-6 py-4 bg-white border-t border-surface-container-high flex flex-col sm:flex-row items-center justify-between gap-4">
             <span id="pagination-info" class="text-sm text-gray-500">Showing 0 to 0 of 0 entries</span>
-            <div class="flex items-center gap-2" id="pagination-controls"></div>
+            <div class="flex items-center gap-2 overflow-x-auto max-w-full pb-2 sm:pb-0" id="pagination-controls"></div>
         </div>
     </section>
 </main>
 
-<div id="fullscreen-chart-modal" class="fixed inset-0 bg-black/70 z-[9999] hidden items-center justify-center p-6 backdrop-blur-sm" onclick="closeFullscreenModal()">
-    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-6xl h-[85vh] flex flex-col p-6 relative" onclick="event.stopPropagation()">
+<div id="fullscreen-chart-modal" class="fixed inset-0 bg-black/70 z-[9999] hidden items-center justify-center p-4 md:p-6 backdrop-blur-sm" onclick="closeFullscreenModal()">
+    <div class="bg-white rounded-[20px] shadow-2xl w-full max-w-6xl h-[90vh] md:h-[85vh] flex flex-col p-4 md:p-6 relative" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center mb-4 shrink-0">
-            <h3 id="fullscreen-modal-title" class="font-title-md text-[18px] font-bold text-on-surface uppercase tracking-wide">Chart View</h3>
+            <h3 id="fullscreen-modal-title" class="font-title-md text-[16px] md:text-[18px] font-bold text-on-surface uppercase tracking-wide">Chart View</h3>
             <button type="button" onclick="closeFullscreenModal()" class="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center">
                 <span class="material-symbols-outlined text-[24px]">fullscreen_exit</span>
             </button>
         </div>
-        <div id="fullscreen-modal-body" class="relative w-full flex-1 flex flex-col md:flex-row items-center md:items-start gap-6 overflow-hidden">
-            <div id="fullscreen-canvas-container" class="w-full h-full relative flex items-center justify-center min-h-[250px]">
+        <div id="fullscreen-modal-body" class="relative w-full flex-1 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 overflow-hidden">
+            <div id="fullscreen-canvas-container" class="w-full h-1/2 md:h-full relative flex items-center justify-center">
                 <canvas id="fullscreenModalCanvas"></canvas>
             </div>
-            <div id="fullscreen-modal-legend" class="w-full md:w-1/2 h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-4 hidden">
+            <div id="fullscreen-modal-legend" class="w-full md:w-1/2 h-1/2 md:h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-4 hidden">
                 </div>
         </div>
     </div>
@@ -515,7 +515,7 @@
 
         const titleEl = card.querySelector('h3');
         const canvas = card.querySelector('canvas');
-        const customLegend = card.querySelector('[id$="-custom-legend"]'); // Check if card has a custom HTML legend attached
+        const customLegend = card.querySelector('[id$="-custom-legend"]'); 
         if (!canvas) return;
 
         const sourceChart = Chart.getChart(canvas);
@@ -531,17 +531,19 @@
             modalTitle.innerText = titleEl.innerText;
         }
 
-        // Handle Custom Legend Injection for Fullscreen Modal
+        // Handle Custom Legend Injection for Fullscreen Modal responsively
         if (customLegend) {
             modalLegend.innerHTML = customLegend.innerHTML;
             modalLegend.classList.remove('hidden');
-            canvasContainer.classList.remove('w-full');
-            canvasContainer.classList.add('md:w-1/2');
+            // Remove generic layout classes
+            canvasContainer.classList.remove('w-full', 'md:w-[80%]', 'h-1/2');
+            modalLegend.classList.remove('md:w-[20%]', 'h-1/2');
+            // The zomato_charts.js global override will apply the exact 80/20 layout
         } else {
             modalLegend.innerHTML = '';
             modalLegend.classList.add('hidden');
-            canvasContainer.classList.remove('md:w-1/2');
-            canvasContainer.classList.add('w-full');
+            canvasContainer.className = "w-full h-full relative flex items-center justify-center";
+            modalLegend.className = "hidden";
         }
 
         modal.classList.remove('hidden');
@@ -681,17 +683,17 @@
         const controls = document.getElementById('pagination-controls');
         let html = '';
         
-        html += `<button type="button" onclick="zomatoChangePage(${zomatoCurrentPage - 1})" ${zomatoCurrentPage === 1 ? 'disabled' : ''} class="px-3 py-1.5 border border-outline-variant rounded-md text-sm font-medium ${zomatoCurrentPage === 1 ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100'}">Previous</button>`;
+        html += `<button type="button" onclick="zomatoChangePage(${zomatoCurrentPage - 1})" ${zomatoCurrentPage === 1 ? 'disabled' : ''} class="px-3 py-1.5 border border-outline-variant rounded-md text-sm font-medium shrink-0 ${zomatoCurrentPage === 1 ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100'}">Prev</button>`;
         
         let startPage = Math.max(1, zomatoCurrentPage - 2);
         let endPage = Math.min(totalPages, startPage + 4);
         if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
         for (let i = startPage; i <= endPage; i++) {
-            html += `<button type="button" onclick="zomatoChangePage(${i})" class="px-3 py-1.5 border rounded-md text-sm font-medium ${i === zomatoCurrentPage ? 'bg-[#E23744] text-white border-[#E23744] shadow-sm' : 'border-outline-variant hover:bg-gray-100'}">${i}</button>`;
+            html += `<button type="button" onclick="zomatoChangePage(${i})" class="px-3 py-1.5 border rounded-md text-sm font-medium shrink-0 ${i === zomatoCurrentPage ? 'bg-[#E23744] text-white border-[#E23744] shadow-sm' : 'border-outline-variant hover:bg-gray-100'}">${i}</button>`;
         }
 
-        html += `<button type="button" onclick="zomatoChangePage(${zomatoCurrentPage + 1})" ${zomatoCurrentPage === totalPages || totalPages === 0 ? 'disabled' : ''} class="px-3 py-1.5 border border-outline-variant rounded-md text-sm font-medium ${zomatoCurrentPage === totalPages || totalPages === 0 ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100'}">Next</button>`;
+        html += `<button type="button" onclick="zomatoChangePage(${zomatoCurrentPage + 1})" ${zomatoCurrentPage === totalPages || totalPages === 0 ? 'disabled' : ''} class="px-3 py-1.5 border border-outline-variant rounded-md text-sm font-medium shrink-0 ${zomatoCurrentPage === totalPages || totalPages === 0 ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100'}">Next</button>`;
         
         controls.innerHTML = html;
     }
@@ -745,7 +747,6 @@
     let zomatoSelStart = zomatoParseIso(document.getElementById('start-date-input')?.value);
     let zomatoSelEnd = zomatoParseIso(document.getElementById('end-date-input')?.value);
     
-    // NEW: Capture the max available date from your backend
     let zomatoMaxDate = zomatoParseIso(document.getElementById('max-available-date')?.value);
 
     function zomatoInitCalendar() {
@@ -772,7 +773,6 @@
 
         for (let i = 0; i < firstDay; i++) { grid.innerHTML += `<div></div>`; }
 
-        // Fallback to today's date if the backend doesn't provide a max_available_date
         let fallbackMax = new Date();
         fallbackMax.setHours(0, 0, 0, 0);
 
@@ -781,7 +781,6 @@
             let isSelected = false;
             let isBetween = false;
 
-            // NEW: Check if this specific day exceeds our max available date limit
             let isDisabled = zomatoMaxDate ? d.getTime() > zomatoMaxDate.getTime() : d.getTime() > fallbackMax.getTime();
 
             if (zomatoSelStart && zomatoSelEnd) {
@@ -794,11 +793,9 @@
             let classes = "w-8 h-8 flex items-center justify-center rounded-full mx-auto ";
             
             if (isDisabled) {
-                // Disabled State: Faint gray text, no pointer cursor, no click event
                 classes += "text-gray-300 cursor-not-allowed";
                 grid.innerHTML += `<div class="${classes}">${day}</div>`;
             } else {
-                // Active State: Normal hover and click events
                 classes += "cursor-pointer transition-colors ";
                 if (isSelected) classes += "bg-[#E23744] text-white font-bold shadow-md";
                 else if (isBetween) classes += "bg-red-100 text-[#E23744] font-medium";

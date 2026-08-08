@@ -73,17 +73,17 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!chartArea) return;
             const { top, bottom, left, width } = chartArea;
             
-            // MATH UPDATE: padY reduced to 0 to maximize height fully
-            const padY = 0; 
+            const layers = options.layers;
+            const numLayers = layers.length;
+            
+            const padY = 5; 
             const pyTop = top + padY;
             const pyBottom = bottom - padY;
             const pyHeight = pyBottom - pyTop;
             const layerHeight = pyHeight / numLayers;
             
-            // MATH UPDATE: Increased width to 80% and centered at 40%
-            // This perfectly aligns the left edge of the pyramid to the very edge of the canvas boundary
-            const centerX = left + (width * 0.40); 
-            const pyMaxWidth = width * 0.80;
+            const centerX = left + (width * 0.38); 
+            const pyMaxWidth = width * 0.76;
 
             ctx.save();
             ctx.clearRect(0, 0, chart.width, chart.height);
@@ -175,10 +175,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.shadowOffsetY = 1;
                 
                 // TEXT SWAP: Value on top, Title on bottom
-                ctx.font = `bold 15px 'Hanken Grotesk', sans-serif`;
+                ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
                 ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY - 8);
 
-                ctx.font = `500 12px 'Hanken Grotesk', sans-serif`;
+                ctx.font = `500 11px 'Hanken Grotesk', sans-serif`;
                 ctx.fillText(layers[i].title, centerX, textY + 8);
                 
                 ctx.shadowColor = 'transparent';

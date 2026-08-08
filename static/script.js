@@ -1,19 +1,12 @@
-// --- INITIALIZATION & GLOBALS ---
+// --- INITIALIZATION ---
 let selectedStartDate = null;
 let selectedEndDate = null;
 let viewDate = new Date();
 let viewYear = viewDate.getFullYear();
 let viewMonth = viewDate.getMonth();
-
 let donutChartInstance = null;
 let trendChartInstance = null;
 let currentMetric = 'sales';
-let currentDonutMetric = 'orders';
-
-// Pagination Globals
-let currentPage = 1;
-let rowsPerPage = 20;
-let allTableRows = [];
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -23,88 +16,6 @@ const PLATFORM_COLORS = {
 };
 const DEFAULT_COLOR = '#004ac6';
 
-// --- STRICT WEEKEND ARRAY GENERATOR ---
-function getWeekendStyles(labels, defaultBg, defaultBorder, defaultRadius) {
-    const bgColors = [];
-    const borderColors = [];
-    const radii = [];
-    const borderWidths = [];
-
-    (labels || []).forEach(label => {
-        let isWeekend = false;
-        
-        if (label && typeof label === 'string' && label.includes('-')) {
-            const parts = label.split('-');
-            if (parts.length === 3) {
-                let d = 1, m = 0, y = 2000;
-                
-                if (parts[2].length === 4) { 
-                    d = parseInt(parts[0], 10);
-                    m = parseInt(parts[1], 10) - 1;
-                    y = parseInt(parts[2], 10);
-                } 
-                else if (parts[0].length === 4) { 
-                    y = parseInt(parts[0], 10);
-                    m = parseInt(parts[1], 10) - 1;
-                    d = parseInt(parts[2], 10);
-                }
-                
-                const dateObj = new Date(y, m, d);
-                if (!isNaN(dateObj.getTime())) {
-                    const day = dateObj.getDay();
-                    if (day === 0 || day === 6) isWeekend = true;
-                }
-            }
-        }
-
-        if (isWeekend) {
-            bgColors.push('#FF5722');     
-            borderColors.push('#FF5722');  
-            radii.push(defaultRadius);    
-            borderWidths.push(1.5);
-        } else {
-            bgColors.push(defaultBg);      
-            borderColors.push(defaultBorder); 
-            radii.push(defaultRadius);     
-            borderWidths.push(1.5);
-        }
-    });
-
-    return { bgColors, borderColors, radii, borderWidths };
-}
-
-// --- KPI CHANGE INDICATOR ENGINE (2-Decimal Precision) ---
-function initChangeIndicators() {
-    document.querySelectorAll('.kpi-change-indicator').forEach(el => {
-        const current = parseFloat(el.getAttribute('data-current'));
-        const prev = parseFloat(el.getAttribute('data-prev'));
-        const isInverse = el.getAttribute('data-inverse') === 'true';
-        updateChangeIndicatorElement(el, current, prev, isInverse);
-    });
-}
-
-function updateChangeIndicatorElement(el, current, prev, isInverse) {
-    if (!el) return;
-    if (isNaN(prev) || isNaN(current) || (prev === 0 && current === 0)) {
-        el.innerHTML = `<span class="text-gray-400 font-medium">No change</span>`;
-        return;
-    }
-    if (prev === 0) {
-        el.innerHTML = `<span class="text-[#006a61] font-bold">100%+ (New)</span>`;
-        return;
-    }
-    
-    const pct = ((current - prev) / prev) * 100;
-    const formattedPct = Math.abs(pct).toFixed(2) + '%';
-    
-    let isPositive = pct >= 0;
-    let colorClass = isPositive ? (isInverse ? 'text-error' : 'text-[#006a61]') : (isInverse ? 'text-[#006a61]' : 'text-error');
-    let icon = isPositive ? 'arrow_upward' : 'arrow_downward';
-    
-    el.innerHTML = `<span class="material-symbols-outlined text-[14px] ${colorClass} font-bold mr-0.5">${icon}</span>
-                    <span class="${colorClass} font-bold text-[12px]">${formattedPct} vs prev</span>`;
-}
-
 document.addEventListener("DOMContentLoaded", function () {
     const displayNameEl = document.getElementById("user-display-name");
     const displayName = displayNameEl ? displayNameEl.innerText.trim() : "";
@@ -112,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
     if (avatarBadge && displayName) {
       const words = displayName.split(/\s+/);
-      let initials = words.map(w => w[0]).join("").toUpperCase();
+      let initials = words.map(w => w[0] ? w[0] : "").join("").toUpperCase();
       if (initials.length > 2) initials = initials.substring(0, 2);
       avatarBadge.innerText = initials || "RP";
     }
@@ -142,118 +53,20 @@ document.addEventListener("DOMContentLoaded", function () {
     
     renderMonthYearDropdowns();
     renderCalendar();
-    initChangeIndicators();
 
     if (window.INITIAL_CHART_DATA) {
         initCharts(window.INITIAL_CHART_DATA);
     }
-
-    const initialRows = document.querySelectorAll('#data-table-body tr');
-    if (initialRows.length === 1 && initialRows[0].innerText.includes("No operational data found")) {
-        allTableRows = [];
-    } else {
-        allTableRows = Array.from(initialRows);
-    }
-    applyTablePagination();
 });
 
-// --- PAGINATION LOGIC ---
-function changeRowsPerPage(val) {
-    rowsPerPage = val;
-    currentPage = 1;
-    applyTablePagination();
-}
-
-function prevPage() {
-    if (currentPage > 1) {
-        currentPage--;
-        applyTablePagination();
-    }
-}
-
-function nextPage() {
-    const maxPage = rowsPerPage === 'all' ? 1 : Math.ceil(allTableRows.length / rowsPerPage);
-    if (currentPage < maxPage) {
-        currentPage++;
-        applyTablePagination();
-    }
-}
-
-function goToPage(page) {
-    currentPage = page;
-    applyTablePagination();
-}
-
-function applyTablePagination() {
-    const tbody = document.getElementById('data-table-body');
-    tbody.innerHTML = '';
-    
-    const totalRows = allTableRows.length;
-    
-    if (totalRows === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="py-8 text-center text-gray-500 italic">No operational data found for the selected filter.</td></tr>`;
-        document.getElementById('pagination-info').innerText = "Showing 0 entries";
-        document.getElementById('pagination-controls').style.display = 'none';
-        return;
-    }
-
-    document.getElementById('pagination-controls').style.display = 'flex';
-
-    let startIndex = 0;
-    let endIndex = totalRows;
-
-    if (rowsPerPage !== 'all') {
-        const limit = parseInt(rowsPerPage);
-        startIndex = (currentPage - 1) * limit;
-        endIndex = Math.min(startIndex + limit, totalRows);
-    }
-
-    const rowsToShow = allTableRows.slice(startIndex, endIndex);
-    rowsToShow.forEach(row => tbody.appendChild(row));
-
-    document.getElementById('pagination-info').innerText = `Showing ${startIndex + 1} to ${endIndex} of ${totalRows} entries`;
-
-    const prevBtn = document.getElementById('prev-page-btn');
-    const nextBtn = document.getElementById('next-page-btn');
-    const pageNumbersContainer = document.getElementById('page-numbers');
-    
-    pageNumbersContainer.innerHTML = '';
-
-    if (rowsPerPage === 'all') {
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
-    } else {
-        const maxPage = Math.ceil(totalRows / rowsPerPage);
-        prevBtn.disabled = currentPage === 1;
-        nextBtn.disabled = currentPage === maxPage;
-
-        let lastRendered = 0;
-        for (let i = 1; i <= maxPage; i++) {
-            if (i === 1 || i === maxPage || (i >= currentPage - 1 && i <= currentPage + 1)) {
-                if (lastRendered && i - lastRendered > 1) {
-                    const span = document.createElement('span');
-                    span.innerText = '...';
-                    span.className = 'px-2 py-1 text-gray-500 font-medium';
-                    pageNumbersContainer.appendChild(span);
-                }
-                const btn = document.createElement('button');
-                btn.innerText = i;
-                btn.onclick = () => goToPage(i);
-                btn.className = `px-3 py-1 border rounded-md text-sm transition-colors font-medium ${i === currentPage ? 'bg-primary text-white border-primary shadow-sm' : 'border-outline-variant hover:bg-gray-50 text-on-surface bg-white'}`;
-                pageNumbersContainer.appendChild(btn);
-                lastRendered = i;
-            }
-        }
-    }
-}
-
-// --- CHART.JS VISUALIZATION LOGIC (WITH DYNAMIC PREV DATE TOOLTIP) ---
+// --- CHART.JS VISUALIZATION LOGIC ---
 function initCharts(data) {
     const donutCtx = document.getElementById('platformDonutChart').getContext('2d');
     
-    const platformLabels = Object.keys(data.platform_orders);
-    const platformValues = Object.values(data.platform_orders);
+    const platformLabels = Object.keys(data.platform_donut);
+    const platformValues = Object.values(data.platform_donut);
     const totalOrders = platformValues.reduce((sum, val) => sum + val, 0);
+    
     const labelsWithPct = platformLabels.map((platform, i) => {
         const val = platformValues[i];
         const pct = totalOrders > 0 ? Math.round((val / totalOrders) * 100) : 0;
@@ -276,24 +89,11 @@ function initCharts(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '55%', 
+            cutout: '55%',
             plugins: {
                 legend: {
                     position: 'bottom',
                     labels: { font: { family: "'Hanken Grotesk', sans-serif", size: 14 }, padding: 20 }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let val = context.raw;
-                            let label = context.label.split(' (')[0]; 
-                            if (currentDonutMetric === 'orders') {
-                                return `${label}: ${val.toLocaleString()} orders`;
-                            } else {
-                                return `${label}: ₹${val.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -301,13 +101,10 @@ function initCharts(data) {
 
     const trendCtx = document.getElementById('salesTrendChart').getContext('2d');
     let gradient = trendCtx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(0, 74, 198, 0.2)'); 
+    gradient.addColorStop(0, 'rgba(0, 74, 198, 0.2)');  
     gradient.addColorStop(1, 'rgba(0, 74, 198, 0)');
-
+    
     window.latestChartPayload = data;
-
-    const currentStyles = getWeekendStyles(data.trend_labels, '#ffffff', '#004ac6', 3);
-    const prevStyles = getWeekendStyles(data.prev_trend_labels, '#ffffff', '#94a3b8', 2);
 
     trendChartInstance = new Chart(trendCtx, {
         type: 'line',
@@ -322,11 +119,9 @@ function initCharts(data) {
                     borderWidth: 2.5,
                     fill: true,
                     tension: 0.3,
-                    pointBackgroundColor: currentStyles.bgColors,
-                    pointBorderColor: currentStyles.borderColors,
-                    pointRadius: currentStyles.radii,
-                    pointBorderWidth: currentStyles.borderWidths,
-                    pointHoverRadius: 9
+                    pointRadius: 3,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#004ac6'
                 },
                 {
                     label: 'Previous Period',
@@ -336,10 +131,9 @@ function initCharts(data) {
                     borderWidth: 2,
                     fill: false,
                     tension: 0.3,
-                    pointBackgroundColor: prevStyles.bgColors,
-                    pointBorderColor: prevStyles.borderColors,
-                    pointRadius: prevStyles.radii,
-                    pointBorderWidth: prevStyles.borderWidths
+                    pointRadius: 2,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#94a3b8'
                 }
             ]
         },
@@ -355,15 +149,13 @@ function initCharts(data) {
                 },
                 tooltip: {
                     callbacks: {
-                        title: function(context) {
-                            const index = context[0].dataIndex;
-                            const datasetIndex = context[0].datasetIndex;
-                            const payload = window.latestChartPayload;
-                            
-                            if (datasetIndex === 1 && payload && payload.prev_trend_labels) {
-                                return payload.prev_trend_labels[index] || context[0].label;
+                        title: function(tooltipItems) {
+                            const index = tooltipItems[0].dataIndex;
+                            const datasetIndex = tooltipItems[0].datasetIndex;
+                            if (datasetIndex === 1 && window.latestChartPayload.prev_trend_labels) {
+                                return window.latestChartPayload.prev_trend_labels[index] || tooltipItems[0].label;
                             }
-                            return context[0].label;
+                            return tooltipItems[0].label;
                         },
                         label: function(context) {
                             let val = context.raw;
@@ -397,63 +189,19 @@ function initCharts(data) {
     });
 }
 
-function switchDonutMetric(metricType, btnEl) {
-    currentDonutMetric = metricType;
-    
-    document.querySelectorAll('.donut-btn').forEach(btn => {
-        btn.className = "donut-btn px-2.5 py-1 rounded text-gray-500 hover:text-gray-800 transition-all";
-    });
-    btnEl.className = "donut-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all";
-
-    if (!window.latestChartPayload) return;
-    const data = window.latestChartPayload;
-
-    let targetDataObj = data.platform_orders;
-    let titleText = 'Orders by Platform';
-
-    if (metricType === 'gmv') {
-        targetDataObj = data.platform_gmv;
-        titleText = 'GMV by Platform';
-    } else if (metricType === 'sales') {
-        targetDataObj = data.platform_sales;
-        titleText = 'Sales by Platform';
-    } else if (metricType === 'ads') {
-        targetDataObj = data.platform_ads;
-        titleText = 'Ad Spend by Platform';
-    } else if (metricType === 'discount') {
-        targetDataObj = data.platform_discount;
-        titleText = 'Discount by Platform';
-    }
-
-    const titleEl = document.getElementById('donut-chart-title');
-    if (titleEl) titleEl.innerText = titleText;
-
-    const platformLabels = Object.keys(targetDataObj);
-    const platformValues = Object.values(targetDataObj);
-    const total = platformValues.reduce((sum, val) => sum + val, 0);
-    
-    const labelsWithPct = platformLabels.map((platform, i) => {
-        const val = platformValues[i];
-        const pct = total > 0 ? Math.round((val / total) * 100) : 0;
-        return `${platform} (${pct}%)`;
-    });
-
-    donutChartInstance.data.labels = labelsWithPct;
-    donutChartInstance.data.datasets[0].data = platformValues;
-    donutChartInstance.update();
-}
-
 function switchTrendMetric(metricType, btnEl) {
     currentMetric = metricType;
     
     document.querySelectorAll('.trend-btn').forEach(btn => {
-        btn.className = "trend-btn px-2.5 py-1 rounded text-gray-500 hover:text-gray-800 transition-all";
+        btn.classList.remove('bg-white', 'dark:bg-slate-600', 'text-primary', 'dark:text-[#2563eb]', 'shadow-sm');
+        btn.classList.add('text-on-surface-variant', 'dark:text-gray-300', 'hover:text-on-surface', 'dark:hover:text-white');
     });
-    btnEl.className = "trend-btn px-2.5 py-1 rounded bg-white text-primary shadow-sm transition-all";
+    btnEl.classList.remove('text-on-surface-variant', 'dark:text-gray-300', 'hover:text-on-surface', 'dark:hover:text-white');
+    btnEl.classList.add('bg-white', 'dark:bg-slate-600', 'text-primary', 'dark:text-[#2563eb]', 'shadow-sm');
 
     if (!window.latestChartPayload) return;
+    
     const data = window.latestChartPayload;
-
     let targetData = data.sales_trend;
     let prevTargetData = data.prev_sales_trend;
     let titleText = 'Daily Sales Trend';
@@ -479,40 +227,36 @@ function switchTrendMetric(metricType, btnEl) {
     const titleEl = document.getElementById('trend-chart-title');
     if (titleEl) titleEl.innerText = titleText;
 
-    const currentStyles = getWeekendStyles(data.trend_labels, '#ffffff', '#004ac6', 3);
-    const prevStyles = getWeekendStyles(data.prev_trend_labels, '#ffffff', '#94a3b8', 2);
-
     trendChartInstance.data.datasets[0].data = targetData;
-    trendChartInstance.data.datasets[0].pointBackgroundColor = currentStyles.bgColors;
-    trendChartInstance.data.datasets[0].pointBorderColor = currentStyles.borderColors;
-    trendChartInstance.data.datasets[0].pointRadius = currentStyles.radii;
-    trendChartInstance.data.datasets[0].pointBorderWidth = currentStyles.borderWidths;
-    
     trendChartInstance.data.datasets[1].data = prevTargetData;
-    trendChartInstance.data.datasets[1].pointBackgroundColor = prevStyles.bgColors;
-    trendChartInstance.data.datasets[1].pointBorderColor = prevStyles.borderColors;
-    trendChartInstance.data.datasets[1].pointRadius = prevStyles.radii;
-    trendChartInstance.data.datasets[1].pointBorderWidth = prevStyles.borderWidths;
-    
     trendChartInstance.update();
+}
+
+function switchDonutMetric(metricType, btnEl) {
+    currentMetric = metricType;
+    
+    document.querySelectorAll('.donut-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'dark:bg-slate-600', 'text-primary', 'dark:text-[#2563eb]', 'shadow-sm');
+        btn.classList.add('text-on-surface-variant', 'dark:text-gray-300', 'hover:text-on-surface', 'dark:hover:text-white');
+    });
+    btnEl.classList.remove('text-on-surface-variant', 'dark:text-gray-300', 'hover:text-on-surface', 'dark:hover:text-white');
+    btnEl.classList.add('bg-white', 'dark:bg-slate-600', 'text-primary', 'dark:text-[#2563eb]', 'shadow-sm');
+
+    if (!window.latestChartPayload) return;
+    updateCharts(window.latestChartPayload);
 }
 
 function updateCharts(data) {
     if (!donutChartInstance || !trendChartInstance) return;
     window.latestChartPayload = data;
 
-    let targetDonutObj = data.platform_orders;
-    if (currentDonutMetric === 'gmv') targetDonutObj = data.platform_gmv;
-    else if (currentDonutMetric === 'sales') targetDonutObj = data.platform_sales;
-    else if (currentDonutMetric === 'ads') targetDonutObj = data.platform_ads;
-    else if (currentDonutMetric === 'discount') targetDonutObj = data.platform_discount;
-
-    const platformLabels = Object.keys(targetDonutObj);
-    const platformValues = Object.values(targetDonutObj);
-    const totalDonut = platformValues.reduce((sum, val) => sum + val, 0);
+    const platformLabels = Object.keys(data.platform_donut);
+    const platformValues = Object.values(data.platform_donut);
+    const totalOrders = platformValues.reduce((sum, val) => sum + val, 0);
+    
     const labelsWithPct = platformLabels.map((platform, i) => {
         const val = platformValues[i];
-        const pct = totalDonut > 0 ? Math.round((val / totalDonut) * 100) : 0;
+        const pct = totalOrders > 0 ? Math.round((val / totalOrders) * 100) : 0;
         return `${platform} (${pct}%)`;
     });
 
@@ -523,30 +267,26 @@ function updateCharts(data) {
     donutChartInstance.data.datasets[0].backgroundColor = mappedColors;
     donutChartInstance.update();
 
-    let targetTrendData = data.sales_trend;
-    let prevTargetTrendData = data.prev_sales_trend;
-    if (currentMetric === 'gmv') { targetTrendData = data.gmv_trend; prevTargetTrendData = data.prev_gmv_trend; }
-    else if (currentMetric === 'orders') { targetTrendData = data.orders_trend; prevTargetTrendData = data.prev_orders_trend; }
-    else if (currentMetric === 'ads') { targetTrendData = data.ads_trend; prevTargetTrendData = data.prev_ads_trend; }
-    else if (currentMetric === 'discount') { targetTrendData = data.discount_trend; prevTargetTrendData = data.prev_discount_trend; }
+    let targetData = data.sales_trend;
+    let prevTargetData = data.prev_sales_trend;
 
-    const currentStyles = getWeekendStyles(data.trend_labels, '#ffffff', '#004ac6', 3);
-    const prevStyles = getWeekendStyles(data.prev_trend_labels, '#ffffff', '#94a3b8', 2);
+    if (currentMetric === 'gmv') {
+        targetData = data.gmv_trend;
+        prevTargetData = data.prev_gmv_trend;
+    } else if (currentMetric === 'orders') {
+        targetData = data.orders_trend;
+        prevTargetData = data.prev_orders_trend;
+    } else if (currentMetric === 'ads') {
+        targetData = data.ads_trend;
+        prevTargetData = data.prev_ads_trend;
+    } else if (currentMetric === 'discount') {
+        targetData = data.discount_trend;
+        prevTargetData = data.prev_discount_trend;
+    }
 
     trendChartInstance.data.labels = data.trend_labels;
-    
-    trendChartInstance.data.datasets[0].data = targetTrendData;
-    trendChartInstance.data.datasets[0].pointBackgroundColor = currentStyles.bgColors;
-    trendChartInstance.data.datasets[0].pointBorderColor = currentStyles.borderColors;
-    trendChartInstance.data.datasets[0].pointRadius = currentStyles.radii;
-    trendChartInstance.data.datasets[0].pointBorderWidth = currentStyles.borderWidths;
-    
-    trendChartInstance.data.datasets[1].data = prevTargetTrendData;
-    trendChartInstance.data.datasets[1].pointBackgroundColor = prevStyles.bgColors;
-    trendChartInstance.data.datasets[1].pointBorderColor = prevStyles.borderColors;
-    trendChartInstance.data.datasets[1].pointRadius = prevStyles.radii;
-    trendChartInstance.data.datasets[1].pointBorderWidth = prevStyles.borderWidths;
-    
+    trendChartInstance.data.datasets[0].data = targetData;
+    trendChartInstance.data.datasets[1].data = prevTargetData;
     trendChartInstance.update();
 }
 
@@ -567,6 +307,7 @@ async function fetchDashboardData() {
     if (startDate) params.append('start_date', startDate);
     if (endDate) params.append('end_date', endDate);
     
+    window.history.pushState(null, '', '/?' + params.toString());
     params.append('ajax', '1');
 
     try {
@@ -578,61 +319,53 @@ async function fetchDashboardData() {
             maxInput.value = data.max_available_date;
         }
 
-        // Apply Main KPIs
         document.getElementById('kpi-gmv').innerText = data.total_gmv;
         document.getElementById('kpi-orders').innerText = data.total_orders;
         document.getElementById('kpi-aov').innerText = data.avg_aov;
         document.getElementById('kpi-ads').innerText = data.sales_ads;
         document.getElementById('kpi-discount').innerText = data.discount_given;
 
-        // Apply Change Indicators
-        updateChangeIndicatorElement(document.getElementById('kpi-gmv-change'), data.raw_total_gmv, data.raw_prev_total_gmv, false);
-        updateChangeIndicatorElement(document.getElementById('kpi-orders-change'), data.raw_total_orders, data.raw_prev_total_orders, false);
-        updateChangeIndicatorElement(document.getElementById('kpi-aov-change'), data.raw_avg_aov, data.raw_prev_avg_aov, false);
-        updateChangeIndicatorElement(document.getElementById('kpi-ads-change'), data.raw_sales_ads, data.raw_prev_sales_ads, false);
-        updateChangeIndicatorElement(document.getElementById('kpi-discount-change'), data.raw_discount_given, data.raw_prev_discount_given, true);
-
         if (data.chart_data) {
             updateCharts(data.chart_data);
         }
 
-        allTableRows = [];
-        if (data.table_data.length > 0) {
+        const tbody = document.getElementById('data-table-body');
+        tbody.innerHTML = '';
+
+        if (data.table_data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="10" class="py-8 text-center text-gray-500 italic">No operational data found for the selected filter.</td></tr>`;
+        } else {
             data.table_data.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-gray-100 hover:bg-gray-50 transition-colors";
-                tr.innerHTML = `
-                    <td class="py-4 px-6 font-medium">${row['Restaurant Name']}</td>
-                    <td class="py-4 px-6 text-gray-500">${row['Report Period']}</td>
-                    <td class="py-4 px-6">${row['Location']}</td>
-                    <td class="py-4 px-6 font-mono text-xs text-gray-400">${row['Res ID']}</td>
-                    <td class="py-4 px-6">${row['Platform']}</td>
-                    <td class="py-4 px-6 text-right font-bold">${row['Delivered orders']}</td>
-                    <td class="py-4 px-6 text-right">${row['Sales']}</td>
-                    <td class="py-4 px-6 text-right">${row['GMV']}</td>
-                    <td class="py-4 px-6 text-right text-primary-container font-medium">${row['Sales from Ads']}</td>
-                    <td class="py-4 px-6 text-right text-error font-medium">${row['Discount given']}</td>
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                        <td class="py-4 px-4 font-medium">${row['Restaurant Name']}</td>
+                        <td class="py-4 px-4 text-gray-500 dark:text-gray-400">${row['Report Period']}</td>
+                        <td class="py-4 px-4">${row['Location']}</td>
+                        <td class="py-4 px-4 font-mono text-xs text-gray-400 dark:text-gray-500">${row['Res ID']}</td>
+                        <td class="py-4 px-4 font-semibold">${row['Platform']}</td>
+                        <td class="py-4 px-4 text-right font-bold">${row['Delivered orders']}</td>
+                        <td class="py-4 px-4 text-right">${row['Sales']}</td>
+                        <td class="py-4 px-4 text-right">${row['GMV']}</td>
+                        <td class="py-4 px-4 text-right">${row['Sales from Ads']}</td>
+                        <td class="py-4 px-4 text-right text-error font-medium">${row['Discount given']}</td>
+                    </tr>
                 `;
-                allTableRows.push(tr);
             });
         }
         
-        currentPage = 1;
-        applyTablePagination();
-        
         const outletList = document.getElementById('outlet-list');
         if (outletList) {
-            outletList.innerHTML = `<li onclick="submitCustomDropdown('outlet-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Outlets</li>`;
+            outletList.innerHTML = `<li onclick="submitCustomDropdown('outlet-input', '')" class="px-4 py-2 hover:bg-surface-container-high dark:hover:bg-slate-700 cursor-pointer transition-colors">All Outlets</li>`;
             data.outlets.forEach(loc => {
-                outletList.innerHTML += `<li onclick="submitCustomDropdown('outlet-input', '${loc}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">${loc}</li>`;
+                outletList.innerHTML += `<li onclick="submitCustomDropdown('outlet-input', '${loc}')" class="px-4 py-2 hover:bg-surface-container-high dark:hover:bg-slate-700 cursor-pointer transition-colors">${loc}</li>`;
             });
         }
 
         const platformList = document.getElementById('platform-list');
         if (platformList) {
-            platformList.innerHTML = `<li onclick="submitCustomDropdown('platform-input', '')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">All Platforms</li>`;
+            platformList.innerHTML = `<li onclick="submitCustomDropdown('platform-input', '')" class="px-4 py-2 hover:bg-surface-container-high dark:hover:bg-slate-700 cursor-pointer transition-colors">All Platforms</li>`;
             data.platforms.forEach(p => {
-                platformList.innerHTML += `<li onclick="submitCustomDropdown('platform-input', '${p}')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors text-on-surface">${p}</li>`;
+                platformList.innerHTML += `<li onclick="submitCustomDropdown('platform-input', '${p}')" class="px-4 py-2 hover:bg-surface-container-high dark:hover:bg-slate-700 cursor-pointer transition-colors">${p}</li>`;
             });
         }
         
@@ -676,19 +409,19 @@ function renderMonthYearDropdowns() {
     mList.innerHTML = monthNames.map((m, i) => {
         const isFuture = (viewYear > maxYear) || (viewYear === maxYear && i > maxMonth);
         if (isFuture) {
-            return `<div class="px-3 py-2 text-gray-300 cursor-not-allowed text-sm font-medium bg-gray-50/50">${m}</div>`;
+            return `<div class="px-3 py-1.5 text-gray-300 dark:text-gray-600 cursor-not-allowed text-sm text-center">${m}</div>`;
         }
-        return `<div class="px-3 py-2 hover:bg-surface-container-high cursor-pointer text-sm font-medium ${i === viewMonth ? 'text-primary bg-primary/10' : 'text-on-surface'}" onclick="selectMonth(${i}, event)">${m}</div>`;
+        return `<div class="px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer text-sm text-center" onclick="selectMonth(${i}, event)">${m}</div>`;
     }).join('');
-    
+
     const yList = document.getElementById('year-dropdown');
     let yHTML = '';
     const currentYear = new Date().getFullYear();
     for(let y = currentYear - 5; y <= currentYear + 5; y++) {
         if (y > maxYear) {
-            yHTML += `<div class="px-3 py-2 text-gray-300 cursor-not-allowed text-sm font-medium bg-gray-50/50">${y}</div>`;
+            yHTML += `<div class="px-3 py-1.5 text-gray-300 dark:text-gray-600 cursor-not-allowed text-sm text-center">${y}</div>`;
         } else {
-            yHTML += `<div class="px-3 py-2 hover:bg-surface-container-high cursor-pointer text-sm font-medium ${y === viewYear ? 'text-primary bg-primary/10' : 'text-on-surface'}" onclick="selectYear(${y}, event)">${y}</div>`;
+            yHTML += `<div class="px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer text-sm text-center" onclick="selectYear(${y}, event)">${y}</div>`;
         }
     }
     yList.innerHTML = yHTML;
@@ -724,16 +457,16 @@ function selectYear(y, e) {
 
 function renderCalendar() {
     renderMonthYearDropdowns();
-    
+
     const maxDateStr = document.getElementById('max-available-date') ? document.getElementById('max-available-date').value : '';
     const grid = document.getElementById('calendar-days-grid');
     grid.innerHTML = "";
 
-    const firstDay = new Date(viewYear, viewMonth, 1).getDay(); 
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 
     for (let i = 0; i < firstDay; i++) {
-        grid.innerHTML += `<div class="py-2"></div>`;
+        grid.innerHTML += `<div></div>`;
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
@@ -742,9 +475,9 @@ function renderCalendar() {
         let dateStr = `${viewYear}-${monthStr}-${dayStr}`;
         
         if (maxDateStr && dateStr > maxDateStr) {
-            grid.innerHTML += `<div class="py-2 text-gray-300 cursor-not-allowed bg-gray-50/50 rounded-lg flex items-center justify-center text-sm font-normal" title="No data available">${d}</div>`;
+            grid.innerHTML += `<div class="w-8 h-8 flex items-center justify-center rounded-full mx-auto text-gray-300 dark:text-gray-600 cursor-not-allowed">${d}</div>`;
         } else {
-            grid.innerHTML += `<div class="calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors" data-date="${dateStr}" onclick="handleDayClick(this)">${d}</div>`;
+            grid.innerHTML += `<div class="calendar-day-item w-8 h-8 flex items-center justify-center rounded-full mx-auto cursor-pointer transition-colors text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700" data-date="${dateStr}" onclick="handleDayClick(this)">${d}</div>`;
         }
     }
     
@@ -783,7 +516,7 @@ function handleDayClick(dayEl) {
       selectedEndDate = null;
     } else if (selectedStartDate && !selectedEndDate) {
       if (clickedDate < selectedStartDate) {
-        selectedEndDate = selectedStartDate; 
+        selectedEndDate = selectedStartDate;
         selectedStartDate = clickedDate;
       } else {
         selectedEndDate = clickedDate;
@@ -796,18 +529,18 @@ function updateCalendarHighlights() {
     const dayCells = document.querySelectorAll('.calendar-day-item');
     dayCells.forEach(cell => {
       const cellDate = cell.getAttribute('data-date');
-      cell.className = "calendar-day-item py-2 text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors";
+      cell.className = "calendar-day-item w-8 h-8 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-full mx-auto cursor-pointer transition-colors";
 
       if (selectedStartDate && cellDate === selectedStartDate) {
-        cell.className = "calendar-day-item py-2 text-white bg-[#2563eb] rounded-lg cursor-pointer font-bold shadow-md shadow-blue-200";
+        cell.className = "calendar-day-item w-8 h-8 flex items-center justify-center text-white bg-[#004ac6] dark:bg-[#2563eb] rounded-full mx-auto cursor-pointer font-bold shadow-md shadow-blue-200 dark:shadow-none";
       } else if (selectedEndDate && cellDate === selectedEndDate) {
-        cell.className = "calendar-day-item py-2 text-white bg-[#2563eb] rounded-lg cursor-pointer font-bold shadow-md shadow-blue-200";
+        cell.className = "calendar-day-item w-8 h-8 flex items-center justify-center text-white bg-[#004ac6] dark:bg-[#2563eb] rounded-full mx-auto cursor-pointer font-bold shadow-md shadow-blue-200 dark:shadow-none";
       } else if (selectedStartDate && selectedEndDate && cellDate > selectedStartDate && cellDate < selectedEndDate) {
-        cell.className = "calendar-day-item py-2 text-[#2563eb] bg-blue-50 font-semibold cursor-pointer rounded-lg";
+        cell.className = "calendar-day-item w-8 h-8 flex items-center justify-center text-[#004ac6] dark:text-[#2563eb] bg-blue-50 dark:bg-blue-900/30 font-semibold cursor-pointer rounded-full mx-auto";
       }
     });
 
-    const labelEl = document.getElementById('date-picker-label');
+    const labelEl = document.getElementById('custom-cal-label');
     if (selectedStartDate && selectedEndDate) {
         if (selectedStartDate === selectedEndDate) {
             labelEl.innerText = formatDateLabel(selectedStartDate);
@@ -817,7 +550,7 @@ function updateCalendarHighlights() {
     } else if (selectedStartDate) {
         labelEl.innerText = `${formatDateLabel(selectedStartDate)} to ...`;
     } else {
-        labelEl.innerText = 'Select Date / Range';
+        labelEl.innerText = 'Select Date Range';
     }
 }
 
@@ -830,6 +563,7 @@ function applyDateSelection() {
 
     document.getElementById('start-date-input').value = selectedStartDate;
     document.getElementById('end-date-input').value = selectedEndDate;
+    document.getElementById('calendar-menu').classList.add('hidden');
     fetchDashboardData();
 }
 
@@ -857,6 +591,7 @@ function filterCustomDropdown(inputId, listId) {
 
 function submitCustomDropdown(inputId, selectedValue) {
     document.getElementById(inputId).value = selectedValue;
+
     if (inputId === 'brand-input') {
         const outletInput = document.getElementById('outlet-input');
         if (outletInput) outletInput.value = "";
@@ -875,31 +610,12 @@ document.addEventListener('click', function(event) {
     const outletContainer = document.getElementById('outlet-dropdown-container');
     const platformContainer = document.getElementById('platform-dropdown-container');
     const dateContainer = document.getElementById('date-dropdown-container');
-    const moduleContainer = document.getElementById('module-switcher-container');
     
     if (brandContainer && !brandContainer.contains(event.target)) document.getElementById('brand-menu')?.classList.add('hidden');
     if (outletContainer && !outletContainer.contains(event.target)) document.getElementById('outlet-menu')?.classList.add('hidden');
     if (platformContainer && !platformContainer.contains(event.target)) document.getElementById('platform-menu')?.classList.add('hidden');
     if (dateContainer && !dateContainer.contains(event.target)) document.getElementById('calendar-menu')?.classList.add('hidden');
-    if (moduleContainer && !moduleContainer.contains(event.target)) document.getElementById('module-menu')?.classList.add('hidden');
 
     document.getElementById('month-dropdown')?.classList.add('hidden');
     document.getElementById('year-dropdown')?.classList.add('hidden');
 });
-
-function exportToCSV() {
-    const brand = document.getElementById('brand-input').value;
-    const outlet = document.getElementById('outlet-input').value;
-    const platform = document.getElementById('platform-input').value;
-    const startDate = document.getElementById('start-date-input').value;
-    const endDate = document.getElementById('end-date-input').value;
-
-    const params = new URLSearchParams();
-    if (brand) params.append('brand', brand);
-    if (outlet) params.append('outlet', outlet);
-    if (platform) params.append('platform', platform);
-    if (startDate) params.append('start_date', startDate);
-    if (endDate) params.append('end_date', endDate);
-    
-    window.location.href = '/export?' + params.toString();
-}

@@ -387,7 +387,7 @@
     </section>
 
     <section class="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6 mb-8 relative z-10" id="charts-container">
-        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col h-[400px] md:h-[450px]">
+        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col h-[400px] md:h-[450px]" id="chart-card-1">
             <div class="flex justify-between items-start mb-2">
                 <h3 id="donut-chart-title" class="font-title-md text-[14px] md:text-[16px] font-bold text-on-surface dark:text-white uppercase tracking-wide">Orders by Platform</h3>
                 <div class="flex bg-surface-bright dark:bg-slate-700 p-1 rounded-lg border border-surface-container-high dark:border-slate-600 text-[11px] font-medium shadow-sm">
@@ -403,7 +403,7 @@
             </div>
         </div>
 
-        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col h-[400px] md:h-[450px]">
+        <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col h-[400px] md:h-[450px]" id="chart-card-2">
             <div class="flex justify-between items-start mb-2">
                 <h3 id="trend-chart-title" class="font-title-md text-[14px] md:text-[16px] font-bold text-on-surface dark:text-white uppercase tracking-wide">Daily Sales Trend</h3>
                 <div class="flex bg-surface-bright dark:bg-slate-700 p-1 rounded-lg border border-surface-container-high dark:border-slate-600 text-[11px] font-medium shadow-sm">
@@ -465,7 +465,24 @@
     </section>
 </main>
 
+<div id="fullscreen-chart-modal" class="fixed inset-0 bg-black/70 z-[9999] hidden items-center justify-center p-4 md:p-6 backdrop-blur-sm" onclick="closeFullscreenModal()">
+    <div class="bg-white dark:bg-slate-800 rounded-[20px] shadow-2xl w-full max-w-6xl h-[90vh] md:h-[85vh] flex flex-col p-4 md:p-6 relative" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-4 shrink-0">
+            <h3 id="fullscreen-modal-title" class="font-title-md text-[16px] md:text-[18px] font-bold text-on-surface dark:text-white uppercase tracking-wide">Chart View</h3>
+            <button type="button" onclick="closeFullscreenModal()" class="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center">
+                <span class="material-symbols-outlined text-[24px]">fullscreen_exit</span>
+            </button>
+        </div>
+        <div id="fullscreen-modal-body" class="relative w-full flex-1 flex flex-col items-center justify-center overflow-hidden">
+            <div id="fullscreen-canvas-container" class="w-full h-full relative flex items-center justify-center">
+                <canvas id="fullscreenModalCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    // ONLY INITIAL_CHART_DATA for script.js (No Swiggy variables needed here!)
     window.INITIAL_CHART_DATA = {{ chart_data | tojson | safe }};
     
     function exportMainCSV() {
@@ -484,6 +501,65 @@
         
         window.location.href = '/export?' + params.toString();
     }
+
+    let activeModalChart = null;
+
+    function toggleMaximize(cardId, event) {
+        event.stopPropagation();
+        const card = document.getElementById(cardId);
+        if (!card) return;
+
+        const titleEl = card.querySelector('h3');
+        const canvas = card.querySelector('canvas');
+        if (!canvas) return;
+
+        const sourceChart = Chart.getChart(canvas);
+        if (!sourceChart) return;
+
+        const modal = document.getElementById('fullscreen-chart-modal');
+        const modalTitle = document.getElementById('fullscreen-modal-title');
+        const modalCanvas = document.getElementById('fullscreenModalCanvas');
+
+        if (modalTitle && titleEl) {
+            modalTitle.innerText = titleEl.innerText;
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        if (activeModalChart) {
+            activeModalChart.destroy();
+        }
+
+        const chartConfig = {
+            type: sourceChart.config.type,
+            data: JSON.parse(JSON.stringify(sourceChart.config.data)),
+            options: {
+                ...sourceChart.config.options,
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        };
+
+        activeModalChart = new Chart(modalCanvas, chartConfig);
+    }
+
+    function closeFullscreenModal() {
+        const modal = document.getElementById('fullscreen-chart-modal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+
+        if (activeModalChart) {
+            activeModalChart.destroy();
+            activeModalChart = null;
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeFullscreenModal();
+        }
+    });
 </script>
 <script src="/static/script.js"></script>
 

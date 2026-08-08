@@ -120,7 +120,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 const lineY = pyTop + (i + 1) * layerHeight;
                 const currentW = ((i + 1) / numLayers) * pyMaxWidth;
                 
-                // Line starts EXACTLY at the slanted edge of the pyramid
                 const startX = centerX + (currentW / 2);
                 const endX = centerX + (pyMaxWidth / 2) + 5; 
                 
@@ -273,7 +272,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // 2. Build the Advanced Scorecard with Explicit Comparison Data
         const overallRate = imp > 0 ? ((orders / imp) * 100).toFixed(1) : "0.0";
         let compOverallHTML = '';
         if (hasComp && comp_imp > 0) {
@@ -422,7 +420,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- CHART 6: Customer Mix (New vs Repeat) ---
+    // --- CHART 6: Customer Mix (New vs Repeat) - FIXED SYNTAX ---
     const ctxCustomer = document.getElementById('customerMixChart');
     if (ctxCustomer) {
         const mixData = {
@@ -435,7 +433,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (hasComp) {
             mixData.datasets.push({ label: 'Comp Repeat (%)', data: getCompData(i => (i.repeatCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 } });
-            mixData.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#E23744', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
+            mixData.datasets.push({ label: 'Comp New (%)', data: getCompData(i => (i.newCustSum / i.count).toFixed(1)), backgroundColor: 'transparent', borderColor: '#E23744', borderWidth: 2, borderDash: [5, 5], stack: 'comp', borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } });
         }
 
         new Chart(ctxCustomer, {

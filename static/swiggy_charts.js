@@ -76,14 +76,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const layers = options.layers;
             const numLayers = layers.length;
             
-            const padY = 5; 
+            // MAXIMIZED: 0 padding, 80% width, 40% center alignment
+            const padY = 0; 
             const pyTop = top + padY;
             const pyBottom = bottom - padY;
             const pyHeight = pyBottom - pyTop;
             const layerHeight = pyHeight / numLayers;
             
-            const centerX = left + (width * 0.38); 
-            const pyMaxWidth = width * 0.76;
+            const centerX = left + (width * 0.40); 
+            const pyMaxWidth = width * 0.80;
 
             ctx.save();
             ctx.clearRect(0, 0, chart.width, chart.height);
@@ -174,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.shadowOffsetX = 1;
                 ctx.shadowOffsetY = 1;
                 
-                // TEXT SWAP: Value on top, Title on bottom
+                // DATA FIRST: Value on top, Title on bottom
                 ctx.font = `bold 14px 'Hanken Grotesk', sans-serif`;
                 ctx.fillText(layers[i].vol.toLocaleString(), centerX, textY - 8);
 

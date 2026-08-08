@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const dateLabels = curr.list.map(item => item.date.substring(0, 5));
     Chart.defaults.font.family = 'Hanken Grotesk';
 
-    // --- GLOBALLY REGISTERED PYRAMID PLUGIN WITH FULL COMPARE DATA ---
+    // --- GLOBALLY REGISTERED PYRAMID PLUGIN ---
     const customPyramidPlugin = {
         id: 'customPyramid',
         beforeDraw(chart, args, options) {
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
             ctx.save();
             ctx.clearRect(0, 0, chart.width, chart.height);
             
-            // 1. Draw Perfect Geometric Triangle Slices
+            // 1. Draw Geometric Triangle Slices
             for (let i = 0; i < numLayers; i++) {
                 const y0 = pyTop + i * layerHeight;
                 const y1 = pyTop + (i + 1) * layerHeight;
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.stroke();
             }
             
-            // 2. Draw Short Dropoff Lines & Comparison Stats
+            // 2. Draw Dropoff Dashed Lines & Comparison Stats
             for (let i = 0; i < numLayers - 1; i++) {
                 const currentLayer = layers[i];   
                 const prevLayer = layers[i+1];    
@@ -334,20 +334,46 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- CHART 3: Advertising ROI ---
+    // --- CHART 3: Advertising ROI (UPDATED: COMP DATA AS DASHED LINE CHARTS) ---
     const ctxAds = document.getElementById('adsChart');
     if (ctxAds) {
         const adsData = {
             labels: dateLabels,
             datasets: [
-                { label: 'Ad Spend (₹)', data: curr.list.map(i => i.adSpend), backgroundColor: '#94a3b8', borderRadius: 4, yAxisID: 'y1' },
-                { label: 'Ad Sales (₹)', data: curr.list.map(i => i.adSales), backgroundColor: '#FC8019', borderRadius: 4, yAxisID: 'y' }
+                { label: 'Ad Spend (₹)', data: curr.list.map(i => i.adSpend), backgroundColor: '#94a3b8', borderRadius: 4, yAxisID: 'y1', order: 2 },
+                { label: 'Ad Sales (₹)', data: curr.list.map(i => i.adSales), backgroundColor: '#FC8019', borderRadius: 4, yAxisID: 'y', order: 2 }
             ]
         };
 
         if (hasComp) {
-            adsData.datasets.push({ label: 'Comp Spend', data: getCompData(i => i.adSpend), backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y1' });
-            adsData.datasets.push({ label: 'Comp Sales', data: getCompData(i => i.adSales), backgroundColor: 'transparent', borderColor: '#FC8019', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y' });
+            adsData.datasets.push({ 
+                label: 'Comp Spend (₹)', 
+                data: getCompData(i => i.adSpend), 
+                type: 'line', 
+                borderColor: '#94a3b8', 
+                backgroundColor: '#94a3b8', 
+                borderDash: [5, 5], 
+                borderWidth: 2, 
+                tension: 0.3, 
+                pointRadius: 3, 
+                fill: false, 
+                yAxisID: 'y1', 
+                order: 1 
+            });
+            adsData.datasets.push({ 
+                label: 'Comp Sales (₹)', 
+                data: getCompData(i => i.adSales), 
+                type: 'line', 
+                borderColor: '#FC8019', 
+                backgroundColor: '#FC8019', 
+                borderDash: [5, 5], 
+                borderWidth: 2, 
+                tension: 0.3, 
+                pointRadius: 3, 
+                fill: false, 
+                yAxisID: 'y', 
+                order: 1 
+            });
         }
 
         new Chart(ctxAds, {
@@ -405,7 +431,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (hasComp) {
             discountData.datasets.push({ label: 'Comp GMV', data: getCompData(i => i.gmv), backgroundColor: 'transparent', borderColor: '#e2e8f0', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y', order: 2 });
-            discountData.datasets.push({ label: 'Comp Discount', data: getCompData(i => i.discount), type: 'line', borderColor: '#FC8019', backgroundColor: 'transparent', borderDash: [5, 5], borderRadius: 4, yAxisID: 'y', order: 1 });
+            discountData.datasets.push({ label: 'Comp Discount', data: getCompData(i => i.discount), type: 'line', borderColor: '#FC8019', backgroundColor: 'transparent', borderDash: [5, 5], borderWidth: 2, tension: 0.4, yAxisID: 'y', order: 1 });
         }
 
         new Chart(ctxDiscount, {
@@ -420,7 +446,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- CHART 6: Customer Mix (New vs Repeat) - FIXED SYNTAX ---
+    // --- CHART 6: Customer Mix (New vs Repeat) ---
     const ctxCustomer = document.getElementById('customerMixChart');
     if (ctxCustomer) {
         const mixData = {

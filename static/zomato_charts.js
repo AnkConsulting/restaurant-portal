@@ -334,20 +334,46 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- CHART 3: Advertising ROI ---
+    // --- CHART 3: Advertising ROI (UPDATED: COMP DATA AS DASHED LINE CHARTS) ---
     const ctxAds = document.getElementById('adsChart');
     if (ctxAds) {
         const adsData = {
             labels: dateLabels,
             datasets: [
-                { label: 'Ad Spend (₹)', data: curr.list.map(i => i.adSpend), backgroundColor: '#94a3b8', borderRadius: 4, yAxisID: 'y1' },
-                { label: 'Ad Sales (₹)', data: curr.list.map(i => i.adSales), backgroundColor: '#E23744', borderRadius: 4, yAxisID: 'y' }
+                { label: 'Ad Spend (₹)', data: curr.list.map(i => i.adSpend), backgroundColor: '#94a3b8', borderRadius: 4, yAxisID: 'y1', order: 2 },
+                { label: 'Ad Sales (₹)', data: curr.list.map(i => i.adSales), backgroundColor: '#E23744', borderRadius: 4, yAxisID: 'y', order: 2 }
             ]
         };
 
         if (hasComp) {
-            adsData.datasets.push({ label: 'Comp Spend', data: getCompData(i => i.adSpend), backgroundColor: 'transparent', borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y1' });
-            adsData.datasets.push({ label: 'Comp Sales', data: getCompData(i => i.adSales), backgroundColor: 'transparent', borderColor: '#E23744', borderWidth: 2, borderDash: [5, 5], borderRadius: 4, yAxisID: 'y' });
+            adsData.datasets.push({ 
+                label: 'Comp Spend (₹)', 
+                data: getCompData(i => i.adSpend), 
+                type: 'line', 
+                borderColor: '#94a3b8', 
+                backgroundColor: '#94a3b8', 
+                borderDash: [5, 5], 
+                borderWidth: 2, 
+                tension: 0.3, 
+                pointRadius: 3, 
+                fill: false, 
+                yAxisID: 'y1', 
+                order: 1 
+            });
+            adsData.datasets.push({ 
+                label: 'Comp Sales (₹)', 
+                data: getCompData(i => i.adSales), 
+                type: 'line', 
+                borderColor: '#E23744', 
+                backgroundColor: '#E23744', 
+                borderDash: [5, 5], 
+                borderWidth: 2, 
+                tension: 0.3, 
+                pointRadius: 3, 
+                fill: false, 
+                yAxisID: 'y', 
+                order: 1 
+            });
         }
 
         new Chart(ctxAds, {

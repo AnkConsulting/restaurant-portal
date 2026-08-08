@@ -67,7 +67,7 @@
             <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors text-[18px] md:text-[20px]">expand_more</span>
           </button>
 
-          <div id="module-menu" class="hidden dropdown-menu-custom absolute top-full left-0 mt-2 w-64 md:w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50" onclick="event.stopPropagation()">
+          <div id="module-menu" class="hidden dropdown-menu-custom absolute top-full left-0 mt-2 w-64 md:w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[120]" onclick="event.stopPropagation()">
             <div class="p-4">
               <div class="mb-4">
                 <h4 class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-2 px-2">Core Analytics</h4>
@@ -96,7 +96,7 @@
             <button class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-gray-500">
                 <span class="material-symbols-outlined text-[20px] md:text-[24px]">settings</span>
             </button>
-            <div class="absolute right-0 mt-2 w-64 md:w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-50 border border-surface-container-high">
+            <div class="absolute right-0 mt-2 w-64 md:w-72 bg-white elevation-2 card-radius p-6 hidden group-focus-within:block z-[120] border border-surface-container-high">
                 <h4 class="font-title-md text-[18px] font-semibold text-on-surface mb-4">Theme Settings</h4>
                 <div class="mt-4 pt-4 border-t border-outline-variant">
                     <a href="/logout" class="flex items-center gap-3 w-full px-4 py-3 text-error hover:bg-red-50 rounded-lg transition-colors duration-200 group no-underline">
@@ -133,9 +133,9 @@
 </header>
 
 <main id="main-content" class="pt-[80px] md:pt-[100px] pb-12 px-4 md:px-margin-desktop max-w-[1600px] mx-auto transition-opacity duration-300">
-    <form method="get" action="/zomato-insights" id="filter-form" class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-8">
-        <div class="flex flex-col md:flex-row items-center gap-3 w-full xl:w-auto">
-            <div class="relative w-full md:w-auto z-40" id="date-dropdown-container">
+    <form method="get" action="/zomato-insights" id="filter-form" class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-8 relative z-[80]">
+        <div class="flex flex-col md:flex-row items-center gap-3 w-full xl:w-auto relative z-[90]">
+            <div class="relative w-full md:w-auto z-[100]" id="date-dropdown-container">
                 <input type="hidden" name="start_date" id="start-date-input" value="{{ start_date }}">
                 <input type="hidden" name="end_date" id="end-date-input" value="{{ end_date }}">
                 <input type="hidden" id="max-available-date" value="{{ max_available_date }}">
@@ -148,7 +148,7 @@
                     <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 transition-colors">expand_more</span>
                 </button>
               
-                <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden font-['Hanken_Grotesk'] w-[300px] sm:w-80 z-50 dropdown-menu-custom" onclick="event.stopPropagation()">
+                <div id="calendar-menu" class="hidden absolute left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-visible font-['Hanken_Grotesk'] w-[300px] sm:w-80 z-[110] dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-4">
                       <div class="flex items-center justify-between mb-4 relative">
                         <button type="button" onclick="zomatoNavigate(-1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
@@ -159,13 +159,13 @@
                               <button type="button" onclick="zomatoToggleMonthMenu(event)" class="hover:bg-gray-100 px-1 sm:px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
                                   <span id="custom-month-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
                               </button>
-                              <div id="custom-month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-28 sm:w-32 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                              <div id="custom-month-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[120] w-28 sm:w-32 max-h-48 overflow-y-auto custom-scrollbar"></div>
                           </div>
                           <div class="relative">
                               <button type="button" onclick="zomatoToggleYearMenu(event)" class="hover:bg-gray-100 px-1 sm:px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-1">
                                   <span id="custom-year-text"></span> <span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
                               </button>
-                              <div id="custom-year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[70] w-20 sm:w-24 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                              <div id="custom-year-dropdown" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-outline-variant rounded-lg shadow-xl z-[120] w-20 sm:w-24 max-h-48 overflow-y-auto custom-scrollbar"></div>
                           </div>
                         </div>
                         <button type="button" onclick="zomatoNavigate(1)" class="p-1 hover:bg-gray-100 rounded-full transition-colors flex items-center">
@@ -189,7 +189,7 @@
                 </div>
             </div>
 
-            <div class="relative w-full md:min-w-[240px] md:w-auto z-40" id="compare-dropdown-container">
+            <div class="relative w-full md:min-w-[240px] md:w-auto z-[90]" id="compare-dropdown-container">
                 <input type="hidden" name="compare" id="compare-input" value="{{ compare_mode if compare_mode else 'none' }}">
                 <div onclick="zomatoToggleDropdown('compare-menu', event)" class="w-full h-10 bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-gray-700 font-medium hover:border-[#E23744] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="compare-trigger-text" class="truncate">
@@ -201,7 +201,7 @@
                     </span>
                     <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500 text-[20px]">expand_more</span>
                 </div>
-                <div id="compare-menu" class="hidden absolute z-50 mt-1 w-full right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
+                <div id="compare-menu" class="hidden absolute z-[110] mt-1 w-full right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-visible dropdown-menu-custom" onclick="event.stopPropagation()">
                     <ul class="max-h-60 overflow-y-auto custom-scrollbar text-sm py-1">
                         <li onclick="zomatoSelectCompare('none', 'Compare: None (Raw Data)')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors {% if compare_mode == 'none' or not compare_mode %}bg-gray-50 font-semibold{% endif %}">Compare: None (Raw Data)</li>
                         <li onclick="zomatoSelectCompare('prev_period', 'Compare: Previous Period')" class="px-4 py-2 hover:bg-surface-container-high cursor-pointer transition-colors {% if compare_mode == 'prev_period' %}bg-gray-50 font-semibold{% endif %}">Compare: Previous Period</li>
@@ -213,15 +213,15 @@
             </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row items-center gap-3 xl:gap-4 w-full xl:w-auto xl:flex-1 justify-end z-[50]">
+        <div class="flex flex-col sm:flex-row items-center gap-3 xl:gap-4 w-full xl:w-auto xl:flex-1 justify-end relative z-[70]">
             {% if is_admin %}
-            <div class="relative w-full sm:w-1/3 xl:min-w-[220px] xl:w-auto" id="brand-dropdown-container">
+            <div class="relative w-full sm:w-1/3 xl:min-w-[220px] xl:w-auto z-[80]" id="brand-dropdown-container">
                 <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
                 <div onclick="zomatoToggleDropdown('brand-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 font-body-md text-sm text-on-surface hover:border-[#E23744] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="brand-trigger-text" class="truncate">{{ selected_brand if selected_brand else 'All Brands' }}</span>
                     <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500 text-[20px]">expand_more</span>
                 </div>
-                <div id="brand-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
+                <div id="brand-menu" class="hidden absolute z-[100] mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-visible dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
                         <input type="text" id="brand-search" onkeyup="zomatoFilterDropdown('brand-search', 'brand-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-[#E23744] focus:ring-1 focus:ring-[#E23744] bg-white" placeholder="Search brands...">
                     </div>
@@ -237,13 +237,13 @@
             <input type="hidden" name="brand" id="brand-input" value="{{ selected_brand }}">
             {% endif %}
 
-            <div class="relative w-full sm:w-1/3 xl:min-w-[220px] xl:w-auto" id="outlet-dropdown-container">
+            <div class="relative w-full sm:w-1/3 xl:min-w-[220px] xl:w-auto z-[80]" id="outlet-dropdown-container">
                 <input type="hidden" name="outlet" id="outlet-input" value="{{ selected_outlet }}">
                 <div onclick="zomatoToggleDropdown('outlet-menu', event)" class="w-full bg-white border border-outline-variant rounded-lg pl-4 pr-10 py-2.5 text-sm text-on-surface hover:border-[#E23744] focus:outline-none transition-all cursor-pointer flex items-center justify-between shadow-sm">
                     <span id="outlet-trigger-text" class="truncate">{{ selected_outlet if selected_outlet else 'All Outlets' }}</span>
                     <span class="material-symbols-outlined absolute right-3 pointer-events-none text-gray-500 text-[20px]">expand_more</span>
                 </div>
-                <div id="outlet-menu" class="hidden absolute z-50 mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden dropdown-menu-custom" onclick="event.stopPropagation()">
+                <div id="outlet-menu" class="hidden absolute z-[100] mt-1 w-full md:w-[260px] right-0 bg-white border border-outline-variant rounded-lg shadow-lg overflow-visible dropdown-menu-custom" onclick="event.stopPropagation()">
                     <div class="p-2 border-b border-surface-container-high bg-surface-bright">
                         <input type="text" id="outlet-search" onkeyup="zomatoFilterDropdown('outlet-search', 'outlet-list')" class="w-full px-3 py-1.5 text-sm border border-outline-variant rounded focus:outline-none focus:border-[#E23744] focus:ring-1 focus:ring-[#E23744] bg-white" placeholder="Search outlets...">
                     </div>
@@ -263,7 +263,7 @@
         </div>
     </form>
 
-    <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-8">
+    <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-8 relative z-10">
         <div class="elevation-1 card-radius p-4 md:p-5 flex flex-col justify-between">
             <span class="font-label-sm text-[11px] md:text-[12px] text-gray-500 uppercase tracking-widest truncate">Zomato GMV</span>
             <div class="text-xl md:text-[26px] font-bold text-on-surface mt-2 truncate">{{ total_gmv }}</div>
@@ -325,7 +325,7 @@
         </div>
     </section>
 
-    <section class="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6 mb-8" id="charts-container">
+    <section class="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6 mb-8 relative z-10" id="charts-container">
         <div class="elevation-1 card-radius p-4 md:p-5 bg-white flex flex-col min-h-[420px] md:h-[450px]" id="chart-card-1">
             <div class="flex justify-between items-center mb-4 shrink-0 px-2">
                 <h3 class="font-title-md text-[14px] md:text-[16px] font-bold text-on-surface uppercase tracking-wide">1. Customer Conversion Funnel</h3>
@@ -337,8 +337,7 @@
                 <div class="w-full md:w-[80%] h-[300px] md:h-full relative flex items-center justify-center">
                     <canvas id="funnelChart"></canvas>
                 </div>
-                <div class="w-full md:w-[20%] h-auto md:h-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center px-2 pb-4 md:pb-0" id="funnel-custom-legend">
-                    </div>
+                <div class="w-full md:w-[20%] h-auto md:h-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center px-2 pb-4 md:pb-0" id="funnel-custom-legend"></div>
             </div>
         </div>
         
@@ -393,7 +392,7 @@
         </div>
     </section>
 
-    <section class="elevation-1 card-radius overflow-hidden mb-12">
+    <section class="elevation-1 card-radius overflow-hidden mb-12 relative z-10">
         <div class="px-4 md:px-6 py-4 border-b border-surface-container-high bg-white flex flex-wrap justify-between items-center gap-4">
             <h2 class="font-title-md text-[14px] md:text-[16px] font-bold text-on-surface uppercase tracking-wide">Zomato Insights Performance Records</h2>
             
@@ -475,14 +474,12 @@
             <div id="fullscreen-canvas-container" class="w-full h-1/2 md:h-full relative flex items-center justify-center">
                 <canvas id="fullscreenModalCanvas"></canvas>
             </div>
-            <div id="fullscreen-modal-legend" class="w-full md:w-1/2 h-1/2 md:h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-4 hidden">
-                </div>
+            <div id="fullscreen-modal-legend" class="w-full md:w-1/2 h-1/2 md:h-full overflow-y-auto custom-scrollbar flex flex-col justify-start pr-2 pb-4 hidden"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // FULL DATA PIPELINE HOOK
     let rawZomatoData = {{ table_data | tojson | safe }};
     window.zomatoChartData = rawZomatoData.map(row => {
         if (row['Report Period']) {
@@ -531,14 +528,11 @@
             modalTitle.innerText = titleEl.innerText;
         }
 
-        // Handle Custom Legend Injection for Fullscreen Modal responsively
         if (customLegend) {
             modalLegend.innerHTML = customLegend.innerHTML;
             modalLegend.classList.remove('hidden');
-            // Remove generic layout classes
             canvasContainer.classList.remove('w-full', 'md:w-[80%]', 'h-1/2');
             modalLegend.classList.remove('md:w-[20%]', 'h-1/2');
-            // The zomato_charts.js global override will apply the exact 80/20 layout
         } else {
             modalLegend.innerHTML = '';
             modalLegend.classList.add('hidden');
@@ -840,7 +834,6 @@
 
     function zomatoSetMonth(m, e) {
         e.stopPropagation();
-        swiggyMonth = m; 
         zomatoMonth = m;
         document.getElementById('custom-month-dropdown').classList.add('hidden');
         zomatoRenderGrid();
